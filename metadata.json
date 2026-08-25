@@ -1,0 +1,8 @@
+{
+  "name": "Personal Gemini Journal",
+  "description": "A private, AI-powered reflective journaling web application with Firebase Google Sign-In, Gemini 3.1 Flash Lite conversational thought partnership, automated insights & summarization, and strict user-isolated Cloud Firestore storage.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

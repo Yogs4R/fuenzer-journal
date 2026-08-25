@@ -1,0 +1,50 @@
+{
+  "entities": {
+    "JournalEntry": {
+      "title": "JournalEntry",
+      "description": "User reflective journal entry with conversational transcript and distilled insights",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 300 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" },
+        "framework": { "type": "string" },
+        "initialMood": { "type": "string" },
+        "detectedMood": { "type": "string" },
+        "themes": { "type": "array" },
+        "executiveSummary": { "type": "string" },
+        "keyInsights": { "type": "array" },
+        "actionItems": { "type": "array" },
+        "closingAffirmation": { "type": "string" },
+        "transcript": { "type": "array" },
+        "wordCount": { "type": "number" },
+        "pinned": { "type": "boolean" }
+      },
+      "required": ["id", "userId", "title", "createdAt", "updatedAt", "framework", "transcript"]
+    },
+    "UserDraft": {
+      "title": "UserDraft",
+      "description": "Active in-progress journal reflection draft session",
+      "type": "object",
+      "properties": {
+        "messages": { "type": "array" },
+        "framework": { "type": "string" },
+        "initialMood": { "type": "string" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/journals/{journalId}": {
+      "schema": "JournalEntry",
+      "description": "User isolated journal entries"
+    },
+    "/users/{userId}/interactions/{interactionId}": {
+      "schema": "UserDraft",
+      "description": "User active in-progress draft sessions"
+    }
+  }
+}
