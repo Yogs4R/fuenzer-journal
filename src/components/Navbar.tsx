@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   BookOpen,
   PenLine,
@@ -27,17 +28,22 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNewEntry,
 }) => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleTabSelect = (tab: 'editor' | 'history' | 'analytics') => {
     setCurrentTab(tab);
     setMobileMenuOpen(false);
+    if (tab === 'editor') navigate('/app');
+    else if (tab === 'history') navigate('/archive');
+    else if (tab === 'analytics') navigate('/analytics');
   };
 
   const handleStartNew = () => {
     onNewEntry();
     setCurrentTab('editor');
+    navigate('/app');
     setMobileMenuOpen(false);
     setShowUserMenu(false);
   };
@@ -46,8 +52,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     <>
       <header className="sticky top-0 z-40 bg-[#fbfaf5] border-b border-[#ecece0] text-[#2c2c26]">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
-          {/* Logo & Brand */}
-          <div className="flex items-center gap-3 shrink-0">
+          {/* Logo & Brand - ONLY Fuenzer Journal, no subtitle */}
+          <div className="flex items-center gap-2.5 shrink-0">
             <button
               onClick={() => handleTabSelect('editor')}
               className="flex items-center gap-2.5 text-left cursor-pointer group"
@@ -55,18 +61,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#7d8461] rounded-none flex items-center justify-center text-white shadow-xs group-hover:bg-[#6c7351] transition">
                 <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <h1 className="text-base sm:text-lg font-serif italic font-bold leading-tight text-[#2c2c26]">
-                  Fuenzer Journal
-                </h1>
-                <p className="text-[10px] text-[#7d8461] font-medium hidden sm:block">
-                  Mindful Reflection Sanctuary
-                </p>
-              </div>
+              <h1 className="text-base sm:text-lg font-serif italic font-bold leading-tight text-[#2c2c26]">
+                Fuenzer Journal
+              </h1>
             </button>
           </div>
 
-          {/* Desktop Navigation Tabs (Hidden on tablet/mobile < 768px) */}
+          {/* Desktop Navigation Tabs */}
           <nav className="hidden md:flex items-center bg-[#f4f4ea] border border-[#e8e8df] rounded-none p-0.5">
             <button
               onClick={() => handleTabSelect('editor')}
@@ -108,7 +109,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Streak Counter */}
             <div
               title={`${streakCount} day journaling streak`}
-              className="flex items-center gap-1 px-2 sm:px-2.5 py-1 bg-[#e9c46a]/20 border border-[#e9c46a]/40 text-[#8a6b18] rounded-none text-xs font-semibold"
+              className="flex items-center gap-1 px-2 sm:px-2.5 py-1 bg-[#e9c46a]/20 border border-[#e9c46a]/40 text-[#8a6b18] rounded-none text-xs font-semibold whitespace-nowrap"
             >
               <Flame className="w-3.5 h-3.5 text-[#d48b0c] fill-[#d48b0c]/30" />
               <span>{streakCount}d</span>
@@ -118,7 +119,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="relative hidden md:block">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-1.5 p-1 pl-1.5 pr-2 rounded-none bg-[#f4f4ea] hover:bg-[#ecece0] border border-[#e8e8df] transition cursor-pointer text-xs"
+                className="flex items-center gap-1.5 p-1 pl-1.5 pr-2 rounded-none bg-[#f4f4ea] hover:bg-[#ecece0] border border-[#e8e8df] transition cursor-pointer text-xs whitespace-nowrap"
               >
                 {user?.photoURL ? (
                   <img
@@ -164,6 +165,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         onClick={() => {
                           setShowUserMenu(false);
                           signOut();
+                          navigate('/');
                         }}
                         className="w-full text-left px-2.5 py-1.5 rounded-none text-[#96472d] hover:bg-[#c86d51]/10 flex items-center gap-2 text-xs transition cursor-pointer font-medium"
                       >
@@ -179,7 +181,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Mobile / Tablet Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-none bg-[#f4f4ea] hover:bg-[#ecece0] border border-[#e8e8df] text-[#2c2c26] transition cursor-pointer"
+              className="md:hidden p-2 rounded-none bg-[#f4f4ea] hover:bg-[#ecece0] border border-[#e8e8df] text-[#2c2c26] transition cursor-pointer shrink-0"
               aria-label="Toggle Navigation Menu"
             >
               {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
@@ -270,7 +272,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="pt-2 border-t border-[#ecece0] flex items-center gap-2">
               <button
                 onClick={handleStartNew}
-                className="flex-1 py-2 bg-[#f4f4ea] hover:bg-[#ecece0] border border-[#e8e8df] text-[#2c2c26] text-xs font-bold rounded-none flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider"
+                className="flex-1 py-2 bg-[#f4f4ea] hover:bg-[#ecece0] border border-[#e8e8df] text-[#2c2c26] text-xs font-bold rounded-none flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider whitespace-nowrap"
               >
                 <Plus className="w-3.5 h-3.5 text-[#7d8461]" />
                 <span>New Session</span>
@@ -280,8 +282,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => {
                   setMobileMenuOpen(false);
                   signOut();
+                  navigate('/');
                 }}
-                className="py-2 px-3 bg-[#c86d51]/10 hover:bg-[#c86d51]/20 border border-[#c86d51]/30 text-[#96472d] text-xs font-bold rounded-none flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider"
+                className="py-2 px-3 bg-[#c86d51]/10 hover:bg-[#c86d51]/20 border border-[#c86d51]/30 text-[#96472d] text-xs font-bold rounded-none flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider whitespace-nowrap"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Sign Out</span>

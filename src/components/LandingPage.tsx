@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ShieldCheck,
   Brain,
@@ -9,12 +10,33 @@ import {
   Compass,
   FileText,
   Feather,
+  Sparkles,
+  Quote,
+  TrendingUp,
+  Download,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
+  Check,
+  BookOpen,
+  Calendar,
+  Layers,
+  MessageSquareQuote,
+  Smile,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Footer } from './Footer';
 
 export const LandingPage: React.FC = () => {
-  const { signInWithGoogle, loading, error } = useAuth();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // FAQ accordion state
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
 
   const samplePrompts = [
     {
@@ -22,190 +44,359 @@ export const LandingPage: React.FC = () => {
       tagline: 'Equanimity & Control',
       icon: ShieldCheck,
       color: 'border-[#9c6644]/30 bg-[#9c6644]/10 text-[#7f4f24]',
-      sample: '"I felt anxious about my team presentation today. Help me separate what was in my control from what was outside it."',
+      sample: '"I felt overwhelmed by unexpected feedback today. Help me separate what is within my control from what is outside it."',
     },
     {
       title: 'Emotional Untangling',
       tagline: 'Clarity & Validation',
       icon: HeartHandshake,
       color: 'border-[#c86d51]/30 bg-[#c86d51]/10 text-[#96472d]',
-      sample: '"I am feeling frustrated but also guilty for feeling this way. Help me unpack where this tension is rooted."',
+      sample: '"I feel frustrated with my progress but guilty for feeling impatient. Help me unpack where this tension is coming from."',
     },
     {
-      title: 'Problem Deconstruction',
-      tagline: 'First Principles Thinking',
+      title: 'CBT Cognitive Reframe',
+      tagline: 'Challenging Distortions',
       icon: Brain,
       color: 'border-[#85756e]/30 bg-[#85756e]/10 text-[#53463f]',
-      sample: '"I have two competing priorities this quarter and feel paralyzed. Walk me through a decision framework."',
+      sample: '"I made a minor mistake in my presentation and I feel like everything failed. Walk me through cognitive reframing."',
     },
     {
-      title: 'Future Visioning',
-      tagline: 'Purpose Alignment',
+      title: 'Daily Gratitude & Mindfulness',
+      tagline: 'Grounded Presence',
+      icon: Sparkles,
+      color: 'border-[#7d8461]/30 bg-[#7d8461]/10 text-[#4c5432]',
+      sample: '"What are 3 small ordinary moments today that brought quiet joy, and why do they matter?"',
+    },
+    {
+      title: 'Future Self Visioning',
+      tagline: 'Purpose & Alignment',
       icon: Compass,
       color: 'border-[#b08968]/30 bg-[#b08968]/10 text-[#6f4e37]',
-      sample: '"What small micro-habit today will my 5-year future self thank me for starting?"',
+      sample: '"What small micro-habit today will my 5-year future self thank me for staying committed to?"',
+    },
+    {
+      title: 'Weekly Retrospective',
+      tagline: 'Bottlenecks & Momentum',
+      icon: Calendar,
+      color: 'border-[#606c38]/30 bg-[#606c38]/10 text-[#283618]',
+      sample: '"Review my week: Where did my energy drain, where did I make meaningful progress, and what is next week’s focus?"',
+    },
+  ];
+
+  const testimonials = [
+    {
+      name: 'Elena Rostova',
+      role: 'UX Designer & Writer',
+      initials: 'ER',
+      quote:
+        'Fuenzer Journal completely solved my blank page paralysis. Instead of staring at an empty box, the Socratic prompts gently probe into the core of what I am feeling. It feels like having a wise, patient mentor.',
+    },
+    {
+      name: 'Marcus Vance',
+      role: 'Engineering Lead & Founder',
+      initials: 'MV',
+      quote:
+        'The Stoic reflection framework has transformed my evenings. Separating what I can control from what I cannot helped me disconnect from high-pressure sprints and reclaim restful sleep.',
+    },
+    {
+      name: 'Dr. Sophia Lin',
+      role: 'Cognitive Science Researcher',
+      initials: 'SL',
+      quote:
+        'The automated takeaways and 30-day mood trajectory chart are remarkably well implemented. Seeing my emotional shifts visually gives me actionable self-compassion over time.',
+    },
+    {
+      name: 'David Thorne',
+      role: 'Creative Director & Author',
+      initials: 'DT',
+      quote:
+        'Being able to export formatted Markdown and print-ready PDFs with one click gives me peace of mind. Knowing my data is owner-isolated on Google Cloud makes this my primary sanctuary.',
+    },
+  ];
+
+  const faqs = [
+    {
+      question: 'How is Fuenzer Journal different from a standard notes app or diary?',
+      answer:
+        'Traditional journals leave you with a blank page and no guidance. Fuenzer Journal is an interactive conversational sounding board. It listens, asks clarifying Socratic questions based on proven frameworks (Stoic, CBT, Gratitude), and automatically distills your raw stream-of-consciousness into structured takeaways, insights, and actionable steps.',
+    },
+    {
+      question: 'Is my journal data private and secure?',
+      answer:
+        'Yes, absolutely. We enforce a strict Zero Data Monetization policy. Your reflections are stored strictly under your private user path in Google Cloud Firestore and protected by owner-bound security rules. Furthermore, your private reflections are never used to train public AI models.',
+    },
+    {
+      question: 'How do I log in or create an account?',
+      answer:
+        'We utilize seamless, passwordless Google Federated Authentication. You simply sign in securely with your existing Google account in one click—no passwords to create, manage, or lose.',
+    },
+    {
+      question: 'Can I export or print my entries?',
+      answer:
+        'Yes. You have full ownership of your archive. You can export individual entries or your entire collection as formatted Markdown (.md), print-ready PDF, or raw JSON at any time.',
+    },
+    {
+      question: 'What is the 30-Day Mood Trajectory feature?',
+      answer:
+        'Whenever you finish a reflection, our sentiment engine detects emotional states (Calm, Grateful, Energized, Anxious, Reflective). In the Insights dashboard, a responsive interactive chart visualizes your emotional equanimity and journaling consistency over 14 or 30-day timelines.',
     },
   ];
 
   return (
     <div className="min-h-screen bg-[#fbfaf5] text-[#2c2c26] flex flex-col justify-between selection:bg-[#7d8461] selection:text-white">
-      {/* Background ambient natural tint */}
+      {/* Ambient background lighting */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[750px] h-[500px] bg-gradient-to-b from-[#7d8461]/15 via-[#ddb892]/10 to-transparent blur-[120px]" />
-        <div className="absolute top-1/2 -right-40 w-[400px] h-[400px] bg-[#9c6644]/10 blur-[100px]" />
-        <div className="absolute bottom-10 -left-40 w-[400px] h-[400px] bg-[#7d8461]/10 blur-[100px]" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[850px] h-[550px] bg-gradient-to-b from-[#7d8461]/15 via-[#ddb892]/10 to-transparent blur-[130px]" />
+        <div className="absolute top-1/3 -right-40 w-[450px] h-[450px] bg-[#9c6644]/10 blur-[110px]" />
+        <div className="absolute bottom-1/4 -left-40 w-[450px] h-[450px] bg-[#7d8461]/10 blur-[110px]" />
       </div>
 
-      {/* Header */}
-      <header className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between w-full border-b border-[#ecece0]">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-[#7d8461] rounded-none flex items-center justify-center text-white shadow-xs">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
+      {/* Navigation Header */}
+      <header className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between w-full border-b border-[#ecece0]">
+        <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#7d8461] rounded-none flex items-center justify-center text-white shadow-xs group-hover:bg-[#6c7351] transition">
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <div className="flex flex-col">
-            <h1 className="text-base sm:text-lg font-serif italic font-bold leading-tight text-[#2c2c26]">
-              Fuenzer Journal
-            </h1>
-            <span className="text-[9px] uppercase tracking-[0.18em] text-[#7d8461] font-semibold">
-              Mindful Reflection Sanctuary
-            </span>
-          </div>
-        </div>
+          <h1 className="text-base sm:text-lg font-serif italic font-bold leading-tight text-[#2c2c26]">
+            Fuenzer Journal
+          </h1>
+        </Link>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={signInWithGoogle}
-            disabled={loading}
-            className="text-[11px] uppercase tracking-wider font-bold bg-[#3a3a30] text-[#fbfaf5] px-4 py-2 rounded-none hover:bg-[#2c2c26] shadow-xs transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-          >
-            <span>Sign In</span>
-            <ArrowRight className="w-3 h-3" />
-          </button>
+        {/* Right Header Navigation: Single-line button on mobile */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {user ? (
+            <Link
+              to="/app"
+              className="whitespace-nowrap px-3.5 py-1.5 sm:px-4 sm:py-2 bg-[#7d8461] hover:bg-[#6c7351] text-white text-xs font-bold uppercase tracking-wider rounded-none shadow-xs transition flex items-center gap-1.5"
+            >
+              <span>Go to Journal</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="whitespace-nowrap px-3.5 py-1.5 sm:px-4 sm:py-2 bg-[#2c2c26] hover:bg-[#3a3a30] text-[#fbfaf5] text-xs font-semibold uppercase tracking-wider rounded-none shadow-xs transition flex items-center gap-1.5"
+            >
+              <span>Sign In</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          )}
         </div>
       </header>
 
-      {/* Main Hero Section */}
-      <main className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 text-center">
-        {/* Hero Title */}
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif italic font-bold tracking-tight text-[#2c2c26] leading-tight sm:leading-tight">
-          Your Private Sanctuary for <br />
-          <span className="text-[#7d8461] underline decoration-[#ddb892]/60 underline-offset-8">
-            Deep Reflection & Clarity
-          </span>
-        </h1>
-
-        <p className="mt-5 text-sm sm:text-lg text-[#5c5c52] max-w-2xl mx-auto leading-relaxed font-light">
-          Engage in thoughtful multi-turn dialogues to untangle feelings, deconstruct decisions, and cultivate calm. Automatically distill key takeaways into an encrypted, strictly isolated personal archive.
-        </p>
-
-        {/* Primary Call to Action */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <button
-            onClick={signInWithGoogle}
-            disabled={loading}
-            className="w-full sm:w-auto px-7 py-3.5 bg-[#7d8461] hover:bg-[#6c7351] text-white font-bold rounded-none shadow-md shadow-[#7d8461]/25 flex items-center justify-center gap-3 transition-all cursor-pointer disabled:opacity-50 text-sm uppercase tracking-wider"
-          >
-            {/* Google G Logo SVG */}
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
-              <path
-                fill="#ffffff"
-                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-              />
-              <path
-                fill="#ffffff"
-                d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-              />
-              <path
-                fill="#ffffff"
-                d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-              />
-              <path
-                fill="#ffffff"
-                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-              />
-            </svg>
-            <span>{loading ? 'Connecting to Google...' : 'Continue with Google Sign-In'}</span>
-          </button>
-        </div>
-
-        {error && (
-          <div className="mt-4 p-3 max-w-md mx-auto bg-[#c86d51]/10 border border-[#c86d51]/30 rounded-none text-[#96472d] text-xs">
-            {error}
+      {/* Main Landing Sections */}
+      <main className="relative z-10">
+        {/* HERO SECTION */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 pb-14 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#7d8461]/10 border border-[#7d8461]/25 text-[#4c5432] text-xs font-semibold mb-6 shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-[#7d8461]" />
+            <span>AI Socratic Thought Partner &bull; Zero Data Monetization</span>
           </div>
-        )}
 
-        <div className="mt-7 flex flex-wrap items-center justify-center gap-5 text-xs text-[#5c5c52]">
-          <span className="flex items-center gap-1.5 font-medium">
-            <Lock className="w-3.5 h-3.5 text-[#7d8461]" />
-            No Passwords Stored
-          </span>
-          <span className="flex items-center gap-1.5 font-medium">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#7d8461]" />
-            Owner-Bound Firestore
-          </span>
-          <span className="flex items-center gap-1.5 font-medium">
-            <CheckCircle className="w-3.5 h-3.5 text-[#7d8461]" />
-            Zero Cross-User Leaks
-          </span>
-        </div>
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif italic font-bold tracking-tight text-[#2c2c26] leading-tight sm:leading-tight">
+            Your Private Sanctuary for <br />
+            <span className="text-[#7d8461] underline decoration-[#ddb892]/60 underline-offset-8">
+              Deep Reflection & Clarity
+            </span>
+          </h1>
 
-        {/* Feature Grid - Square Corners */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-5 text-left">
-          <div className="p-6 rounded-none bg-white border border-[#e8e8df] shadow-xs hover:border-[#7d8461]/40 transition">
-            <div className="w-10 h-10 rounded-none bg-[#7d8461]/10 border border-[#7d8461]/20 text-[#7d8461] flex items-center justify-center mb-3.5">
-              <Brain className="w-5 h-5" />
+          <p className="mt-5 text-sm sm:text-lg text-[#5c5c52] max-w-2xl mx-auto leading-relaxed font-light">
+            Engage in thoughtful multi-turn dialogues to untangle complex feelings, challenge cognitive biases, and cultivate calm. Automatically distill breakthroughs into your encrypted, owner-isolated personal archive.
+          </p>
+
+          {/* Action CTAs */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+            <Link
+              to={user ? '/app' : '/login'}
+              className="w-full sm:w-auto px-7 py-3.5 bg-[#7d8461] hover:bg-[#6c7351] text-white font-bold rounded-none shadow-md shadow-[#7d8461]/20 flex items-center justify-center gap-2.5 transition text-xs sm:text-sm uppercase tracking-wider cursor-pointer"
+            >
+              <Feather className="w-4 h-4 text-[#ddb892]" />
+              <span>{user ? 'Open Reflection Studio' : 'Start Your Journal'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+
+            <a
+              href="#how-it-works"
+              className="w-full sm:w-auto px-6 py-3.5 bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] border border-[#e8e8df] font-semibold rounded-none flex items-center justify-center gap-2 transition text-xs sm:text-sm uppercase tracking-wider"
+            >
+              <span>See How It Works</span>
+            </a>
+          </div>
+
+          {/* Quick Trust Highlights */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-[#5c5c52]">
+            <span className="flex items-center gap-1.5 font-medium">
+              <Lock className="w-3.5 h-3.5 text-[#7d8461]" />
+              No Passwords Stored
+            </span>
+            <span className="flex items-center gap-1.5 font-medium">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#7d8461]" />
+              Owner-Isolated Firestore
+            </span>
+            <span className="flex items-center gap-1.5 font-medium">
+              <Download className="w-3.5 h-3.5 text-[#7d8461]" />
+              Export PDF, MD, & JSON
+            </span>
+          </div>
+        </section>
+
+        {/* INTERACTIVE VISUAL SHOWCASE MOCKUP SECTION */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-white border border-[#ecece0] p-4 sm:p-7 shadow-sm">
+            <div className="flex items-center justify-between pb-3 border-b border-[#ecece0] mb-4 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#7d8461]" />
+                <span className="font-serif italic font-bold text-[#2c2c26]">
+                  Active Reflection Preview: Stoic Reflection Mode
+                </span>
+              </div>
+              <span className="px-2 py-0.5 bg-[#7d8461]/10 text-[#7d8461] font-mono text-[10px] uppercase font-bold">
+                Sentiment: Seeking Clarity
+              </span>
             </div>
-            <h2 className="text-base font-serif italic font-bold text-[#2c2c26] mb-1.5">Socratic Reflection Companion</h2>
-            <p className="text-xs text-[#5c5c52] leading-relaxed">
-              Acts as an empathetic sounding board, asking incisive clarifying questions to uncover your deepest insights.
+
+            <div className="space-y-4 text-xs sm:text-sm">
+              {/* User Thought Bubble */}
+              <div className="flex justify-end">
+                <div className="max-w-xl bg-[#f4f4ea] border border-[#ecece0] p-3.5 rounded-none text-[#2c2c26]">
+                  <p className="font-medium text-[11px] text-[#7d8461] uppercase tracking-wider mb-1 font-mono">
+                    You &bull; 8:45 PM
+                  </p>
+                  <p className="leading-relaxed">
+                    &ldquo;I spent the whole afternoon stressing about a client delay that I could not prevent. I feel exhausted and frustrated with myself.&rdquo;
+                  </p>
+                </div>
+              </div>
+
+              {/* Socratic AI Companion Reply */}
+              <div className="flex justify-start">
+                <div className="max-w-xl bg-white border border-[#7d8461]/40 p-4 rounded-none shadow-xs text-[#2c2c26]">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Feather className="w-3.5 h-3.5 text-[#7d8461]" />
+                    <p className="font-serif italic font-bold text-xs text-[#7d8461]">
+                      Socratic Reflection Partner
+                    </p>
+                  </div>
+                  <p className="text-[#5c5c52] leading-relaxed">
+                    Notice where your exhaustion is focused: is it the delay itself, or the pressure you placed on yourself to control an uncontrollable outcome? If you separate what belonged to the client from what belonged to your response, what would your next hour look like?
+                  </p>
+                </div>
+              </div>
+
+              {/* Auto-Distilled Synthesis Box */}
+              <div className="mt-4 p-4 bg-[#fbfaf5] border border-dashed border-[#7d8461]/40">
+                <div className="flex items-center gap-2 text-[#7d8461] font-bold text-xs mb-2">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Automated Executive Synthesis & Takeaway</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-[#5c5c52]">
+                  <div>
+                    <span className="font-bold text-[#2c2c26] block">Breakthrough Insight:</span>
+                    <span className="italic">
+                      Anxiety stemmed from internalizing external schedule slippage. Control was restored upon releasing ownership of other parties' timelines.
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-bold text-[#2c2c26] block">Action Step Tomorrow:</span>
+                    <span>
+                      Draft a clean status email in the morning, then dedicate the rest of the day to creative project milestones.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* HOW IT WORKS (3 STEPS) */}
+        <section id="how-it-works" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="font-mono text-xs uppercase text-[#7d8461] tracking-widest font-bold">
+              The Reflective Journey
+            </span>
+            <h2 className="text-2xl sm:text-4xl font-serif italic font-bold text-[#2c2c26] mt-1.5">
+              How Fuenzer Journal Works
+            </h2>
+            <p className="text-xs sm:text-sm text-[#5c5c52] mt-2">
+              Three simple steps from unstructured mental noise to lasting clarity and growth.
             </p>
           </div>
 
-          <div className="p-6 rounded-none bg-white border border-[#e8e8df] shadow-xs hover:border-[#7d8461]/40 transition">
-            <div className="w-10 h-10 rounded-none bg-[#9c6644]/10 border border-[#9c6644]/20 text-[#9c6644] flex items-center justify-center mb-3.5">
-              <FileText className="w-5 h-5" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="p-6 bg-white border border-[#ecece0] shadow-xs">
+              <div className="w-10 h-10 bg-[#7d8461] text-white flex items-center justify-center font-serif italic font-bold text-base mb-4">
+                1
+              </div>
+              <h3 className="font-serif italic font-bold text-base text-[#2c2c26] mb-1.5">
+                Choose a Mindset & Speak Freely
+              </h3>
+              <p className="text-xs text-[#5c5c52] leading-relaxed">
+                Select a framework (Stoic, CBT, Gratitude, or Free-Flow) and type or dictate your raw thoughts without worrying about grammar or structure.
+              </p>
             </div>
-            <h2 className="text-base font-serif italic font-bold text-[#2c2c26] mb-1.5">Instant Automated Summaries</h2>
-            <p className="text-xs text-[#5c5c52] leading-relaxed">
-              When you wrap up, the engine automatically crafts a title, synthesis, key breakthroughs, and actionable next steps.
-            </p>
-          </div>
 
-          <div className="p-6 rounded-none bg-white border border-[#e8e8df] shadow-xs hover:border-[#7d8461]/40 transition">
-            <div className="w-10 h-10 rounded-none bg-[#7d8461]/10 border border-[#7d8461]/20 text-[#7d8461] flex items-center justify-center mb-3.5">
-              <ShieldCheck className="w-5 h-5" />
+            <div className="p-6 bg-white border border-[#ecece0] shadow-xs">
+              <div className="w-10 h-10 bg-[#7d8461] text-white flex items-center justify-center font-serif italic font-bold text-base mb-4">
+                2
+              </div>
+              <h3 className="font-serif italic font-bold text-base text-[#2c2c26] mb-1.5">
+                Engage in Socratic Dialogue
+              </h3>
+              <p className="text-xs text-[#5c5c52] leading-relaxed">
+                Receive calm, empathetic inquiries that challenge assumptions, unpack emotional roots, and guide you toward first-principles clarity.
+              </p>
             </div>
-            <h2 className="text-base font-serif italic font-bold text-[#2c2c26] mb-1.5">Guaranteed User Isolation</h2>
-            <p className="text-xs text-[#5c5c52] leading-relaxed">
-              Enforced at the database engine level via Firestore Security Rules. No user can ever query or access another person’s thoughts.
-            </p>
-          </div>
-        </div>
 
-        {/* Sample Reflection Frameworks Showcase */}
-        <div className="mt-14 text-left">
-          <div className="flex items-center gap-2 mb-4">
-            <Feather className="w-4 h-4 text-[#7d8461]" />
-            <h2 className="text-lg font-serif italic font-bold text-[#2c2c26]">Curated Reflection Frameworks</h2>
+            <div className="p-6 bg-white border border-[#ecece0] shadow-xs">
+              <div className="w-10 h-10 bg-[#7d8461] text-white flex items-center justify-center font-serif italic font-bold text-base mb-4">
+                3
+              </div>
+              <h3 className="font-serif italic font-bold text-base text-[#2c2c26] mb-1.5">
+                Distill & Track Growth
+              </h3>
+              <p className="text-xs text-[#5c5c52] leading-relaxed">
+                With one click, convert dialogues into synthesized takeaways, tomorrow's action items, and view your 30-day emotional trajectory.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* FRAMEWORKS SHOWCASE */}
+        <section id="frameworks" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 border-t border-[#ecece0]">
+          <div className="flex items-center gap-2 mb-6">
+            <Layers className="w-5 h-5 text-[#7d8461]" />
+            <div>
+              <h2 className="text-xl sm:text-2xl font-serif italic font-bold text-[#2c2c26]">
+                Curated Reflection Frameworks
+              </h2>
+              <p className="text-xs text-[#5c5c52]">
+                Proven philosophical and psychological models configured for conversational reflection.
+              </p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {samplePrompts.map((item, idx) => {
+              const Icon = item.icon;
               return (
                 <div
                   key={idx}
-                  className="p-5 rounded-none bg-white border border-[#e8e8df] hover:border-[#7d8461]/40 transition flex flex-col justify-between shadow-xs"
+                  className="p-5 bg-white border border-[#e8e8df] hover:border-[#7d8461]/50 transition flex flex-col justify-between shadow-xs"
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-serif italic font-bold text-[#2c2c26] text-sm">{item.title}</span>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-8 h-8 bg-[#f4f4ea] border border-[#e8e8df] flex items-center justify-center text-[#7d8461]">
+                        <Icon className="w-4 h-4" />
+                      </div>
                       <span className={`text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-none border ${item.color}`}>
                         {item.tagline}
                       </span>
                     </div>
-                    <p className="text-xs text-[#5c5c52] italic leading-relaxed bg-[#f4f4ea] p-2.5 rounded-none border border-[#ecece0]">
+
+                    <h3 className="font-serif italic font-bold text-[#2c2c26] text-sm mb-1.5">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs text-[#5c5c52] italic leading-relaxed bg-[#fbfaf5] p-2.5 border border-[#ecece0]">
                       {item.sample}
                     </p>
                   </div>
@@ -213,12 +404,120 @@ export const LandingPage: React.FC = () => {
               );
             })}
           </div>
-        </div>
+        </section>
+
+        {/* USER TESTIMONIALS SECTION */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 border-t border-[#ecece0]">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="font-mono text-xs uppercase text-[#7d8461] tracking-widest font-bold">
+              Voices of Clarity
+            </span>
+            <h2 className="text-2xl sm:text-4xl font-serif italic font-bold text-[#2c2c26] mt-1.5">
+              Reflections from Everyday Journalers
+            </h2>
+            <p className="text-xs sm:text-sm text-[#5c5c52] mt-2">
+              Discover how thinkers, creators, and professionals cultivate mindful presence with Fuenzer Journal.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {testimonials.map((t, idx) => (
+              <div
+                key={idx}
+                className="p-6 bg-white border border-[#ecece0] shadow-xs flex flex-col justify-between"
+              >
+                <div>
+                  <Quote className="w-6 h-6 text-[#7d8461]/40 mb-3" />
+                  <p className="text-xs sm:text-sm text-[#3a3a30] leading-relaxed italic">
+                    &ldquo;{t.quote}&rdquo;
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 pt-5 border-t border-[#ecece0] mt-5">
+                  <div className="w-8 h-8 bg-[#7d8461] text-white flex items-center justify-center font-bold text-xs font-serif">
+                    {t.initials}
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#2c2c26] font-serif italic">
+                      {t.name}
+                    </p>
+                    <p className="text-[10px] text-[#5c5c52]">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* FREQUENTLY ASKED QUESTIONS (FAQ) */}
+        <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 border-t border-[#ecece0]">
+          <div className="text-center max-w-xl mx-auto mb-10">
+            <span className="font-mono text-xs uppercase text-[#7d8461] tracking-widest font-bold">
+              Got Questions?
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-serif italic font-bold text-[#2c2c26] mt-1">
+              Frequently Asked Questions
+            </h2>
+          </div>
+
+          <div className="space-y-3">
+            {faqs.map((faq, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div
+                  key={idx}
+                  className="bg-white border border-[#ecece0] transition overflow-hidden"
+                >
+                  <button
+                    onClick={() => toggleFaq(idx)}
+                    className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-[#fbfaf5] transition"
+                  >
+                    <span className="font-serif italic font-bold text-xs sm:text-sm text-[#2c2c26]">
+                      {faq.question}
+                    </span>
+                    <div className="w-5 h-5 flex items-center justify-center text-[#7d8461] shrink-0">
+                      {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </div>
+                  </button>
+
+                  {isOpen && (
+                    <div className="px-4 sm:px-5 pb-5 text-xs sm:text-sm text-[#5c5c52] leading-relaxed border-t border-[#ecece0] pt-3">
+                      {faq.answer}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* FINAL CALL TO ACTION BANNER */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+          <div className="bg-[#2c2c26] text-[#fbfaf5] p-8 sm:p-12 text-center relative overflow-hidden">
+            <div className="max-w-2xl mx-auto space-y-4">
+              <h2 className="text-2xl sm:text-4xl font-serif italic font-bold">
+                Begin Cultivating Daily Clarity Today
+              </h2>
+              <p className="text-xs sm:text-sm text-[#d8d8cc] font-light leading-relaxed">
+                Step away from the noise. Experience thoughtful Socratic guidance, mood tracking, and complete privacy in your private reflection sanctuary.
+              </p>
+              <div className="pt-3">
+                <Link
+                  to={user ? '/app' : '/login'}
+                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#7d8461] hover:bg-[#6c7351] text-white text-xs sm:text-sm font-bold uppercase tracking-wider transition shadow-md"
+                >
+                  <Feather className="w-4 h-4 text-[#ddb892]" />
+                  <span>{user ? 'Open Reflection Studio' : 'Start Your Journal Free'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
-      {/* Enterprise Footer */}
+      {/* Enterprise Global Footer */}
       <Footer />
     </div>
   );
 };
-
