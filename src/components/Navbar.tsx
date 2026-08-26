@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   Plus,
+  Search,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -106,6 +107,23 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Right Actions Desktop & Mobile */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Quick Command Palette Button */}
+            <button
+              onClick={() => {
+                window.dispatchEvent(
+                  new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true })
+                );
+              }}
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f4f4ea] hover:bg-[#ecece0] border border-[#e8e8df] text-[#5c5c52] hover:text-[#2c2c26] text-xs font-medium rounded-none transition cursor-pointer"
+              title="Open Command Palette (Cmd+K / Ctrl+K)"
+            >
+              <Search className="w-3.5 h-3.5 text-[#7d8461]" />
+              <span className="text-[11px] hidden lg:inline">Find</span>
+              <kbd className="text-[9px] font-mono px-1 py-0.2 bg-white border border-[#d8d8cc] text-[#7d8461] font-bold">
+                ⌘K
+              </kbd>
+            </button>
+
             {/* Streak Counter */}
             <div
               title={`${streakCount} day journaling streak`}

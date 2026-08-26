@@ -15,6 +15,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { JournalEditor } from './components/JournalEditor';
 import { JournalList } from './components/JournalList';
 import { AnalyticsView } from './components/AnalyticsView';
+import { CommandPalette } from './components/CommandPalette';
 import { Footer } from './components/Footer';
 import type { JournalEntry, ChatMessage, JournalFrameworkId } from './types/journal';
 import {
@@ -278,10 +279,34 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
   );
 }
 
+function GlobalCommandPalette() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  return (
+    <CommandPalette
+      isOpen={isOpen}
+      onClose={() => setIsOpen(false)}
+    />
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <GlobalCommandPalette />
         <Routes>
           {/* Landing Page */}
           <Route path="/" element={<LandingPage />} />

@@ -15,6 +15,7 @@ import { JOURNAL_FRAMEWORKS, MOOD_OPTIONS } from '../lib/constants';
 import { MoodIcon } from './MoodIcon';
 import { JournalDetailModal } from './JournalDetailModal';
 import { exportJournalToPdf } from '../lib/pdf-export';
+import { formatJournalDate } from '../lib/date-utils';
 
 interface JournalListProps {
   entries: JournalEntry[];
@@ -219,11 +220,7 @@ export const JournalList: React.FC<JournalListProps> = ({
       {!loading && filteredEntries.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredEntries.map((entry) => {
-            const formattedDate = new Date(entry.createdAt).toLocaleDateString(undefined, {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-            });
+            const formattedDate = formatJournalDate(entry.createdAt);
 
             return (
               <div

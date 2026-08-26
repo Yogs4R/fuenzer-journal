@@ -20,6 +20,7 @@ import {
   orderBy,
 } from 'firebase/firestore';
 import type { JournalEntry } from '../types/journal';
+import { parseTimestamp } from './date-utils';
 import firebaseConfigJson from '../../firebase-applet-config.json';
 
 // Initialize Firebase App
@@ -54,10 +55,14 @@ export async function saveJournalToFirestore(
   if (!userId) throw new Error('User ID is required to save journal');
   if (!entry.id) throw new Error('Journal ID is required');
 
+  const createdAt = parseTimestamp(entry.createdAt || Date.now());
+  const updatedAt = Date.now();
+
   const sanitized = sanitizeForFirestore({
     ...entry,
     userId,
-    updatedAt: Date.now(),
+    createdAt,
+    updatedAt,
   });
 
   const journalDocRef = doc(db, 'users', userId, 'journals', entry.id);
@@ -78,7 +83,14 @@ export async function fetchUserJournals(userId: string): Promise<JournalEntry[]>
 
   querySnapshot.forEach((docSnap) => {
     if (docSnap.exists()) {
-      entries.push(docSnap.data() as JournalEntry);
+      const data = docSnap.data();
+      const createdAt = parseTimestamp(data.createdAt);
+      const updatedAt = parseTimestamp(data.updatedAt || data.createdAt);
+      entries.push({
+        ...data,
+        createdAt,
+        updatedAt,
+      } as JournalEntry);
     }
   });
 

@@ -5,26 +5,67 @@ import remarkGfm from 'remark-gfm';
 interface MarkdownRendererProps {
   content: string;
   isUser?: boolean;
+  fontSize?: 'sm' | 'md' | 'lg';
 }
 
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, isUser = false }) => {
+export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
+  content,
+  isUser = false,
+  fontSize = 'md',
+}) => {
+  // Compute responsive sizing classes based on font size setting
+  const containerSizeClass =
+    fontSize === 'sm'
+      ? 'text-xs leading-relaxed'
+      : fontSize === 'lg'
+      ? 'text-base sm:text-lg leading-relaxed'
+      : 'text-xs sm:text-sm leading-relaxed';
+
+  const h1Class =
+    fontSize === 'sm'
+      ? 'text-sm sm:text-base'
+      : fontSize === 'lg'
+      ? 'text-lg sm:text-xl'
+      : 'text-base sm:text-lg';
+
+  const h2Class =
+    fontSize === 'sm'
+      ? 'text-xs sm:text-sm'
+      : fontSize === 'lg'
+      ? 'text-base sm:text-lg'
+      : 'text-sm sm:text-base';
+
+  const h3Class =
+    fontSize === 'sm'
+      ? 'text-xs'
+      : fontSize === 'lg'
+      ? 'text-sm sm:text-base'
+      : 'text-xs sm:text-sm';
+
+  const tableTextClass =
+    fontSize === 'sm'
+      ? 'text-[11px]'
+      : fontSize === 'lg'
+      ? 'text-sm'
+      : 'text-xs';
+
   return (
-    <div className={`markdown-body text-xs sm:text-sm leading-relaxed ${isUser ? 'text-[#fbfaf5]' : 'text-[#2c2c26]'}`}>
+    <div className={`markdown-body ${containerSizeClass} ${isUser ? 'text-[#fbfaf5]' : 'text-[#2c2c26]'}`}>
       <Markdown
         remarkPlugins={[remarkGfm]}
         components={{
           h1: ({ children }) => (
-            <h1 className={`font-serif italic font-bold text-base sm:text-lg mt-3 mb-1.5 ${isUser ? 'text-[#ffffff]' : 'text-[#2c2c26]'}`}>
+            <h1 className={`font-serif italic font-bold ${h1Class} mt-3 mb-1.5 ${isUser ? 'text-[#ffffff]' : 'text-[#2c2c26]'}`}>
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className={`font-serif italic font-bold text-sm sm:text-base mt-2.5 mb-1 ${isUser ? 'text-[#ffffff]' : 'text-[#2c2c26]'}`}>
+            <h2 className={`font-serif italic font-bold ${h2Class} mt-2.5 mb-1 ${isUser ? 'text-[#ffffff]' : 'text-[#2c2c26]'}`}>
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className={`font-serif italic font-bold text-xs sm:text-sm mt-2 mb-1 ${isUser ? 'text-[#ffffff]' : 'text-[#2c2c26]'}`}>
+            <h3 className={`font-serif italic font-bold ${h3Class} mt-2 mb-1 ${isUser ? 'text-[#ffffff]' : 'text-[#2c2c26]'}`}>
               {children}
             </h3>
           ),
@@ -76,7 +117,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, isU
           },
           table: ({ children }) => (
             <div className="overflow-x-auto my-2.5">
-              <table className={`w-full text-left text-xs border-collapse border ${isUser ? 'border-[#4f4f42]' : 'border-[#ecece0]'}`}>
+              <table className={`w-full text-left ${tableTextClass} border-collapse border ${isUser ? 'border-[#4f4f42]' : 'border-[#ecece0]'}`}>
                 {children}
               </table>
             </div>
@@ -97,12 +138,12 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, isU
             </tr>
           ),
           th: ({ children }) => (
-            <th className={`p-2 font-bold font-serif italic text-xs ${isUser ? 'text-[#ffffff]' : 'text-[#2c2c26]'}`}>
+            <th className={`p-2 font-bold font-serif italic ${tableTextClass} ${isUser ? 'text-[#ffffff]' : 'text-[#2c2c26]'}`}>
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="p-2 text-xs">
+            <td className={`p-2 ${tableTextClass}`}>
               {children}
             </td>
           ),

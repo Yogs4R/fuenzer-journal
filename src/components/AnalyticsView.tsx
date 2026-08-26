@@ -11,16 +11,23 @@ import {
   Tag,
   Activity,
   Calendar,
+  Clock,
+  Zap,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
   LineChart,
   Line,
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
   ReferenceLine,
+  Cell,
 } from 'recharts';
 import type { JournalEntry } from '../types/journal';
 import { JOURNAL_FRAMEWORKS, MOOD_OPTIONS } from '../lib/constants';
@@ -31,21 +38,23 @@ interface AnalyticsViewProps {
   streakCount: number;
 }
 
-const MOOD_SCORE_MAP: Record<string, { score: number; label: string }> = {
-  grateful: { score: 5, label: 'Grateful' },
-  calm: { score: 4.5, label: 'Calm' },
-  energized: { score: 4.5, label: 'Energized' },
-  hopeful: { score: 4, label: 'Hopeful' },
-  focused: { score: 4, label: 'Focused' },
-  reflective: { score: 3.5, label: 'Reflective' },
-  tired: { score: 2.5, label: 'Tired' },
-  anxious: { score: 2, label: 'Anxious' },
-  frustrated: { score: 1.5, label: 'Frustrated' },
-  sad: { score: 1.5, label: 'Sad' },
+type TimeRangeOption = '24h' | '7d' | '14d' | '30d';
+
+const MOOD_SCORE_MAP: Record<string, { score: number; label: string; emoji: string }> = {
+  grateful: { score: 5.0, label: 'Grateful', emoji: '✨' },
+  calm: { score: 4.6, label: 'Calm', emoji: '🌿' },
+  energized: { score: 4.4, label: 'Energized', emoji: '⚡' },
+  hopeful: { score: 4.0, label: 'Hopeful', emoji: '🌱' },
+  focused: { score: 3.6, label: 'Focused', emoji: '🎯' },
+  reflective: { score: 3.2, label: 'Reflective', emoji: '🪞' },
+  tired: { score: 2.2, label: 'Tired', emoji: '🥱' },
+  anxious: { score: 1.8, label: 'Anxious', emoji: '⚡' },
+  frustrated: { score: 1.4, label: 'Frustrated', emoji: '🌪️' },
+  sad: { score: 1.2, label: 'Sad', emoji: '🌧️' },
 };
 
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCount }) => {
-  const [timeRange, setTimeRange] = useState<'14' | '30'>('30');
+  const [timeRange, setTimeRange] = useState<TimeRangeOption>('7d');
 
   const stats = useMemo(() => {
     const totalEntries = entries.length;
@@ -88,6 +97,30 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
       frameworkCounts[e.framework] = (frameworkCounts[e.framework] || 0) + 1;
     });
 
+    // Time of Day distribution
+    const timeOfDayCounts = {
+      Morning: 0,   // 5am - 12pm
+      Afternoon: 0, // 12pm - 5pm
+      Evening: 0,   // 5pm - 9pm
+      Night: 0,     // 9pm - 5am
+    };
+
+    entries.forEach((e) => {
+      const date = new Date(e.createdAt);
+      const hours = date.getHours();
+      if (hours >= 5 && hours < 12) timeOfDayCounts.Morning++;
+      else if (hours >= 12 && hours < 17) timeOfDayCounts.Afternoon++;
+      else if (hours >= 17 && hours < 21) timeOfDayCounts.Evening++;
+      else timeOfDayCounts.Night++;
+    });
+
+    const timeOfDayData = [
+      { period: 'Morning (5am-12pm)', count: timeOfDayCounts.Morning, icon: '🌅' },
+      { period: 'Afternoon (12pm-5pm)', count: timeOfDayCounts.Afternoon, icon: '☀️' },
+      { period: 'Evening (5pm-9pm)', count: timeOfDayCounts.Evening, icon: '🌆' },
+      { period: 'Night (9pm-5am)', count: timeOfDayCounts.Night, icon: '🌙' },
+    ];
+
     return {
       totalEntries,
       totalWords,
@@ -97,14 +130,62 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
       topMoods,
       topThemes,
       frameworkCounts,
+      timeOfDayData,
     };
   }, [entries]);
 
-  // Generate 30-day timeline chart data
+  // Generate Timeline chart data (24h, 7d, 14d, 30d)
   const moodChartData = useMemo(() => {
-    const numDays = timeRange === '14' ? 14 : 30;
-    const data = [];
     const now = new Date();
+
+    if (timeRange === '24h') {
+      // 8 intervals of 3 hours for the last 24 hours
+      const data = [];
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const recentEntries = entries.filter((e) => new Date(e.createdAt) >= oneDayAgo);
+
+      for (let i = 7; i >= 0; i--) {
+        const slotTime = new Date(now.getTime() - i * 3 * 60 * 60 * 1000);
+        const slotHour = slotTime.getHours();
+        const displayLabel = `${String(slotHour).padStart(2, '0')}:00`;
+        const slotStart = new Date(slotTime.getTime() - 1.5 * 60 * 60 * 1000);
+        const slotEnd = new Date(slotTime.getTime() + 1.5 * 60 * 60 * 1000);
+
+        const matched = recentEntries.filter((e) => {
+          const entryDate = new Date(e.createdAt);
+          return entryDate >= slotStart && entryDate < slotEnd;
+        });
+
+        if (matched.length > 0) {
+          const latest = matched[0];
+          const moodKey = (latest.detectedMood || latest.initialMood || 'reflective').toLowerCase();
+          const moodInfo = MOOD_SCORE_MAP[moodKey] || { score: 3.2, label: moodKey, emoji: '🪞' };
+          data.push({
+            date: displayLabel,
+            fullDate: slotTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            score: moodInfo.score,
+            moodLabel: `${moodInfo.emoji} ${moodInfo.label}`,
+            hasEntry: true,
+            title: latest.title,
+            words: latest.wordCount || 0,
+          });
+        } else {
+          data.push({
+            date: displayLabel,
+            fullDate: slotTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            score: null,
+            moodLabel: 'No Entry',
+            hasEntry: false,
+            title: '',
+            words: 0,
+          });
+        }
+      }
+      return data;
+    }
+
+    const numDays = timeRange === '7d' ? 7 : timeRange === '14d' ? 14 : 30;
+    const data = [];
 
     // Map entries by local date string YYYY-MM-DD
     const entryByDate: Record<string, JournalEntry[]> = {};
@@ -121,26 +202,26 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
       const dateKey = getLocalDateString(d);
       const dayEntries = entryByDate[dateKey];
 
-      const displayDate = d.toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-      });
+      const displayDate = numDays === 7
+        ? d.toLocaleDateString(undefined, { weekday: 'short', month: 'numeric', day: 'numeric' })
+        : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
       if (dayEntries && dayEntries.length > 0) {
-        // Average or last mood score of the day
         const latestEntry = dayEntries[0];
         const moodKey = (latestEntry.detectedMood || latestEntry.initialMood || 'reflective').toLowerCase();
-        const moodInfo = MOOD_SCORE_MAP[moodKey] || { score: 3.5, label: moodKey };
+        const moodInfo = MOOD_SCORE_MAP[moodKey] || { score: 3.2, label: moodKey, emoji: '🪞' };
+
+        const dayTotalWords = dayEntries.reduce((acc, curr) => acc + (curr.wordCount || 0), 0);
 
         data.push({
           date: displayDate,
           fullDate: dateKey,
           score: moodInfo.score,
-          moodLabel: moodInfo.label,
+          moodLabel: `${moodInfo.emoji} ${moodInfo.label}`,
           hasEntry: true,
           title: latestEntry.title,
           entriesCount: dayEntries.length,
-          wordCount: latestEntry.wordCount || 0,
+          words: dayTotalWords,
         });
       } else {
         data.push({
@@ -151,7 +232,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
           hasEntry: false,
           title: '',
           entriesCount: 0,
-          wordCount: 0,
+          words: 0,
         });
       }
     }
@@ -239,7 +320,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
         </div>
       </div>
 
-      {/* Mood Trends Over Time (Recharts Line Graph) */}
+      {/* DIAGRAM 1: Mood Trends Over Time (Recharts Line Graph with Time Range & Clean Left Y-Axis) */}
       <div className="p-5 sm:p-6 rounded-none bg-white border border-[#e8e8df] shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-2">
@@ -249,31 +330,52 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                 Emotional State & Mood Trajectory
               </h2>
               <p className="text-[11px] text-[#5c5c52]">
-                Visualizing emotional equanimity and reflection trends over time.
+                Visualizing emotional equanimity, tiredness levels, and reflective breakthroughs.
               </p>
             </div>
           </div>
 
+          {/* Time Range Filter: 24h, 7d (Last Week), 14d, 30d */}
           <div className="flex items-center gap-1 bg-[#f4f4ea] border border-[#e8e8df] p-0.5 rounded-none self-start sm:self-auto text-xs">
             <button
-              onClick={() => setTimeRange('14')}
+              onClick={() => setTimeRange('24h')}
               className={`px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer ${
-                timeRange === '14'
+                timeRange === '24h'
                   ? 'bg-[#7d8461] text-white shadow-xs'
                   : 'text-[#5c5c52] hover:text-[#2c2c26]'
               }`}
             >
-              Last 14 Days
+              24 Hours
             </button>
             <button
-              onClick={() => setTimeRange('30')}
+              onClick={() => setTimeRange('7d')}
               className={`px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer ${
-                timeRange === '30'
+                timeRange === '7d'
                   ? 'bg-[#7d8461] text-white shadow-xs'
                   : 'text-[#5c5c52] hover:text-[#2c2c26]'
               }`}
             >
-              Last 30 Days
+              Last Week
+            </button>
+            <button
+              onClick={() => setTimeRange('14d')}
+              className={`px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer ${
+                timeRange === '14d'
+                  ? 'bg-[#7d8461] text-white shadow-xs'
+                  : 'text-[#5c5c52] hover:text-[#2c2c26]'
+              }`}
+            >
+              14 Days
+            </button>
+            <button
+              onClick={() => setTimeRange('30d')}
+              className={`px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer ${
+                timeRange === '30d'
+                  ? 'bg-[#7d8461] text-white shadow-xs'
+                  : 'text-[#5c5c52] hover:text-[#2c2c26]'
+              }`}
+            >
+              30 Days
             </button>
           </div>
         </div>
@@ -283,7 +385,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={moodChartData}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                margin={{ top: 10, right: 15, left: 10, bottom: 0 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#ecece0" vertical={false} />
                 <XAxis
@@ -291,18 +393,20 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                   tick={{ fontSize: 10, fill: '#5c5c52' }}
                   tickLine={false}
                   axisLine={{ stroke: '#e8e8df' }}
-                  interval={timeRange === '30' ? 3 : 1}
+                  interval={timeRange === '30d' ? 3 : 0}
                 />
                 <YAxis
                   domain={[1, 5]}
-                  ticks={[1.5, 2.5, 3.5, 4.5, 5]}
+                  ticks={[1.4, 2.2, 3.2, 4.4, 5.0]}
+                  width={80}
                   tickFormatter={(val) => {
-                    if (val >= 4.5) return 'Calm/High';
-                    if (val >= 3.5) return 'Balanced';
-                    if (val >= 2.5) return 'Tired';
-                    return 'Anxious';
+                    if (val >= 4.8) return '✨ Calm';
+                    if (val >= 4.0) return '🌿 Serene';
+                    if (val >= 3.0) return '⚖️ Balanced';
+                    if (val >= 2.0) return '🥱 Tired';
+                    return '🌧️ Strained';
                   }}
-                  tick={{ fontSize: 10, fill: '#5c5c52' }}
+                  tick={{ fontSize: 10, fill: '#3a3a30', fontWeight: 500 }}
                   tickLine={false}
                   axisLine={{ stroke: '#e8e8df' }}
                 />
@@ -330,7 +434,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                             {item.title || 'Journal Entry'}
                           </p>
                           <p className="text-[10px] text-[#5c5c52] mt-1">
-                            {item.wordCount} words distilled
+                            {item.words} words written
                           </p>
                         </div>
                       );
@@ -338,7 +442,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                     return null;
                   }}
                 />
-                <ReferenceLine y={3.5} stroke="#ddb892" strokeDasharray="3 3" />
+                <ReferenceLine y={3.2} stroke="#ddb892" strokeDasharray="3 3" />
                 <Line
                   type="monotone"
                   dataKey="score"
@@ -356,9 +460,77 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
             <Calendar className="w-6 h-6 text-[#7d8461] mb-2" />
             <p className="font-serif italic text-sm text-[#2c2c26]">No mood history recorded yet</p>
             <p className="text-xs text-[#5c5c52] mt-0.5">
-              Complete your reflections to populate your 30-day emotional trajectory chart.
+              Complete your reflections to populate your emotional trajectory chart.
             </p>
           </div>
+        )}
+      </div>
+
+      {/* DIAGRAM 2: Word Volume & Reflection Output Over Time */}
+      <div className="p-5 sm:p-6 rounded-none bg-white border border-[#e8e8df] shadow-xs">
+        <div className="flex items-center gap-2 mb-4">
+          <PenTool className="w-4 h-4 text-[#7d8461]" />
+          <div>
+            <h2 className="text-base font-serif italic font-bold text-[#2c2c26]">
+              Reflection Output & Word Velocity
+            </h2>
+            <p className="text-[11px] text-[#5c5c52]">
+              Track your daily writing volume ({timeRange === '24h' ? '24 Hours' : timeRange === '7d' ? 'Last Week' : `${timeRange.replace('d', '')} Days`}).
+            </p>
+          </div>
+        </div>
+
+        {entries.length > 0 ? (
+          <div className="w-full h-52 sm:h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={moodChartData}
+                margin={{ top: 10, right: 15, left: -10, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#ecece0" vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 10, fill: '#5c5c52' }}
+                  tickLine={false}
+                  axisLine={{ stroke: '#e8e8df' }}
+                  interval={timeRange === '30d' ? 3 : 0}
+                />
+                <YAxis
+                  tick={{ fontSize: 10, fill: '#5c5c52' }}
+                  tickLine={false}
+                  axisLine={{ stroke: '#e8e8df' }}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const item = payload[0].payload;
+                      return (
+                        <div className="bg-white border border-[#ecece0] p-2.5 shadow-md rounded-none text-xs">
+                          <p className="font-mono text-[10px] text-[#7d8461] font-bold">{item.date}</p>
+                          <p className="text-xs font-serif font-bold text-[#2c2c26] mt-0.5">
+                            {item.words} words written
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar dataKey="words" fill="#7d8461" radius={[0, 0, 0, 0]} barSize={20}>
+                  {moodChartData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.words > 0 ? '#7d8461' : '#e8e8df'}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <p className="text-xs text-[#5c5c52] py-6 text-center">
+            Write your first entry to see your reflection output metrics.
+          </p>
         )}
       </div>
 
@@ -398,33 +570,72 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
           )}
         </div>
 
-        {/* Top Recurring Themes */}
+        {/* DIAGRAM 3: Time of Day Reflection Habits */}
         <div className="p-5 sm:p-6 rounded-none bg-white border border-[#e8e8df] shadow-xs">
           <div className="flex items-center gap-2 mb-4">
-            <Tag className="w-4 h-4 text-[#7d8461]" />
-            <h2 className="text-base font-serif italic font-bold text-[#2c2c26]">Core Themes & Focus</h2>
+            <Clock className="w-4 h-4 text-[#7d8461]" />
+            <h2 className="text-base font-serif italic font-bold text-[#2c2c26]">Time of Day Reflection Rhythms</h2>
           </div>
 
-          {stats.topThemes.length > 0 ? (
-            <div className="flex flex-wrap gap-2 pt-1">
-              {stats.topThemes.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="px-3 py-1 rounded-none bg-[#f4f4ea] border border-[#e8e8df] text-xs text-[#2c2c26] flex items-center gap-1.5 hover:border-[#7d8461] transition font-medium"
-                >
-                  <span className="text-[#7d8461] font-bold">#{item.theme}</span>
-                  <span className="px-1 py-0.2 rounded-none bg-white text-[10px] text-[#5c5c52] font-mono border border-[#e8e8df]">
-                    {item.count}
-                  </span>
-                </div>
-              ))}
+          {stats.totalEntries > 0 ? (
+            <div className="space-y-3">
+              {stats.timeOfDayData.map((item, idx) => {
+                const percentage = stats.totalEntries > 0 ? Math.round((item.count / stats.totalEntries) * 100) : 0;
+                return (
+                  <div key={idx}>
+                    <div className="flex items-center justify-between text-xs mb-1 font-medium">
+                      <span className="text-[#2c2c26] flex items-center gap-1.5">
+                        <span>{item.icon}</span>
+                        <span>{item.period}</span>
+                      </span>
+                      <span className="text-[#5c5c52] font-mono text-[11px]">
+                        {item.count} ({percentage}%)
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-[#f4f4ea] rounded-none overflow-hidden border border-[#e8e8df]">
+                      <div
+                        className="h-full bg-[#b08968] rounded-none transition-all duration-500"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <p className="text-xs text-[#5c5c52] py-6 text-center">
-              Themes extracted by AI will appear here as you log reflections.
+              Reflection time patterns will emerge as you journal throughout the day.
             </p>
           )}
         </div>
+      </div>
+
+      {/* Core Themes & Focus */}
+      <div className="p-5 sm:p-6 rounded-none bg-white border border-[#e8e8df] shadow-xs">
+        <div className="flex items-center gap-2 mb-4">
+          <Tag className="w-4 h-4 text-[#7d8461]" />
+          <h2 className="text-base font-serif italic font-bold text-[#2c2c26]">Core Themes & Philosophical Focus</h2>
+        </div>
+
+        {stats.topThemes.length > 0 ? (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {stats.topThemes.map((item, idx) => (
+              <div
+                key={idx}
+                className="px-3 py-1 rounded-none bg-[#f4f4ea] border border-[#e8e8df] text-xs text-[#2c2c26] flex items-center gap-1.5 hover:border-[#7d8461] transition font-medium"
+              >
+                <span className="text-[#7d8461] font-bold">#{item.theme}</span>
+                <span className="px-1 py-0.2 rounded-none bg-white text-[10px] text-[#5c5c52] font-mono border border-[#e8e8df]">
+                  {item.count}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-[#5c5c52] py-6 text-center">
+            Themes extracted by AI will appear here as you log reflections.
+          </p>
+        )}
       </div>
 
       {/* Framework Utilization - Square */}

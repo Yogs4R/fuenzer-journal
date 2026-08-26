@@ -19,6 +19,7 @@ import type { JournalEntry } from '../types/journal';
 import { JOURNAL_FRAMEWORKS } from '../lib/constants';
 import { exportJournalToPdf } from '../lib/pdf-export';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { formatJournalDate, formatJournalTime } from '../lib/date-utils';
 
 interface JournalDetailModalProps {
   entry: JournalEntry | null;
@@ -46,17 +47,14 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
   const frameworkInfo =
     JOURNAL_FRAMEWORKS.find((f) => f.id === entry.framework) || JOURNAL_FRAMEWORKS[0];
 
-  const formattedDate = new Date(entry.createdAt).toLocaleDateString(undefined, {
+  const formattedDate = formatJournalDate(entry.createdAt, {
     weekday: 'long',
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   });
 
-  const formattedTime = new Date(entry.createdAt).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const formattedTime = formatJournalTime(entry.createdAt);
 
   // Generate Plain Text representation (clean without markdown tags)
   const generatePlainText = () => {

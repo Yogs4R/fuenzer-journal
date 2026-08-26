@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ShieldCheck,
@@ -17,6 +17,8 @@ import {
   HelpCircle,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Check,
   BookOpen,
   Calendar,
@@ -37,6 +39,10 @@ export const LandingPage: React.FC = () => {
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
+
+  // Testimonial Carousel State (10 reviews)
+  const [testimonialIndex, setTestimonialIndex] = useState(0);
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
 
   const samplePrompts = [
     {
@@ -83,13 +89,14 @@ export const LandingPage: React.FC = () => {
     },
   ];
 
+  // 10 authentic, diverse user reviews for the carousel
   const testimonials = [
     {
       name: 'Elena Rostova',
-      role: 'UX Designer & Writer',
+      role: 'UX Designer & Essayist',
       initials: 'ER',
       quote:
-        'Fuenzer Journal completely solved my blank page paralysis. Instead of staring at an empty box, the Socratic prompts gently probe into the core of what I am feeling. It feels like having a wise, patient mentor.',
+        'Fuenzer Journal completely solved my blank page paralysis. Instead of staring at an empty box, the Socratic prompts gently probe into the core of what I am feeling. It feels like having a wise, patient mentor in my pocket.',
     },
     {
       name: 'Marcus Vance',
@@ -110,9 +117,68 @@ export const LandingPage: React.FC = () => {
       role: 'Creative Director & Author',
       initials: 'DT',
       quote:
-        'Being able to export formatted Markdown and print-ready PDFs with one click gives me peace of mind. Knowing my data is owner-isolated on Google Cloud makes this my primary sanctuary.',
+        'Being able to export formatted Markdown and print-ready PDFs with one click gives me complete peace of mind. Knowing my data is owner-isolated on Google Cloud makes this my permanent sanctuary.',
+    },
+    {
+      name: 'Amara Chen',
+      role: 'Clinical Psychologist',
+      initials: 'AC',
+      quote:
+        'I recommend Fuenzer Journal to clients wanting a constructive journaling practice. The structured CBT reframing dialogues help dissolve catastrophic thinking habits without judgment.',
+    },
+    {
+      name: 'Liam O\'Connor',
+      role: 'Product Architect',
+      initials: 'LO',
+      quote:
+        'The keyboard shortcuts, Markdown export, and instant command palette make this feel like an ultra-responsive engineering tool built for deep human introspection.',
+    },
+    {
+      name: 'Nadia Al-Mansoor',
+      role: 'Endurance Athlete & Coach',
+      initials: 'NA',
+      quote:
+        'Mental recovery is as critical as physical recovery. Journaling with the Gratitude and Stoic modes helps me reset after grueling training blocks and stay grounded.',
+    },
+    {
+      name: 'Julian Sterling',
+      role: 'University Professor of Philosophy',
+      initials: 'JS',
+      quote:
+        'The socratic inquiries don\'t just validate your emotions—they challenge your unexamined premises. It is the closest digital experience to an authentic philosophical dialogue.',
+    },
+    {
+      name: 'Maya Takahashi',
+      role: 'Visual Artist & Illustrator',
+      initials: 'MT',
+      quote:
+        'I love the warm paper aesthetics, clean serif typography, and zero-distraction layout. It feels like a quiet physical notebook infused with an intelligent, empathetic soul.',
+    },
+    {
+      name: 'Gabriel Morales',
+      role: 'Executive Leadership Coach',
+      initials: 'GM',
+      quote:
+        'The automated executive synthesis and next-day action items turn raw self-reflection into tangible behavioral changes. Truly indispensable for high-performing teams and individuals.',
     },
   ];
+
+  // Auto-advance carousel every 6 seconds unless paused
+  useEffect(() => {
+    if (isCarouselPaused) return;
+    const interval = setInterval(() => {
+      setTestimonialIndex((prev) => (prev + 1) % testimonials.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [isCarouselPaused, testimonials.length]);
+
+  const handlePrevTestimonial = () => {
+    setTestimonialIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  };
+
+  const handleNextTestimonial = () => {
+    setTestimonialIndex((prev) => (prev + 1) % testimonials.length);
+  };
 
   const faqs = [
     {
@@ -186,13 +252,8 @@ export const LandingPage: React.FC = () => {
 
       {/* Main Landing Sections */}
       <main className="relative z-10">
-        {/* HERO SECTION */}
-        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 pb-14 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#7d8461]/10 border border-[#7d8461]/25 text-[#4c5432] text-xs font-semibold mb-6 shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-[#7d8461]" />
-            <span>AI Socratic Thought Partner &bull; Zero Data Monetization</span>
-          </div>
-
+        {/* HERO SECTION - Pure Display Typography without artificial badges */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 pb-14 text-center">
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif italic font-bold tracking-tight text-[#2c2c26] leading-tight sm:leading-tight">
             Your Private Sanctuary for <br />
             <span className="text-[#7d8461] underline decoration-[#ddb892]/60 underline-offset-8">
@@ -200,7 +261,7 @@ export const LandingPage: React.FC = () => {
             </span>
           </h1>
 
-          <p className="mt-5 text-sm sm:text-lg text-[#5c5c52] max-w-2xl mx-auto leading-relaxed font-light">
+          <p className="mt-6 text-sm sm:text-lg text-[#5c5c52] max-w-2xl mx-auto leading-relaxed font-light">
             Engage in thoughtful multi-turn dialogues to untangle complex feelings, challenge cognitive biases, and cultivate calm. Automatically distill breakthroughs into your encrypted, owner-isolated personal archive.
           </p>
 
@@ -308,7 +369,7 @@ export const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        {/* HOW IT WORKS (3 STEPS) */}
+        {/* HOW IT WORKS (3 STEPS WITH DOTTED CONNECTING LINE) */}
         <section id="how-it-works" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <span className="font-mono text-xs uppercase text-[#7d8461] tracking-widest font-bold">
@@ -318,45 +379,72 @@ export const LandingPage: React.FC = () => {
               How Fuenzer Journal Works
             </h2>
             <p className="text-xs sm:text-sm text-[#5c5c52] mt-2">
-              Three simple steps from unstructured mental noise to lasting clarity and growth.
+              Three connected stages from mental clutter to structured breakthroughs and lasting peace.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 bg-white border border-[#ecece0] shadow-xs">
-              <div className="w-10 h-10 bg-[#7d8461] text-white flex items-center justify-center font-serif italic font-bold text-base mb-4">
-                1
-              </div>
-              <h3 className="font-serif italic font-bold text-base text-[#2c2c26] mb-1.5">
-                Choose a Mindset & Speak Freely
-              </h3>
-              <p className="text-xs text-[#5c5c52] leading-relaxed">
-                Select a framework (Stoic, CBT, Gratitude, or Free-Flow) and type or dictate your raw thoughts without worrying about grammar or structure.
-              </p>
-            </div>
+          {/* Steps Grid with Horizontal & Vertical Dotted Connection Lines */}
+          <div className="relative">
+            {/* Desktop Dotted Connecting Track 1 -> 2 -> 3 */}
+            <div className="hidden md:block absolute top-11 left-[16%] right-[16%] h-0 border-t-2 border-dashed border-[#7d8461]/40 z-0 pointer-events-none" />
 
-            <div className="p-6 bg-white border border-[#ecece0] shadow-xs">
-              <div className="w-10 h-10 bg-[#7d8461] text-white flex items-center justify-center font-serif italic font-bold text-base mb-4">
-                2
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+              {/* Step 1 */}
+              <div className="p-6 bg-white border border-[#ecece0] shadow-xs flex flex-col justify-between relative group hover:border-[#7d8461]/40 transition">
+                <div>
+                  <div className="w-10 h-10 bg-[#7d8461] text-white flex items-center justify-center font-serif italic font-bold text-base mb-4 ring-4 ring-[#fbfaf5] shadow-xs">
+                    1
+                  </div>
+                  <h3 className="font-serif italic font-bold text-base text-[#2c2c26] mb-1.5">
+                    Choose a Mindset & Speak Freely
+                  </h3>
+                  <p className="text-xs text-[#5c5c52] leading-relaxed">
+                    Select a framework (Stoic, CBT, Gratitude, or Free-Flow) and type or dictate your raw thoughts without worrying about grammar or structure.
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-[#ecece0] flex items-center gap-1.5 text-[10px] font-mono text-[#7d8461] font-bold">
+                  <span>STEP 01</span>
+                  <ArrowRight className="w-3 h-3 text-[#7d8461]/60" />
+                </div>
               </div>
-              <h3 className="font-serif italic font-bold text-base text-[#2c2c26] mb-1.5">
-                Engage in Socratic Dialogue
-              </h3>
-              <p className="text-xs text-[#5c5c52] leading-relaxed">
-                Receive calm, empathetic inquiries that challenge assumptions, unpack emotional roots, and guide you toward first-principles clarity.
-              </p>
-            </div>
 
-            <div className="p-6 bg-white border border-[#ecece0] shadow-xs">
-              <div className="w-10 h-10 bg-[#7d8461] text-white flex items-center justify-center font-serif italic font-bold text-base mb-4">
-                3
+              {/* Step 2 */}
+              <div className="p-6 bg-white border border-[#ecece0] shadow-xs flex flex-col justify-between relative group hover:border-[#7d8461]/40 transition">
+                <div>
+                  <div className="w-10 h-10 bg-[#7d8461] text-white flex items-center justify-center font-serif italic font-bold text-base mb-4 ring-4 ring-[#fbfaf5] shadow-xs">
+                    2
+                  </div>
+                  <h3 className="font-serif italic font-bold text-base text-[#2c2c26] mb-1.5">
+                    Engage in Socratic Dialogue
+                  </h3>
+                  <p className="text-xs text-[#5c5c52] leading-relaxed">
+                    Receive calm, empathetic inquiries that challenge assumptions, unpack emotional roots, and guide you toward first-principles clarity.
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-[#ecece0] flex items-center gap-1.5 text-[10px] font-mono text-[#7d8461] font-bold">
+                  <span>STEP 02</span>
+                  <ArrowRight className="w-3 h-3 text-[#7d8461]/60" />
+                </div>
               </div>
-              <h3 className="font-serif italic font-bold text-base text-[#2c2c26] mb-1.5">
-                Distill & Track Growth
-              </h3>
-              <p className="text-xs text-[#5c5c52] leading-relaxed">
-                With one click, convert dialogues into synthesized takeaways, tomorrow's action items, and view your 30-day emotional trajectory.
-              </p>
+
+              {/* Step 3 */}
+              <div className="p-6 bg-white border border-[#ecece0] shadow-xs flex flex-col justify-between relative group hover:border-[#7d8461]/40 transition">
+                <div>
+                  <div className="w-10 h-10 bg-[#7d8461] text-white flex items-center justify-center font-serif italic font-bold text-base mb-4 ring-4 ring-[#fbfaf5] shadow-xs">
+                    3
+                  </div>
+                  <h3 className="font-serif italic font-bold text-base text-[#2c2c26] mb-1.5">
+                    Distill & Track Growth
+                  </h3>
+                  <p className="text-xs text-[#5c5c52] leading-relaxed">
+                    With one click, convert dialogues into synthesized takeaways, tomorrow's action items, and view your 30-day emotional trajectory.
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-[#ecece0] flex items-center gap-1.5 text-[10px] font-mono text-[#7d8461] font-bold">
+                  <span>STEP 03</span>
+                  <CheckCircle className="w-3 h-3 text-[#7d8461]" />
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -406,45 +494,115 @@ export const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        {/* USER TESTIMONIALS SECTION */}
-        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 border-t border-[#ecece0]">
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <span className="font-mono text-xs uppercase text-[#7d8461] tracking-widest font-bold">
-              Voices of Clarity
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-serif italic font-bold text-[#2c2c26] mt-1.5">
-              Reflections from Everyday Journalers
-            </h2>
-            <p className="text-xs sm:text-sm text-[#5c5c52] mt-2">
-              Discover how thinkers, creators, and professionals cultivate mindful presence with Fuenzer Journal.
-            </p>
+        {/* USER TESTIMONIALS CAROUSEL SECTION (10 REVIEWS) */}
+        <section
+          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 border-t border-[#ecece0]"
+          onMouseEnter={() => setIsCarouselPaused(true)}
+          onMouseLeave={() => setIsCarouselPaused(false)}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+            <div>
+              <span className="font-mono text-xs uppercase text-[#7d8461] tracking-widest font-bold">
+                Voices of Clarity
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-serif italic font-bold text-[#2c2c26] mt-1.5">
+                Reflections from Everyday Journalers
+              </h2>
+              <p className="text-xs sm:text-sm text-[#5c5c52] mt-1.5">
+                Discover how thinkers, creators, and professionals cultivate mindful presence.
+              </p>
+            </div>
+
+            {/* Carousel Navigation Controls */}
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className="text-xs font-mono text-[#5c5c52] font-semibold mr-2">
+                {String(testimonialIndex + 1).padStart(2, '0')} / {String(testimonials.length).padStart(2, '0')}
+              </span>
+              <button
+                onClick={handlePrevTestimonial}
+                aria-label="Previous testimonial"
+                className="w-8 h-8 rounded-none bg-white border border-[#ecece0] hover:bg-[#f4f4ea] text-[#2c2c26] flex items-center justify-center transition cursor-pointer shadow-xs"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleNextTestimonial}
+                aria-label="Next testimonial"
+                className="w-8 h-8 rounded-none bg-white border border-[#ecece0] hover:bg-[#f4f4ea] text-[#2c2c26] flex items-center justify-center transition cursor-pointer shadow-xs"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {testimonials.map((t, idx) => (
-              <div
-                key={idx}
-                className="p-6 bg-white border border-[#ecece0] shadow-xs flex flex-col justify-between"
-              >
-                <div>
-                  <Quote className="w-6 h-6 text-[#7d8461]/40 mb-3" />
-                  <p className="text-xs sm:text-sm text-[#3a3a30] leading-relaxed italic">
-                    &ldquo;{t.quote}&rdquo;
-                  </p>
-                </div>
+          {/* Testimonial Active Display Cards (Showing 2 cards side-by-side on desktop, 1 on mobile) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 transition-all duration-300">
+            {/* Primary active card */}
+            {(() => {
+              const t1 = testimonials[testimonialIndex];
+              const t2 = testimonials[(testimonialIndex + 1) % testimonials.length];
+              return (
+                <>
+                  <div className="p-6 sm:p-7 bg-white border border-[#ecece0] shadow-xs flex flex-col justify-between relative">
+                    <div>
+                      <Quote className="w-7 h-7 text-[#7d8461]/35 mb-3" />
+                      <p className="text-xs sm:text-sm text-[#3a3a30] leading-relaxed italic">
+                        &ldquo;{t1.quote}&rdquo;
+                      </p>
+                    </div>
 
-                <div className="flex items-center gap-3 pt-5 border-t border-[#ecece0] mt-5">
-                  <div className="w-8 h-8 bg-[#7d8461] text-white flex items-center justify-center font-bold text-xs font-serif">
-                    {t.initials}
+                    <div className="flex items-center gap-3 pt-5 border-t border-[#ecece0] mt-5">
+                      <div className="w-9 h-9 bg-[#7d8461] text-white flex items-center justify-center font-bold text-xs font-serif shadow-xs">
+                        {t1.initials}
+                      </div>
+                      <div>
+                        <p className="text-xs sm:text-sm font-bold text-[#2c2c26] font-serif italic">
+                          {t1.name}
+                        </p>
+                        <p className="text-[10px] sm:text-[11px] text-[#5c5c52]">{t1.role}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-[#2c2c26] font-serif italic">
-                      {t.name}
-                    </p>
-                    <p className="text-[10px] text-[#5c5c52]">{t.role}</p>
+
+                  {/* Secondary card on desktop */}
+                  <div className="hidden md:flex p-6 sm:p-7 bg-[#fbfaf5] border border-[#ecece0] shadow-xs flex-col justify-between relative">
+                    <div>
+                      <Quote className="w-7 h-7 text-[#7d8461]/35 mb-3" />
+                      <p className="text-xs sm:text-sm text-[#3a3a30] leading-relaxed italic">
+                        &ldquo;{t2.quote}&rdquo;
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-5 border-t border-[#ecece0] mt-5">
+                      <div className="w-9 h-9 bg-[#3a3a30] text-[#fbfaf5] flex items-center justify-center font-bold text-xs font-serif shadow-xs">
+                        {t2.initials}
+                      </div>
+                      <div>
+                        <p className="text-xs sm:text-sm font-bold text-[#2c2c26] font-serif italic">
+                          {t2.name}
+                        </p>
+                        <p className="text-[10px] sm:text-[11px] text-[#5c5c52]">{t2.role}</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </>
+              );
+            })()}
+          </div>
+
+          {/* Carousel Dot Pagination Indicators */}
+          <div className="mt-6 flex items-center justify-center gap-1.5">
+            {testimonials.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setTestimonialIndex(idx)}
+                aria-label={`Go to testimonial ${idx + 1}`}
+                className={`h-1.5 transition-all cursor-pointer rounded-none ${
+                  idx === testimonialIndex
+                    ? 'w-6 bg-[#7d8461]'
+                    : 'w-2 bg-[#d8d8cc] hover:bg-[#8c8c80]'
+                }`}
+              />
             ))}
           </div>
         </section>

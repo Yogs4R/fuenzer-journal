@@ -4,20 +4,40 @@
  */
 
 /**
+ * Robustly parses any timestamp (number, string, Firestore Timestamp {seconds, nanoseconds}, Date)
+ * into milliseconds since epoch.
+ */
+export function parseTimestamp(timestamp: any): number {
+  if (timestamp === null || timestamp === undefined) return Date.now();
+  if (typeof timestamp === 'number') {
+    // If it's in seconds (10 digits), convert to ms
+    if (timestamp < 10000000000) return timestamp * 1000;
+    return timestamp;
+  }
+  if (typeof timestamp === 'object') {
+    if (typeof timestamp.toDate === 'function') {
+      return timestamp.toDate().getTime();
+    }
+    if (typeof timestamp.seconds === 'number') {
+      return timestamp.seconds * 1000 + Math.floor((timestamp.nanoseconds || 0) / 1000000);
+    }
+    if (timestamp instanceof Date) {
+      return timestamp.getTime();
+    }
+  }
+  if (typeof timestamp === 'string') {
+    const parsed = Date.parse(timestamp);
+    if (!isNaN(parsed)) return parsed;
+  }
+  return Date.now();
+}
+
+/**
  * Returns a 'YYYY-MM-DD' string in the user's LOCAL calendar date
  */
-export function getLocalDateString(timestamp: number | string | Date = new Date()): string {
-  const d =
-    typeof timestamp === 'number' || typeof timestamp === 'string'
-      ? new Date(timestamp)
-      : timestamp;
-
-  if (isNaN(d.getTime())) {
-    const fallback = new Date();
-    return `${fallback.getFullYear()}-${String(fallback.getMonth() + 1).padStart(2, '0')}-${String(
-      fallback.getDate()
-    ).padStart(2, '0')}`;
-  }
+export function getLocalDateString(timestamp: any = new Date()): string {
+  const ms = parseTimestamp(timestamp);
+  const d = new Date(ms);
 
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -29,19 +49,12 @@ export function getLocalDateString(timestamp: number | string | Date = new Date(
  * Formats a journal date for display in the user's local timezone
  */
 export function formatJournalDate(
-  timestamp: number | string | any,
+  timestamp: any,
   options?: Intl.DateTimeFormatOptions
 ): string {
-  if (!timestamp) return '';
+  if (timestamp === null || timestamp === undefined) return '';
 
-  let ms = timestamp;
-  if (typeof timestamp === 'object' && timestamp.seconds) {
-    ms = timestamp.seconds * 1000;
-  } else if (typeof timestamp === 'string') {
-    const parsed = Date.parse(timestamp);
-    if (!isNaN(parsed)) ms = parsed;
-  }
-
+  const ms = parseTimestamp(timestamp);
   const d = new Date(ms);
   if (isNaN(d.getTime())) return '';
 
@@ -58,14 +71,10 @@ export function formatJournalDate(
 /**
  * Formats time in local timezone (e.g., '2:45 PM')
  */
-export function formatJournalTime(timestamp: number | string | any): string {
-  if (!timestamp) return '';
+export function formatJournalTime(timestamp: any): string {
+  if (timestamp === null || timestamp === undefined) return '';
 
-  let ms = timestamp;
-  if (typeof timestamp === 'object' && timestamp.seconds) {
-    ms = timestamp.seconds * 1000;
-  }
-
+  const ms = parseTimestamp(timestamp);
   const d = new Date(ms);
   if (isNaN(d.getTime())) return '';
 
@@ -78,7 +87,9 @@ export function formatJournalTime(timestamp: number | string | any): string {
 /**
  * Formats full timestamp with relative badge ('Today', 'Yesterday', or 'Aug 25, 2026')
  */
-export function formatRelativeJournalDate(timestamp: number | string | any): string {
+export function formatRelativeJournalDate(timestamp: any): string {
+  if (timestamp === null || timestamp === undefined) return '';
+
   const entryDateStr = getLocalDateString(timestamp);
   const todayDateStr = getLocalDateString(new Date());
 
@@ -92,5 +103,6 @@ export function formatRelativeJournalDate(timestamp: number | string | any): str
     return `Yesterday at ${formatJournalTime(timestamp)}`;
   }
 
-  return formatJournalDate(timestamp);
+  return `${formatJournalDate(timestamp)} at ${formatJournalTime(timestamp)}`;
 }
+

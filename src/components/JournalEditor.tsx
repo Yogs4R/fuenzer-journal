@@ -74,17 +74,17 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
   // Dynamic text size classes based on font size setting
   const messageTextClass =
     fontSize === 'sm'
-      ? 'text-xs leading-relaxed'
+      ? 'text-[13px] leading-relaxed'
       : fontSize === 'lg'
-      ? 'text-sm sm:text-base leading-relaxed font-normal'
-      : 'text-xs sm:text-sm leading-relaxed';
+      ? 'text-[17px] sm:text-[18px] leading-relaxed font-normal'
+      : 'text-[14px] sm:text-[15px] leading-relaxed';
 
   const textareaTextClass =
     fontSize === 'sm'
-      ? 'text-xs'
+      ? 'text-[13px]'
       : fontSize === 'lg'
-      ? 'text-sm sm:text-base'
-      : 'text-xs sm:text-sm';
+      ? 'text-[16px] sm:text-[17px]'
+      : 'text-[14px] sm:text-[15px]';
 
   // Copy feedback
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -346,44 +346,55 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
             </span>
           </div>
 
-          {/* Font Size Accessibility Controls */}
-          <div className="flex items-center gap-1 bg-[#ffffff] border border-[#ecece0] p-0.5 rounded-none shadow-xs">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-[#5c5c52] px-1.5">
-              Size:
+          {/* Font Size Accessibility Controls with high-contrast indicator */}
+          <div className="flex items-center gap-1.5 bg-[#ffffff] border border-[#ecece0] px-2 py-1 rounded-none shadow-xs">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#5c5c52] flex items-center gap-1">
+              Text:
             </span>
-            <button
-              onClick={() => handleFontSizeChange('sm')}
-              className={`px-1.5 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer ${
-                fontSize === 'sm'
-                  ? 'bg-[#7d8461] text-white shadow-xs'
-                  : 'text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#f4f4ea]'
-              }`}
-              title="Compact font size"
-            >
-              A-
-            </button>
-            <button
-              onClick={() => handleFontSizeChange('md')}
-              className={`px-1.5 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer ${
-                fontSize === 'md'
-                  ? 'bg-[#7d8461] text-white shadow-xs'
-                  : 'text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#f4f4ea]'
-              }`}
-              title="Standard comfortable font size"
-            >
-              A
-            </button>
-            <button
-              onClick={() => handleFontSizeChange('lg')}
-              className={`px-1.5 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer ${
-                fontSize === 'lg'
-                  ? 'bg-[#7d8461] text-white shadow-xs'
-                  : 'text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#f4f4ea]'
-              }`}
-              title="Large / Accessible font size"
-            >
-              A+
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => handleFontSizeChange('sm')}
+                className={`px-2 py-0.5 text-[11px] font-bold transition cursor-pointer flex items-center gap-1 border ${
+                  fontSize === 'sm'
+                    ? 'bg-[#7d8461] border-[#7d8461] text-white shadow-xs'
+                    : 'bg-[#fbfaf5] border-[#ecece0] text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#f4f4ea]'
+                }`}
+                title="Compact size (13px)"
+              >
+                <span>A-</span>
+                <span className="text-[9px] font-normal opacity-90">Sm</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFontSizeChange('md')}
+                className={`px-2 py-0.5 text-[11px] font-bold transition cursor-pointer flex items-center gap-1 border ${
+                  fontSize === 'md'
+                    ? 'bg-[#7d8461] border-[#7d8461] text-white shadow-xs'
+                    : 'bg-[#fbfaf5] border-[#ecece0] text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#f4f4ea]'
+                }`}
+                title="Standard size (15px)"
+              >
+                <span>A</span>
+                <span className="text-[9px] font-normal opacity-90">Md</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFontSizeChange('lg')}
+                className={`px-2 py-0.5 text-[11px] font-bold transition cursor-pointer flex items-center gap-1 border ${
+                  fontSize === 'lg'
+                    ? 'bg-[#7d8461] border-[#7d8461] text-white shadow-xs'
+                    : 'bg-[#fbfaf5] border-[#ecece0] text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#f4f4ea]'
+                }`}
+                title="Large / Accessible size (18px)"
+              >
+                <span>A+</span>
+                <span className="text-[9px] font-normal opacity-90">Lg</span>
+              </button>
+            </div>
+            <span className="text-[9px] font-mono font-bold uppercase text-[#7d8461] bg-[#7d8461]/10 px-1 py-0.5 border border-[#7d8461]/20 hidden sm:inline">
+              {fontSize === 'sm' ? '13px' : fontSize === 'lg' ? '18px' : '15px'}
+            </span>
           </div>
         </div>
         <h2 className="text-sm sm:text-base font-serif italic font-bold text-[#2c2c26]">
@@ -428,7 +439,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
                 }`}
               >
                 {/* Markdown Rendered Content */}
-                <MarkdownRenderer content={msg.content} isUser={isUser} />
+                <MarkdownRenderer content={msg.content} isUser={isUser} fontSize={fontSize} />
 
                 {/* Bubble Footer & Actions */}
                 <div
