@@ -8,11 +8,13 @@ import {
   PenLine,
   Filter,
   ExternalLink,
+  Download,
 } from 'lucide-react';
 import type { JournalEntry, JournalFrameworkId } from '../types/journal';
 import { JOURNAL_FRAMEWORKS, MOOD_OPTIONS } from '../lib/constants';
 import { MoodIcon } from './MoodIcon';
 import { JournalDetailModal } from './JournalDetailModal';
+import { exportJournalToPdf } from '../lib/pdf-export';
 
 interface JournalListProps {
   entries: JournalEntry[];
@@ -270,13 +272,25 @@ export const JournalList: React.FC<JournalListProps> = ({
                       </span>
                     )}
                     <span>•</span>
-                    <span className="font-mono text-[10px]">~{entry.wordCount || 0} words</span>
+                    <span className="font-mono text-[10px]">~{entry.wordCount || 0} w</span>
                   </div>
 
-                  <span className="text-[#7d8461] group-hover:translate-x-0.5 transition flex items-center gap-0.5 font-bold uppercase text-[10px] tracking-wider">
-                    <span>Read</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        exportJournalToPdf(entry);
+                      }}
+                      className="p-1 text-[#5c5c52] hover:text-[#7d8461] hover:bg-[#f4f4ea] rounded-none transition cursor-pointer"
+                      title="Export as PDF"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="text-[#7d8461] group-hover:translate-x-0.5 transition flex items-center gap-0.5 font-bold uppercase text-[10px] tracking-wider">
+                      <span>Read</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </span>
+                  </div>
                 </div>
               </div>
             );

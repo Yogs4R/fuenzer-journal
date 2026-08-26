@@ -57,10 +57,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
               <div>
                 <h1 className="text-base sm:text-lg font-serif italic font-bold leading-tight text-[#2c2c26]">
-                  Personal Gemini Journal
+                  Fuenzer Journal
                 </h1>
                 <p className="text-[10px] text-[#7d8461] font-medium hidden sm:block">
-                  Mindful Reflection & Growth
+                  Mindful Reflection Sanctuary
                 </p>
               </div>
             </button>

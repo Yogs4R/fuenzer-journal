@@ -10,13 +10,15 @@ import { LandingPage } from './components/LandingPage';
 import { JournalEditor } from './components/JournalEditor';
 import { JournalList } from './components/JournalList';
 import { AnalyticsView } from './components/AnalyticsView';
+import { Footer } from './components/Footer';
 import type { JournalEntry, ChatMessage, JournalFrameworkId } from './types/journal';
 import {
   fetchUserJournals,
   deleteJournalFromFirestore,
   togglePinJournal,
 } from './lib/firebase';
-import { Loader2 } from 'lucide-react';
+import { getLocalDateString } from './lib/date-utils';
+import { Loader2, Feather, X, Sparkles } from 'lucide-react';
 
 function JournalApp() {
   const { user, loading: authLoading } = useAuth();
@@ -24,6 +26,12 @@ function JournalApp() {
   const [currentTab, setCurrentTab] = useState<'editor' | 'history' | 'analytics'>('editor');
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loadingEntries, setLoadingEntries] = useState(false);
+
+  // Daily reminder nudge dismiss state
+  const [reminderDismissed, setReminderDismissed] = useState<boolean>(() => {
+    const todayStr = getLocalDateString(new Date());
+    return localStorage.getItem(`fuenzer_reminder_dismissed_${todayStr}`) === 'true';
+  });
 
   // Resume or loaded editor state
   const [editorTranscript, setEditorTranscript] = useState<ChatMessage[] | undefined>(undefined);
@@ -51,20 +59,32 @@ function JournalApp() {
     }
   };
 
-  // Calculate user streak (consecutive days of journaling)
+  // Check if today has a logged entry
+  const hasEntryToday = useMemo(() => {
+    const todayStr = getLocalDateString(new Date());
+    return entries.some((e) => getLocalDateString(new Date(e.createdAt)) === todayStr);
+  }, [entries]);
+
+  const handleDismissReminder = () => {
+    const todayStr = getLocalDateString(new Date());
+    localStorage.setItem(`fuenzer_reminder_dismissed_${todayStr}`, 'true');
+    setReminderDismissed(true);
+  };
+
+  // Calculate user streak (consecutive days of journaling based on local dates)
   const streakCount = useMemo(() => {
     if (entries.length === 0) return 0;
 
     const uniqueDates: string[] = Array.from(
       new Set<string>(
-        entries.map((e) => new Date(e.createdAt).toISOString().split('T')[0])
+        entries.map((e) => getLocalDateString(new Date(e.createdAt)))
       )
     ).sort().reverse();
 
     if (uniqueDates.length === 0) return 0;
 
-    const todayStr = new Date().toISOString().split('T')[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const todayStr = getLocalDateString(new Date());
+    const yesterday = getLocalDateString(new Date(Date.now() - 86400000));
 
     // Check if the most recent entry was today or yesterday
     if (uniqueDates[0] !== todayStr && uniqueDates[0] !== yesterday) {
@@ -72,10 +92,10 @@ function JournalApp() {
     }
 
     let streak = 1;
-    let currentCheck = new Date(uniqueDates[0]);
+    let currentCheck = new Date(uniqueDates[0] + 'T00:00:00');
 
     for (let i = 1; i < uniqueDates.length; i++) {
-      const prevDate = new Date(uniqueDates[i]);
+      const prevDate = new Date(uniqueDates[i] + 'T00:00:00');
       const diffDays = Math.round(
         (currentCheck.getTime() - prevDate.getTime()) / (1000 * 3600 * 24)
       );
@@ -153,40 +173,84 @@ function JournalApp() {
 
   // Authenticated User Dashboard
   return (
-    <div className="min-h-screen bg-[#fbfaf5] text-[#2c2c26] flex flex-col selection:bg-[#7d8461] selection:text-white">
-      <Navbar
-        currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
-        streakCount={streakCount}
-        onNewEntry={handleStartNewEntry}
-      />
+    <div className="min-h-screen bg-[#fbfaf5] text-[#2c2c26] flex flex-col justify-between selection:bg-[#7d8461] selection:text-white">
+      <div className="flex-1 flex flex-col">
+        <Navbar
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          streakCount={streakCount}
+          onNewEntry={handleStartNewEntry}
+        />
 
-      <main className="flex-1 bg-[#fbfaf5]">
-        {currentTab === 'editor' && (
-          <JournalEditor
-            key={`${editorFramework || 'default'}_${editorTranscript?.length || 0}`}
-            initialTranscript={editorTranscript}
-            initialFramework={editorFramework}
-            initialMood={editorMood}
-            onEntrySaved={handleEntrySaved}
-          />
+        {/* Daily Reflection Reminder Nudge Banner (if not logged today and not dismissed) */}
+        {!hasEntryToday && !reminderDismissed && (
+          <div className="bg-[#7d8461]/10 border-b border-[#7d8461]/25 px-4 py-2.5 text-xs text-[#2c2c26] animate-in fade-in duration-300">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-6 h-6 rounded-none bg-[#7d8461] text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <Feather className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <span className="font-serif italic font-bold text-xs">
+                    Daily Reflection Nudge:
+                  </span>
+                  <span className="text-[#5c5c52] ml-1.5 hidden sm:inline">
+                    You haven&apos;t logged a reflection today. Taking 3 minutes cultivates calm and self-clarity.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                <button
+                  onClick={handleStartNewEntry}
+                  className="px-3 py-1 bg-[#7d8461] hover:bg-[#6c7351] text-white text-[11px] font-bold uppercase tracking-wider rounded-none shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles className="w-3 h-3 text-[#ddb892]" />
+                  <span>Reflect Now</span>
+                </button>
+                <button
+                  onClick={handleDismissReminder}
+                  className="p-1 hover:bg-[#7d8461]/20 rounded-none text-[#5c5c52] hover:text-[#2c2c26] transition cursor-pointer"
+                  title="Dismiss for today"
+                  aria-label="Dismiss daily reminder"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
-        {currentTab === 'history' && (
-          <JournalList
-            entries={entries}
-            loading={loadingEntries}
-            onDeleteEntry={handleDeleteEntry}
-            onTogglePinEntry={handleTogglePinEntry}
-            onStartNewEntry={handleStartNewEntry}
-            onResumeSession={handleResumeSession}
-          />
-        )}
+        <main className="flex-1 bg-[#fbfaf5]">
+          {currentTab === 'editor' && (
+            <JournalEditor
+              key={`${editorFramework || 'default'}_${editorTranscript?.length || 0}`}
+              initialTranscript={editorTranscript}
+              initialFramework={editorFramework}
+              initialMood={editorMood}
+              onEntrySaved={handleEntrySaved}
+            />
+          )}
 
-        {currentTab === 'analytics' && (
-          <AnalyticsView entries={entries} streakCount={streakCount} />
-        )}
-      </main>
+          {currentTab === 'history' && (
+            <JournalList
+              entries={entries}
+              loading={loadingEntries}
+              onDeleteEntry={handleDeleteEntry}
+              onTogglePinEntry={handleTogglePinEntry}
+              onStartNewEntry={handleStartNewEntry}
+              onResumeSession={handleResumeSession}
+            />
+          )}
+
+          {currentTab === 'analytics' && (
+            <AnalyticsView entries={entries} streakCount={streakCount} />
+          )}
+        </main>
+      </div>
+
+      {/* Enterprise Global Footer */}
+      <Footer />
     </div>
   );
 }
@@ -198,3 +262,4 @@ export default function App() {
     </AuthProvider>
   );
 }
+

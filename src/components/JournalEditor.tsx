@@ -28,6 +28,7 @@ import { sendChatMessage, summarizeJournalSession, fetchDynamicPrompts } from '.
 import { saveDraftSession, clearDraftSession } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import { SummaryModal } from './SummaryModal';
+import { MarkdownRenderer } from './MarkdownRenderer';
 
 interface JournalEditorProps {
   onEntrySaved: (entry: JournalEntry) => void;
@@ -59,6 +60,31 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
   // Summary Modal State
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
   const [generatedSummary, setGeneratedSummary] = useState<JournalSummary | null>(null);
+
+  // Font Size Accessibility State ('sm' | 'md' | 'lg')
+  const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>(() => {
+    return (localStorage.getItem('fuenzer_journal_font_size') as 'sm' | 'md' | 'lg') || 'md';
+  });
+
+  const handleFontSizeChange = (size: 'sm' | 'md' | 'lg') => {
+    setFontSize(size);
+    localStorage.setItem('fuenzer_journal_font_size', size);
+  };
+
+  // Dynamic text size classes based on font size setting
+  const messageTextClass =
+    fontSize === 'sm'
+      ? 'text-xs leading-relaxed'
+      : fontSize === 'lg'
+      ? 'text-sm sm:text-base leading-relaxed font-normal'
+      : 'text-xs sm:text-sm leading-relaxed';
+
+  const textareaTextClass =
+    fontSize === 'sm'
+      ? 'text-xs'
+      : fontSize === 'lg'
+      ? 'text-sm sm:text-base'
+      : 'text-xs sm:text-sm';
 
   // Copy feedback
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -310,14 +336,54 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
         </div>
       )}
 
-      {/* Active Synthesis Framework Header Banner - Square */}
+      {/* Active Synthesis Framework Header Banner & Accessibility Controls - Square */}
       <div className="bg-[#7d8461]/5 border border-[#7d8461]/20 rounded-none p-3 sm:p-4 mb-3">
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-[#7d8461] rounded-full animate-pulse"></div>
             <span className="text-[10px] uppercase tracking-wider font-bold text-[#7d8461]">
               {selectedFrameworkObj.name}
             </span>
+          </div>
+
+          {/* Font Size Accessibility Controls */}
+          <div className="flex items-center gap-1 bg-[#ffffff] border border-[#ecece0] p-0.5 rounded-none shadow-xs">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-[#5c5c52] px-1.5">
+              Size:
+            </span>
+            <button
+              onClick={() => handleFontSizeChange('sm')}
+              className={`px-1.5 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer ${
+                fontSize === 'sm'
+                  ? 'bg-[#7d8461] text-white shadow-xs'
+                  : 'text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#f4f4ea]'
+              }`}
+              title="Compact font size"
+            >
+              A-
+            </button>
+            <button
+              onClick={() => handleFontSizeChange('md')}
+              className={`px-1.5 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer ${
+                fontSize === 'md'
+                  ? 'bg-[#7d8461] text-white shadow-xs'
+                  : 'text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#f4f4ea]'
+              }`}
+              title="Standard comfortable font size"
+            >
+              A
+            </button>
+            <button
+              onClick={() => handleFontSizeChange('lg')}
+              className={`px-1.5 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer ${
+                fontSize === 'lg'
+                  ? 'bg-[#7d8461] text-white shadow-xs'
+                  : 'text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#f4f4ea]'
+              }`}
+              title="Large / Accessible font size"
+            >
+              A+
+            </button>
           </div>
         </div>
         <h2 className="text-sm sm:text-base font-serif italic font-bold text-[#2c2c26]">
@@ -332,6 +398,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
       <div className="flex-1 overflow-y-auto space-y-3.5 pr-1 pb-3 min-h-[220px]">
         {messages.map((msg) => {
           const isUser = msg.role === 'user';
+          const isCopied = copiedId === msg.id;
           return (
             <div
               key={msg.id}
@@ -352,38 +419,50 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
                 )}
               </div>
 
-              {/* Message Bubble - Square */}
+              {/* Message Bubble - Square with Markdown support & Dynamic Font Size */}
               <div
-                className={`group relative max-w-[90%] sm:max-w-[80%] p-3.5 sm:p-4 text-xs sm:text-sm leading-relaxed shadow-xs rounded-none ${
+                className={`group relative max-w-[90%] sm:max-w-[80%] p-3.5 sm:p-4 ${messageTextClass} shadow-xs rounded-none ${
                   isUser
                     ? 'bg-[#3a3a30] text-[#fbfaf5]'
                     : 'bg-white border border-[#ecece0] text-[#2c2c26]'
                 }`}
               >
-                <div className="whitespace-pre-wrap">{msg.content}</div>
+                {/* Markdown Rendered Content */}
+                <MarkdownRenderer content={msg.content} isUser={isUser} />
 
                 {/* Bubble Footer & Actions */}
                 <div
-                  className={`mt-2 pt-1 border-t flex items-center justify-between text-[9px] sm:text-[10px] ${
+                  className={`mt-2.5 pt-1.5 border-t flex items-center justify-between text-[9px] sm:text-[10px] ${
                     isUser ? 'border-[#4f4f42] text-[#d8d8cc]' : 'border-[#ecece0] text-[#7d8461]'
                   }`}
                 >
-                  <span className="font-mono">
+                  <span className="font-mono opacity-80">
                     {new Date(msg.timestamp).toLocaleTimeString([], {
                       hour: '2-digit',
                       minute: '2-digit',
                     })}
                   </span>
 
+                  {/* Copy Button for both user and AI messages */}
                   <button
                     onClick={() => handleCopyMessage(msg.id, msg.content)}
-                    className="opacity-0 group-hover:opacity-100 transition p-0.5 hover:opacity-100 cursor-pointer"
-                    title="Copy message"
+                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded-none transition cursor-pointer font-medium ${
+                      isUser
+                        ? 'hover:bg-[#4f4f42] text-[#e8e8df]'
+                        : 'hover:bg-[#f4f4ea] text-[#5c5c52] hover:text-[#2c2c26]'
+                    }`}
+                    title={isUser ? 'Copy your message' : 'Copy AI response'}
                   >
-                    {copiedId === msg.id ? (
-                      <Check className="w-3 h-3 text-[#7d8461]" />
+                    {isCopied ? (
+                      <>
+                        <Check className="w-3 h-3 text-[#99c17b]" />
+                        <span className="text-[10px] text-[#99c17b] font-bold">Copied</span>
+                      </>
                     ) : (
-                      <Copy className="w-3 h-3" />
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span className="text-[10px] opacity-75 group-hover:opacity-100">Copy</span>
+                      </>
                     )}
                   </button>
                 </div>
@@ -438,34 +517,38 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
         </div>
       )}
 
-      {/* Input Area and Session Action Bar - Square */}
-      <div className="bg-white border border-[#ecece0] rounded-none p-3 shadow-xs">
-        <div className="relative">
-          <textarea
-            ref={textareaRef}
-            rows={2}
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Reflect further, explore what is on your mind, or deepen your realization..."
-            className="w-full bg-[#f4f4ea]/40 border border-[#ecece0] rounded-none p-3 pr-24 text-xs sm:text-sm text-[#2c2c26] placeholder-[#5c5c52]/60 focus:outline-none focus:border-[#7d8461] resize-none leading-relaxed transition"
-          />
+      {/* Input Area and Session Action Bar - Square & Ergonomic Desktop Alignment */}
+      <div className="bg-white border border-[#ecece0] rounded-none p-3 sm:p-3.5 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5">
+          {/* Main Reflection Textarea */}
+          <div className="flex-1 relative">
+            <textarea
+              ref={textareaRef}
+              rows={2}
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Reflect further, explore what is on your mind, or deepen your realization..."
+              className={`w-full bg-[#f4f4ea]/40 border border-[#ecece0] rounded-none p-2.5 sm:p-3 ${textareaTextClass} text-[#2c2c26] placeholder-[#5c5c52]/60 focus:outline-none focus:border-[#7d8461] resize-none leading-relaxed transition`}
+            />
+          </div>
 
-          {/* Send Button - Square */}
-          <div className="absolute right-2 bottom-3 flex items-center gap-1">
+          {/* Send Button - Neatly aligned & vertically centered on Desktop */}
+          <div className="flex items-center sm:self-center shrink-0">
             <button
               onClick={() => handleSendMessage()}
               disabled={!inputMessage.trim() || loadingReply}
-              className="px-3.5 py-1.5 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-[10px] sm:text-[11px] font-bold uppercase tracking-wider shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto h-full sm:min-h-[58px] px-5 py-2.5 sm:py-0 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-xs font-bold uppercase tracking-wider shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Send your reflection (Cmd+Enter / Ctrl+Enter)"
             >
               <span>Send</span>
-              <Send className="w-3 h-3" />
+              <Send className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
         {/* Bottom Bar: Stats, Clear, Conclude & Summarize */}
-        <div className="mt-2 pt-2 border-t border-[#ecece0] flex flex-wrap items-center justify-between gap-2 text-xs text-[#5c5c52]">
+        <div className="mt-2.5 pt-2 border-t border-[#ecece0] flex flex-wrap items-center justify-between gap-2 text-xs text-[#5c5c52]">
           <div className="flex items-center gap-2 sm:gap-3 text-[11px]">
             <span className="font-medium">{messages.length} Turns</span>
             <span>•</span>

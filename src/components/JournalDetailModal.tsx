@@ -13,9 +13,12 @@ import {
   FileText,
   MessageSquare,
   ArrowRight,
+  Printer,
 } from 'lucide-react';
 import type { JournalEntry } from '../types/journal';
 import { JOURNAL_FRAMEWORKS } from '../lib/constants';
+import { exportJournalToPdf } from '../lib/pdf-export';
+import { MarkdownRenderer } from './MarkdownRenderer';
 
 interface JournalDetailModalProps {
   entry: JournalEntry | null;
@@ -35,6 +38,8 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'insights' | 'transcript'>('insights');
   const [copiedMd, setCopiedMd] = useState(false);
+  const [copiedText, setCopiedText] = useState(false);
+  const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
 
   if (!isOpen || !entry) return null;
 
@@ -52,6 +57,45 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
     hour: '2-digit',
     minute: '2-digit',
   });
+
+  // Generate Plain Text representation (clean without markdown tags)
+  const generatePlainText = () => {
+    let text = `${entry.title.toUpperCase()}\n`;
+    text += `Date: ${formattedDate} at ${formattedTime}\n`;
+    text += `Framework: ${frameworkInfo.name}\n`;
+    if (entry.detectedMood) text += `Mood: ${entry.detectedMood}\n`;
+    if (entry.themes?.length) text += `Themes: ${entry.themes.map((t) => `#${t}`).join(' ')}\n`;
+    text += `\n========================================\n\n`;
+    text += `EXECUTIVE SUMMARY:\n${entry.executiveSummary}\n\n`;
+
+    if (entry.keyInsights?.length) {
+      text += `KEY INSIGHTS & REALIZATIONS:\n`;
+      entry.keyInsights.forEach((item) => {
+        text += `• ${item}\n`;
+      });
+      text += `\n`;
+    }
+
+    if (entry.actionItems?.length) {
+      text += `NEXT STEPS & INTENTIONS:\n`;
+      entry.actionItems.forEach((item) => {
+        text += `[✓] ${item}\n`;
+      });
+      text += `\n`;
+    }
+
+    if (entry.closingAffirmation) {
+      text += `AFFIRMATION:\n"${entry.closingAffirmation}"\n\n`;
+    }
+
+    text += `========================================\nCONVERSATION TRANSCRIPT:\n\n`;
+    entry.transcript?.forEach((msg) => {
+      const speaker = msg.role === 'user' ? 'ME' : 'GEMINI';
+      text += `[${speaker}]:\n${msg.content}\n\n`;
+    });
+
+    return text;
+  };
 
   // Generate Markdown representation
   const generateMarkdown = () => {
@@ -91,6 +135,12 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
     return md;
   };
 
+  const handleCopyPlainText = () => {
+    navigator.clipboard.writeText(generatePlainText());
+    setCopiedText(true);
+    setTimeout(() => setCopiedText(false), 2000);
+  };
+
   const handleCopyMarkdown = () => {
     navigator.clipboard.writeText(generateMarkdown());
     setCopiedMd(true);
@@ -121,6 +171,16 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleExportPdf = () => {
+    exportJournalToPdf(entry);
+  };
+
+  const handleCopyMessage = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedMsgId(id);
+    setTimeout(() => setCopiedMsgId(null), 2000);
   };
 
   return (
@@ -200,26 +260,51 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
           </div>
 
           {/* Export tools */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+            {/* Copy Plain Text */}
+            <button
+              onClick={handleCopyPlainText}
+              className="px-2.5 py-1 rounded-none bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] transition cursor-pointer shrink-0"
+              title="Copy clean plain text"
+            >
+              {copiedText ? <Check className="w-3 h-3 text-[#7d8461]" /> : <Copy className="w-3 h-3" />}
+              <span>{copiedText ? 'Copied' : 'Copy Text'}</span>
+            </button>
+
+            {/* Copy Markdown */}
             <button
               onClick={handleCopyMarkdown}
-              className="px-2.5 py-1 rounded-none bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] transition cursor-pointer"
+              className="px-2.5 py-1 rounded-none bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] transition cursor-pointer shrink-0"
               title="Copy entry as formatted Markdown"
             >
               {copiedMd ? <Check className="w-3 h-3 text-[#7d8461]" /> : <Copy className="w-3 h-3" />}
               <span>{copiedMd ? 'Copied' : 'Copy MD'}</span>
             </button>
+
+            {/* PDF Export */}
+            <button
+              onClick={handleExportPdf}
+              className="px-2.5 py-1 rounded-none bg-[#7d8461]/15 hover:bg-[#7d8461]/25 text-[#4c5432] text-xs font-semibold flex items-center gap-1 border border-[#7d8461]/30 transition cursor-pointer shrink-0"
+              title="Export and download as formatted PDF"
+            >
+              <Download className="w-3 h-3 text-[#7d8461]" />
+              <span>PDF</span>
+            </button>
+
+            {/* Markdown file download */}
             <button
               onClick={handleDownloadMarkdown}
-              className="px-2.5 py-1 rounded-none bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] transition cursor-pointer"
+              className="px-2 py-1 rounded-none bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] transition cursor-pointer shrink-0"
               title="Download Markdown file"
             >
               <Download className="w-3 h-3" />
               <span>.md</span>
             </button>
+
+            {/* JSON file download */}
             <button
               onClick={handleDownloadJson}
-              className="px-2.5 py-1 rounded-none bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] transition cursor-pointer"
+              className="px-2 py-1 rounded-none bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] transition cursor-pointer shrink-0"
               title="Download JSON file"
             >
               <Download className="w-3 h-3" />
@@ -288,10 +373,11 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
               )}
             </div>
           ) : (
-            /* Full Transcript Stream - Square */
+            /* Full Transcript Stream - Square with Markdown and Copy buttons */
             <div className="space-y-3">
               {entry.transcript?.map((msg) => {
                 const isUser = msg.role === 'user';
+                const isCopied = copiedMsgId === msg.id;
                 return (
                   <div
                     key={msg.id}
@@ -307,22 +393,45 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
                       {isUser ? 'ME' : 'G'}
                     </div>
                     <div
-                      className={`max-w-[85%] p-3 text-xs sm:text-sm leading-relaxed shadow-xs rounded-none ${
+                      className={`group relative max-w-[85%] p-3.5 text-xs sm:text-sm leading-relaxed shadow-xs rounded-none ${
                         isUser
                           ? 'bg-[#3a3a30] text-[#fbfaf5]'
                           : 'bg-[#f4f4ea] border border-[#ecece0] text-[#2c2c26]'
                       }`}
                     >
-                      <div className="whitespace-pre-wrap">{msg.content}</div>
+                      <MarkdownRenderer content={msg.content} isUser={isUser} />
+                      
                       <div
-                        className={`mt-1.5 text-[9px] font-mono ${
-                          isUser ? 'text-[#d8d8cc]' : 'text-[#7d8461]'
+                        className={`mt-2 pt-1.5 border-t flex items-center justify-between text-[9px] font-mono ${
+                          isUser ? 'border-[#4f4f42] text-[#d8d8cc]' : 'border-[#ecece0] text-[#7d8461]'
                         }`}
                       >
-                        {new Date(msg.timestamp).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        <span>
+                          {new Date(msg.timestamp).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+
+                        <button
+                          onClick={() => handleCopyMessage(msg.id, msg.content)}
+                          className={`flex items-center gap-1 px-1.5 py-0.5 rounded-none transition cursor-pointer font-sans ${
+                            isUser ? 'hover:bg-[#4f4f42] text-[#e8e8df]' : 'hover:bg-[#ecece0] text-[#5c5c52]'
+                          }`}
+                          title="Copy message text"
+                        >
+                          {isCopied ? (
+                            <>
+                              <Check className="w-3 h-3 text-[#99c17b]" />
+                              <span className="text-[10px] text-[#99c17b] font-bold">Copied</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" />
+                              <span className="text-[10px] opacity-75 group-hover:opacity-100">Copy</span>
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
                   </div>

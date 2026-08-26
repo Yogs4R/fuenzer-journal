@@ -1,23 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   ShieldCheck,
   Brain,
   Lock,
   ArrowRight,
-  BookOpen,
   CheckCircle,
   HeartHandshake,
   Compass,
   FileText,
   Feather,
-  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { SecurityModal } from './SecurityModal';
+import { Footer } from './Footer';
 
 export const LandingPage: React.FC = () => {
   const { signInWithGoogle, loading, error } = useAuth();
-  const [showSecurity, setShowSecurity] = useState(false);
 
   const samplePrompts = [
     {
@@ -69,7 +66,7 @@ export const LandingPage: React.FC = () => {
           </div>
           <div className="flex flex-col">
             <h1 className="text-base sm:text-lg font-serif italic font-bold leading-tight text-[#2c2c26]">
-              Personal Gemini Journal
+              Fuenzer Journal
             </h1>
             <span className="text-[9px] uppercase tracking-[0.18em] text-[#7d8461] font-semibold">
               Mindful Reflection Sanctuary
@@ -90,15 +87,7 @@ export const LandingPage: React.FC = () => {
       </header>
 
       {/* Main Hero Section */}
-      <main className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 text-center">
-        {/* Trust badge - Square */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-none bg-[#f4f4ea] border border-[#e8e8df] text-xs text-[#5c5c52] mb-6 shadow-xs">
-          <span className="flex h-2 w-2 rounded-none bg-[#7d8461] animate-pulse" />
-          <span className="font-medium text-[11px] uppercase tracking-wider text-[#4c5432]">
-            Private Journal & Mindful AI Sounding Board
-          </span>
-        </div>
-
+      <main className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 text-center">
         {/* Hero Title */}
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif italic font-bold tracking-tight text-[#2c2c26] leading-tight sm:leading-tight">
           Your Private Sanctuary for <br />
@@ -227,26 +216,9 @@ export const LandingPage: React.FC = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-[#ecece0] py-6 text-center text-xs text-[#5c5c52]">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2 font-medium">
-            <BookOpen className="w-3.5 h-3.5 text-[#7d8461]" />
-            <span className="font-serif italic text-xs">Personal Gemini Journal &copy; 2026</span>
-          </div>
-          <div className="flex items-center gap-3 text-xs text-[#5c5c52]">
-            <button onClick={() => setShowSecurity(true)} className="hover:text-[#2c2c26] transition cursor-pointer font-medium">
-              Security Architecture
-            </button>
-            <span>•</span>
-            <span>Cloud Firestore Isolated</span>
-            <span>•</span>
-            <span>Strict Privacy</span>
-          </div>
-        </div>
-      </footer>
-
-      <SecurityModal isOpen={showSecurity} onClose={() => setShowSecurity(false)} />
+      {/* Enterprise Footer */}
+      <Footer />
     </div>
   );
 };
+

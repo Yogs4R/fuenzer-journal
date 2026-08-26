@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   BarChart3,
   Flame,
@@ -9,16 +9,44 @@ import {
   TrendingUp,
   Download,
   Tag,
+  Activity,
+  Calendar,
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ReferenceLine,
+} from 'recharts';
 import type { JournalEntry } from '../types/journal';
-import { JOURNAL_FRAMEWORKS } from '../lib/constants';
+import { JOURNAL_FRAMEWORKS, MOOD_OPTIONS } from '../lib/constants';
+import { getLocalDateString, formatJournalDate } from '../lib/date-utils';
 
 interface AnalyticsViewProps {
   entries: JournalEntry[];
   streakCount: number;
 }
 
+const MOOD_SCORE_MAP: Record<string, { score: number; label: string }> = {
+  grateful: { score: 5, label: 'Grateful' },
+  calm: { score: 4.5, label: 'Calm' },
+  energized: { score: 4.5, label: 'Energized' },
+  hopeful: { score: 4, label: 'Hopeful' },
+  focused: { score: 4, label: 'Focused' },
+  reflective: { score: 3.5, label: 'Reflective' },
+  tired: { score: 2.5, label: 'Tired' },
+  anxious: { score: 2, label: 'Anxious' },
+  frustrated: { score: 1.5, label: 'Frustrated' },
+  sad: { score: 1.5, label: 'Sad' },
+};
+
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCount }) => {
+  const [timeRange, setTimeRange] = useState<'14' | '30'>('30');
+
   const stats = useMemo(() => {
     const totalEntries = entries.length;
     const totalWords = entries.reduce((acc, e) => acc + (e.wordCount || 0), 0);
@@ -72,13 +100,72 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
     };
   }, [entries]);
 
+  // Generate 30-day timeline chart data
+  const moodChartData = useMemo(() => {
+    const numDays = timeRange === '14' ? 14 : 30;
+    const data = [];
+    const now = new Date();
+
+    // Map entries by local date string YYYY-MM-DD
+    const entryByDate: Record<string, JournalEntry[]> = {};
+    entries.forEach((entry) => {
+      const dateKey = getLocalDateString(new Date(entry.createdAt));
+      if (!entryByDate[dateKey]) {
+        entryByDate[dateKey] = [];
+      }
+      entryByDate[dateKey].push(entry);
+    });
+
+    for (let i = numDays - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      const dateKey = getLocalDateString(d);
+      const dayEntries = entryByDate[dateKey];
+
+      const displayDate = d.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+      });
+
+      if (dayEntries && dayEntries.length > 0) {
+        // Average or last mood score of the day
+        const latestEntry = dayEntries[0];
+        const moodKey = (latestEntry.detectedMood || latestEntry.initialMood || 'reflective').toLowerCase();
+        const moodInfo = MOOD_SCORE_MAP[moodKey] || { score: 3.5, label: moodKey };
+
+        data.push({
+          date: displayDate,
+          fullDate: dateKey,
+          score: moodInfo.score,
+          moodLabel: moodInfo.label,
+          hasEntry: true,
+          title: latestEntry.title,
+          entriesCount: dayEntries.length,
+          wordCount: latestEntry.wordCount || 0,
+        });
+      } else {
+        data.push({
+          date: displayDate,
+          fullDate: dateKey,
+          score: null,
+          moodLabel: 'No Entry',
+          hasEntry: false,
+          title: '',
+          entriesCount: 0,
+          wordCount: 0,
+        });
+      }
+    }
+
+    return data;
+  }, [entries, timeRange]);
+
   const handleExportAllJson = () => {
     const jsonStr = JSON.stringify(entries, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `personal_gemini_journal_export_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `fuenzer_journal_export_${getLocalDateString(new Date())}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -150,6 +237,129 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
           <p className="text-2xl sm:text-3xl font-serif italic font-bold text-[#4c5432]">{stats.totalInsights}</p>
           <p className="text-[9px] uppercase tracking-wider text-[#5c5c52] font-medium mt-1">~{stats.avgInsights} / session</p>
         </div>
+      </div>
+
+      {/* Mood Trends Over Time (Recharts Line Graph) */}
+      <div className="p-5 sm:p-6 rounded-none bg-white border border-[#e8e8df] shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-[#7d8461]" />
+            <div>
+              <h2 className="text-base font-serif italic font-bold text-[#2c2c26]">
+                Emotional State & Mood Trajectory
+              </h2>
+              <p className="text-[11px] text-[#5c5c52]">
+                Visualizing emotional equanimity and reflection trends over time.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 bg-[#f4f4ea] border border-[#e8e8df] p-0.5 rounded-none self-start sm:self-auto text-xs">
+            <button
+              onClick={() => setTimeRange('14')}
+              className={`px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer ${
+                timeRange === '14'
+                  ? 'bg-[#7d8461] text-white shadow-xs'
+                  : 'text-[#5c5c52] hover:text-[#2c2c26]'
+              }`}
+            >
+              Last 14 Days
+            </button>
+            <button
+              onClick={() => setTimeRange('30')}
+              className={`px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer ${
+                timeRange === '30'
+                  ? 'bg-[#7d8461] text-white shadow-xs'
+                  : 'text-[#5c5c52] hover:text-[#2c2c26]'
+              }`}
+            >
+              Last 30 Days
+            </button>
+          </div>
+        </div>
+
+        {entries.length > 0 ? (
+          <div className="w-full h-64 sm:h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={moodChartData}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#ecece0" vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 10, fill: '#5c5c52' }}
+                  tickLine={false}
+                  axisLine={{ stroke: '#e8e8df' }}
+                  interval={timeRange === '30' ? 3 : 1}
+                />
+                <YAxis
+                  domain={[1, 5]}
+                  ticks={[1.5, 2.5, 3.5, 4.5, 5]}
+                  tickFormatter={(val) => {
+                    if (val >= 4.5) return 'Calm/High';
+                    if (val >= 3.5) return 'Balanced';
+                    if (val >= 2.5) return 'Tired';
+                    return 'Anxious';
+                  }}
+                  tick={{ fontSize: 10, fill: '#5c5c52' }}
+                  tickLine={false}
+                  axisLine={{ stroke: '#e8e8df' }}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const item = payload[0].payload;
+                      if (!item.hasEntry) {
+                        return (
+                          <div className="bg-white border border-[#ecece0] p-2.5 shadow-md rounded-none text-xs">
+                            <p className="font-mono text-[10px] text-[#7d8461] font-bold">{item.date}</p>
+                            <p className="text-[#5c5c52] text-[11px] italic mt-0.5">No reflection logged</p>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="bg-[#ffffff] border border-[#7d8461]/40 p-3 shadow-lg rounded-none text-xs max-w-xs">
+                          <div className="flex items-center justify-between gap-3 mb-1 border-b border-[#ecece0] pb-1">
+                            <span className="font-mono text-[10px] text-[#7d8461] font-bold">{item.date}</span>
+                            <span className="px-1.5 py-0.2 bg-[#7d8461]/10 text-[#7d8461] font-bold text-[10px] uppercase">
+                              {item.moodLabel}
+                            </span>
+                          </div>
+                          <p className="font-serif italic font-bold text-xs text-[#2c2c26] truncate">
+                            {item.title || 'Journal Entry'}
+                          </p>
+                          <p className="text-[10px] text-[#5c5c52] mt-1">
+                            {item.wordCount} words distilled
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <ReferenceLine y={3.5} stroke="#ddb892" strokeDasharray="3 3" />
+                <Line
+                  type="monotone"
+                  dataKey="score"
+                  stroke="#7d8461"
+                  strokeWidth={2.5}
+                  dot={{ r: 4, fill: '#7d8461', strokeWidth: 1.5, stroke: '#ffffff' }}
+                  activeDot={{ r: 6, fill: '#3a3a30', stroke: '#7d8461', strokeWidth: 2 }}
+                  connectNulls={true}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="h-48 flex flex-col items-center justify-center text-center p-4 bg-[#fbfaf5] border border-dashed border-[#e8e8df]">
+            <Calendar className="w-6 h-6 text-[#7d8461] mb-2" />
+            <p className="font-serif italic text-sm text-[#2c2c26]">No mood history recorded yet</p>
+            <p className="text-xs text-[#5c5c52] mt-0.5">
+              Complete your reflections to populate your 30-day emotional trajectory chart.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Analytics Breakdown Grid - Square */}
@@ -248,3 +458,4 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
     </div>
   );
 };
+
