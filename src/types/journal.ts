@@ -16,11 +16,19 @@ export interface JournalFramework {
   colorClass: string;
 }
 
+export interface ChatImageAttachment {
+  name: string;
+  mimeType: string;
+  data: string; // base64 data url or base64 string
+  size: number;
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'model';
   content: string;
   timestamp: number;
+  images?: ChatImageAttachment[];
 }
 
 export interface JournalSummary {

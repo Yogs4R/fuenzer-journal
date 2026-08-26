@@ -376,6 +376,7 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
               {entry.transcript?.map((msg) => {
                 const isUser = msg.role === 'user';
                 const isCopied = copiedMsgId === msg.id;
+                const hasImages = Array.isArray(msg.images) && msg.images.length > 0;
                 return (
                   <div
                     key={msg.id}
@@ -397,6 +398,26 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
                           : 'bg-[#f4f4ea] border border-[#ecece0] text-[#2c2c26]'
                       }`}
                     >
+                      {hasImages && (
+                        <div className="mb-2.5 flex flex-wrap gap-2">
+                          {msg.images!.map((img, idx) => (
+                            <a
+                              key={idx}
+                              href={img.data}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="border border-[#ecece0]/40 overflow-hidden block bg-black/10 max-w-[120px] max-h-[120px]"
+                              title={`${img.name} (Click to open full size)`}
+                            >
+                              <img
+                                src={img.data}
+                                alt={img.name}
+                                className="w-full h-20 object-cover hover:scale-105 transition-transform"
+                              />
+                            </a>
+                          ))}
+                        </div>
+                      )}
                       <MarkdownRenderer content={msg.content} isUser={isUser} />
                       
                       <div

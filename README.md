@@ -16,10 +16,11 @@
 If you've ever wanted to journal regularly but found yourself staring at an empty prompt not knowing where to begin, Fuenzer Journal is built for you:
 
 - 🧘 **Talk It Out Naturally**: Instead of forcing you to write in isolation, the app pairs you with a supportive Socratic AI companion that asks clarifying questions, helps you separate what is within your control from what isn't, and validates your feelings.
+- 🎙️ **Speech-to-Text & Image Attachments**: Dictate your thoughts hands-free using real-time speech recognition or attach up to 5 photos and sketches (<5 MB each) to enrich your reflections.
 - ⚡ **Auto-Distillation**: When you are ready to wrap up, the AI creates an executive summary, extracts key personal breakthroughs, creates action items for tomorrow, and tags core themes.
-- 🔒 **Absolute Privacy**: Your journals are private to your Google account. They are locked down with database security rules so no one else can read them.
+- 🔒 **Absolute Privacy & Zero Data Monetization**: Your reflections are private to your Google account, protected by owner-bound Firestore security rules. Your journals are never sold or used to train public AI models.
+- 🛡️ **100% Client-Side Data Export (Best Privacy)**: All export mechanisms (bulk archive or single-entry export to PDF, formatted Markdown, or raw JSON) execute strictly inside your local web browser. No journal text or files are ever sent to external export conversion servers.
 - 📈 **See Your Emotional Trends**: Interactive 30-day graphs show your mood trajectory over time, helping you recognize patterns in your emotional well-being and growth.
-- 📄 **Export Your Work**: Save your memories in Markdown (`.md`), JSON, or generate a formatted print-ready PDF with one click.
 - 👓 **Accessibility First**: Adjust reading font sizes (Compact, Standard, Large) to suit your comfort, and enjoy a daily reminder nudge if you haven't taken time for yourself today.
 
 ---
@@ -35,19 +36,20 @@ Choose from curated reflection modes designed around proven psychological and ph
 - **Future Self Visioning** — Align today's actions with long-term aspirations.
 - **Creative Free-Flow** — Unstructured stream of consciousness for brainstorms.
 
-### 2. Search & Filtering
+### 2. Multimodal Reflection: Voice & Images
+- **Speech-to-Text**: Dictate your stream-of-consciousness thoughts naturally into your microphone.
+- **Image Upload**: Attach up to 5 photos or sketches (under 5 MB per image) with drag-and-drop support, thumbnail previews, and instant full-view lightbox zoom.
+
+### 3. Client-Side Export Engine (Privacy Preserved)
+- **Zero-Server Processing**: All PDF rendering, Markdown structuring, and JSON file generation are performed on the client side using `jspdf` and Blob URL downloads.
+- **Bulk & Single Export**: Export all journal archives at once from the Insights dashboard or export individual reflections from detail views.
+
+### 4. Search & Filtering
 - Instant full-text search across journal titles, executive summaries, takeaways, and tags.
 - Filter past reflections by emotional mood chips (Calm, Grateful, Energized, Reflective, etc.).
 
-### 3. Dynamic Font Sizing & Readability
+### 5. Dynamic Font Sizing & Readability
 - Switch font sizes (`A-`, `A`, `A+`) at any time in the reflection studio to enhance comfort during long introspective sessions. Settings persist locally.
-
-### 4. Daily Habit Reminder
-- Mindful, non-intrusive daily reminder banner prompts you if no reflection has been recorded for the day, with one-click transition into a new session.
-
-### 5. Multi-Turn Markdown & Copy Utilities
-- Full GitHub-flavored Markdown rendering for AI responses with styled headers, bullet lists, code blocks, and blockquotes.
-- Copy your input or the AI's response in plain text or Markdown format with a single click.
 
 ### 6. Interactive 30-Day Emotional Trend Chart
 - Powered by `recharts`, visualizing emotional equanimity and mood distribution over 14 or 30-day windows.
@@ -61,8 +63,8 @@ In compliance with OWASP Top 10 for Web Applications and OWASP Top 10 for LLM Ap
 | Threat Zone | Identified Risk | Countermeasure Implemented |
 |---|---|---|
 | **Input Surfaces** | Malicious injection, oversized payloads, prompt hijacking | Defensive schema parsing, client-side & server-side length clamping, HTML encoding. |
-| **Planning & Reasoning** | Prompt injection attempting to alter system role or leak other users' data | Fixed system boundaries, context-bounded prompt templates, zero-execution plain text ingestion. |
-| **Tool Execution** | SSRF or unauthorized external API calls | Server-side Gemini proxy routes; zero dynamic code evaluation (`eval` / `Function`). |
+| **Planning & Reasoning** | Prompt injection attempting to alter system role or leak other users' data | Regex-based injection detection in backend routes, context-bounded prompt templates, plain text ingestion. |
+| **Tool Execution & Billing** | DDoS, API exhaustion, billing spikes | Sliding-window per-IP rate limiter on backend API endpoints (40 requests/min). |
 | **Memory & State** | Cross-user journal data exposure | Strict owner-bound Firestore Security Rules matching `request.auth.uid == userId`. |
 | **Inter-System / API** | API key leakage to browser client | Gemini API key strictly confined to server-side routes; fallback model ladder catches API quotas cleanly. |
 

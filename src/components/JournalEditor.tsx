@@ -15,9 +15,15 @@ import {
   Brain,
   Feather,
   Lightbulb,
+  Mic,
+  MicOff,
+  ImagePlus,
+  X,
+  Maximize2,
 } from 'lucide-react';
 import type {
   ChatMessage,
+  ChatImageAttachment,
   JournalFrameworkId,
   JournalSummary,
   JournalEntry,
@@ -37,6 +43,9 @@ interface JournalEditorProps {
   initialMood?: string;
 }
 
+const MAX_IMAGES = 5;
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB per image
+
 export const JournalEditor: React.FC<JournalEditorProps> = ({
   onEntrySaved,
   initialTranscript,
@@ -49,9 +58,18 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
   const [currentMood, setCurrentMood] = useState<string>(initialMood || 'calm');
   const [messages, setMessages] = useState<ChatMessage[]>(initialTranscript || []);
   const [inputMessage, setInputMessage] = useState('');
+  const [attachedImages, setAttachedImages] = useState<ChatImageAttachment[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
   const [loadingReply, setLoadingReply] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Speech-to-Text State
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  // Image Preview Modal
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   // Dynamic Prompt suggestions
   const [suggestedPrompts, setSuggestedPrompts] = useState<string[]>([]);
@@ -92,6 +110,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
   // Auto-scroll ref
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const selectedFrameworkObj = JOURNAL_FRAMEWORKS.find((f) => f.id === framework) || JOURNAL_FRAMEWORKS[0];
 
@@ -113,6 +132,19 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
   useEffect(() => {
     loadPrompts();
   }, [framework]);
+
+  // Cleanup speech recognition on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          // Ignore error on unmount
+        }
+      }
+    };
+  }, []);
 
   const loadPrompts = async () => {
     setLoadingPrompts(true);
@@ -142,21 +174,170 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
     }
   }, [messages, framework, currentMood, user?.uid]);
 
+  // Speech-to-Text Handler
+  const toggleSpeechRecognition = () => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setErrorMessage(
+        'Speech recognition is not supported in this browser. Please try Google Chrome or Safari.'
+      );
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setErrorMessage(null);
+      };
+
+      recognition.onresult = (event: any) => {
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            const transcriptChunk = event.results[i][0].transcript;
+            setInputMessage((prev) =>
+              prev ? `${prev.trim()} ${transcriptChunk.trim()}` : transcriptChunk.trim()
+            );
+          }
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition error:', event.error);
+        if (event.error === 'not-allowed') {
+          setErrorMessage(
+            'Microphone access was denied. Please allow microphone permissions in your browser.'
+          );
+        } else if (event.error !== 'no-speech') {
+          setErrorMessage(`Speech recognition error: ${event.error}`);
+        }
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err: any) {
+      console.error('Speech recognition initiation error:', err);
+      setErrorMessage('Could not activate speech recognition.');
+      setIsListening(false);
+    }
+  };
+
+  // Process incoming image files with limits (< 5MB & max 5 images)
+  const processImageFiles = (files: File[]) => {
+    if (files.length === 0) return;
+
+    if (attachedImages.length + files.length > MAX_IMAGES) {
+      setErrorMessage(`You can attach up to ${MAX_IMAGES} images per reflection.`);
+      return;
+    }
+
+    const validFiles: File[] = [];
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) {
+        setErrorMessage(`"${file.name}" is not a valid image format.`);
+        return;
+      }
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+        setErrorMessage(`"${file.name}" is ${sizeMb} MB, which exceeds the 5 MB per image limit.`);
+        return;
+      }
+      validFiles.push(file);
+    }
+
+    validFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        setAttachedImages((prev) => {
+          if (prev.length >= MAX_IMAGES) return prev;
+          return [
+            ...prev,
+            {
+              name: file.name,
+              mimeType: file.type || 'image/jpeg',
+              data: dataUrl,
+              size: file.size,
+            },
+          ];
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    processImageFiles(files);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeAttachedImage = (index: number) => {
+    setAttachedImages((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files || []);
+    processImageFiles(files);
+  };
+
   const handleSendMessage = async (customText?: string) => {
-    const textToSend = customText || inputMessage;
-    if (!textToSend.trim() || loadingReply) return;
+    const textToSend = customText !== undefined ? customText : inputMessage;
+    const hasText = Boolean(textToSend.trim());
+    const hasImages = attachedImages.length > 0;
+
+    if ((!hasText && !hasImages) || loadingReply) return;
+
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
 
     setErrorMessage(null);
+    const currentImages = [...attachedImages];
     const userMsg: ChatMessage = {
       id: `user_${Date.now()}`,
       role: 'user',
       content: textToSend.trim(),
       timestamp: Date.now(),
+      images: currentImages.length > 0 ? currentImages : undefined,
     };
 
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInputMessage('');
+    setAttachedImages([]);
     setLoadingReply(true);
 
     try {
@@ -224,6 +405,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
           timestamp: Date.now(),
         },
       ]);
+      setAttachedImages([]);
       if (user?.uid) {
         clearDraftSession(user.uid);
       }
@@ -252,45 +434,37 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-2.5 sm:px-6 py-4 sm:py-6 flex flex-col min-h-[calc(100vh-4rem)] text-[#2c2c26]">
-      {/* Top Controls: Frameworks & Mood in Square Warm Box */}
-      <div className="mb-3 space-y-2.5 bg-[#ffffff] border border-[#ecece0] p-3 sm:p-4 rounded-none shadow-xs">
-        {/* Framework Selector Tabs */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-[#7d8461]">
-              Journaling Framework
+    <div className="flex flex-col h-full bg-[#fbfaf5]">
+      {/* Top Header & Framework Navigation - Square */}
+      <div className="bg-white border border-[#ecece0] rounded-none p-3 sm:p-4 mb-3 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+          <div>
+            <span className="text-[10px] uppercase tracking-wider text-[#7d8461] font-bold block mb-0.5">
+              Reflective Workspace
             </span>
-            <span className="text-[10px] text-[#5c5c52] uppercase tracking-wider font-semibold">
-              {selectedFrameworkObj.name}
-            </span>
+            <h1 className="text-lg sm:text-xl font-serif italic font-bold text-[#2c2c26]">
+              Reflection Studio
+            </h1>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-2">
+          {/* Quick Framework Selector Pills - Square */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
             {JOURNAL_FRAMEWORKS.map((fw) => {
-              const Icon = getFrameworkIcon(fw.iconName);
-              const isSelected = framework === fw.id;
+              const IconComp = getFrameworkIcon(fw.iconName);
+              const isActive = framework === fw.id;
               return (
                 <button
                   key={fw.id}
-                  onClick={() => {
-                    if (fw.id !== framework) {
-                      setFramework(fw.id);
-                    }
-                  }}
-                  className={`p-2 sm:p-2.5 rounded-none text-left border transition-all flex flex-col justify-between cursor-pointer ${
-                    isSelected
-                      ? 'bg-[#7d8461]/10 border-[#7d8461] shadow-xs'
-                      : 'bg-[#fbfaf5] border-[#ecece0] text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#f4f4ea]'
+                  onClick={() => setFramework(fw.id)}
+                  className={`px-3 py-1.5 rounded-none text-xs font-semibold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                    isActive
+                      ? 'bg-[#7d8461] text-white shadow-xs'
+                      : 'bg-[#f4f4ea] hover:bg-[#ecece0] text-[#5c5c52] hover:text-[#2c2c26] border border-[#e8e8df]'
                   }`}
+                  title={fw.tagline}
                 >
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-[#7d8461]' : 'text-[#7d8461]/70'}`} />
-                    <span className={`font-serif italic font-bold text-[11px] sm:text-xs truncate ${isSelected ? 'text-[#2c2c26]' : 'text-[#5c5c52]'}`}>
-                      {fw.name.split(' ')[0]}
-                    </span>
-                  </div>
-                  <p className="text-[9px] sm:text-[10px] text-[#7d8461] font-medium line-clamp-1">{fw.tagline}</p>
+                  <IconComp className="w-3.5 h-3.5" />
+                  <span>{fw.name}</span>
                 </button>
               );
             })}
@@ -346,7 +520,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
             </span>
           </div>
 
-          {/* Font Size Accessibility Controls with high-contrast indicator */}
+          {/* Font Size Accessibility Controls */}
           <div className="flex items-center gap-1.5 bg-[#ffffff] border border-[#ecece0] px-2 py-1 rounded-none shadow-xs">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#5c5c52] flex items-center gap-1">
               Text:
@@ -405,17 +579,19 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
         </p>
       </div>
 
-      {/* Main Conversation Stream - Flexible & Square */}
+      {/* Main Conversation Stream */}
       <div className="flex-1 overflow-y-auto space-y-3.5 pr-1 pb-3 min-h-[220px]">
         {messages.map((msg) => {
           const isUser = msg.role === 'user';
           const isCopied = copiedId === msg.id;
+          const hasImages = Array.isArray(msg.images) && msg.images.length > 0;
+
           return (
             <div
               key={msg.id}
               className={`flex items-start gap-2.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
             >
-              {/* Avatar / Icon - Square */}
+              {/* Avatar / Icon */}
               <div
                 className={`w-6 h-6 rounded-none shrink-0 flex items-center justify-center text-[10px] font-bold shadow-xs ${
                   isUser
@@ -430,7 +606,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
                 )}
               </div>
 
-              {/* Message Bubble - Square with Markdown support & Dynamic Font Size */}
+              {/* Message Bubble */}
               <div
                 className={`group relative max-w-[90%] sm:max-w-[80%] p-3.5 sm:p-4 ${messageTextClass} shadow-xs rounded-none ${
                   isUser
@@ -438,8 +614,34 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
                     : 'bg-white border border-[#ecece0] text-[#2c2c26]'
                 }`}
               >
+                {/* Render Attached Images inside user message bubble */}
+                {hasImages && (
+                  <div className="mb-2.5 flex flex-wrap gap-2">
+                    {msg.images!.map((img, idx) => (
+                      <div
+                        key={idx}
+                        className="relative group/img cursor-pointer border border-[#ecece0]/40 overflow-hidden bg-black/10 max-w-[140px] max-h-[140px]"
+                        onClick={() => setPreviewImageUrl(img.data)}
+                        title={`View ${img.name} (${(img.size / 1024).toFixed(0)} KB)`}
+                      >
+                        <img
+                          src={img.data}
+                          alt={img.name}
+                          className="w-full h-24 object-cover hover:scale-105 transition-transform duration-200"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] gap-1">
+                          <Maximize2 className="w-3 h-3" />
+                          <span>View</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Markdown Rendered Content */}
-                <MarkdownRenderer content={msg.content} isUser={isUser} fontSize={fontSize} />
+                {msg.content && (
+                  <MarkdownRenderer content={msg.content} isUser={isUser} fontSize={fontSize} />
+                )}
 
                 {/* Bubble Footer & Actions */}
                 <div
@@ -454,7 +656,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
                     })}
                   </span>
 
-                  {/* Copy Button for both user and AI messages */}
+                  {/* Copy Button */}
                   <button
                     onClick={() => handleCopyMessage(msg.id, msg.content)}
                     className={`flex items-center gap-1 px-1.5 py-0.5 rounded-none transition cursor-pointer font-medium ${
@@ -482,7 +684,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
           );
         })}
 
-        {/* Gemini Typing Indicator - Square */}
+        {/* Gemini Typing Indicator */}
         {loadingReply && (
           <div className="flex items-start gap-2.5">
             <div className="w-6 h-6 rounded-none bg-[#7d8461] text-white flex items-center justify-center text-[10px] font-bold">
@@ -498,7 +700,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Suggested Thought Prompts Tray - Square */}
+      {/* Suggested Thought Prompts Tray */}
       {suggestedPrompts.length > 0 && (
         <div className="mb-2 py-1 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           <div className="flex items-center gap-1 text-[10px] sm:text-[11px] text-[#7d8461] shrink-0 font-bold uppercase tracking-wider">
@@ -528,8 +730,56 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
         </div>
       )}
 
-      {/* Input Area and Session Action Bar - Square & Ergonomic Desktop Alignment */}
-      <div className="bg-white border border-[#ecece0] rounded-none p-3 sm:p-3.5 shadow-xs">
+      {/* Input Area and Session Action Bar */}
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`bg-white border rounded-none p-3 sm:p-3.5 shadow-xs transition-colors ${
+          isDragging ? 'border-[#7d8461] bg-[#7d8461]/5' : 'border-[#ecece0]'
+        }`}
+      >
+        {/* Attached Images Preview Strip */}
+        {attachedImages.length > 0 && (
+          <div className="mb-2.5 pb-2 border-b border-[#ecece0] flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#7d8461]">
+              Attached ({attachedImages.length}/{MAX_IMAGES}):
+            </span>
+            {attachedImages.map((img, idx) => (
+              <div
+                key={idx}
+                className="relative group flex items-center gap-1.5 bg-[#f4f4ea] border border-[#e8e8df] px-2 py-1 text-xs"
+              >
+                <img src={img.data} alt={img.name} className="w-5 h-5 object-cover" />
+                <span className="text-[10px] font-medium text-[#2c2c26] max-w-[100px] truncate">
+                  {img.name}
+                </span>
+                <span className="text-[9px] text-[#8c8c80]">
+                  ({(img.size / 1024).toFixed(0)} KB)
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeAttachedImage(idx)}
+                  className="text-[#8c8c80] hover:text-[#c86d51] p-0.5 transition cursor-pointer"
+                  title="Remove image"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Hidden File Input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          multiple
+          onChange={handleFileInputChange}
+          className="hidden"
+        />
+
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5">
           {/* Main Reflection Textarea */}
           <div className="flex-1 relative">
@@ -539,17 +789,66 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Reflect further, explore what is on your mind, or deepen your realization..."
-              className={`w-full bg-[#f4f4ea]/40 border border-[#ecece0] rounded-none p-2.5 sm:p-3 ${textareaTextClass} text-[#2c2c26] placeholder-[#5c5c52]/60 focus:outline-none focus:border-[#7d8461] resize-none leading-relaxed transition`}
+              placeholder={
+                isListening
+                  ? 'Listening... speak your reflections naturally into the microphone.'
+                  : 'Reflect freely, attach photos (up to 5 images, <5MB), or use speech-to-text...'
+              }
+              className={`w-full bg-[#f4f4ea]/40 border rounded-none p-2.5 sm:p-3 ${textareaTextClass} text-[#2c2c26] placeholder-[#5c5c52]/60 focus:outline-none focus:border-[#7d8461] resize-none leading-relaxed transition ${
+                isListening ? 'border-[#c86d51] bg-[#c86d51]/5' : 'border-[#ecece0]'
+              }`}
             />
           </div>
 
-          {/* Send Button - Neatly aligned & vertically centered on Desktop */}
-          <div className="flex items-center sm:self-center shrink-0">
+          {/* Action Toolbar: Speech-to-Text, Image Upload, & Send Button */}
+          <div className="flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2 shrink-0">
+            {/* Speech to Text Toggle Button */}
+            <button
+              type="button"
+              onClick={toggleSpeechRecognition}
+              className={`h-10 sm:h-[58px] px-3 border rounded-none text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                isListening
+                  ? 'bg-[#c86d51] border-[#c86d51] text-white animate-pulse'
+                  : 'bg-[#f4f4ea] border-[#ecece0] text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#ecece0]'
+              }`}
+              title={isListening ? 'Stop listening' : 'Speech to text (Dictate thoughts)'}
+            >
+              {isListening ? (
+                <>
+                  <MicOff className="w-4 h-4 text-white" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider">Listening</span>
+                </>
+              ) : (
+                <>
+                  <Mic className="w-4 h-4" />
+                  <span className="hidden sm:inline text-[10px] font-semibold uppercase tracking-wider">Dictate</span>
+                </>
+              )}
+            </button>
+
+            {/* Image Upload Button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={attachedImages.length >= MAX_IMAGES}
+              className={`h-10 sm:h-[58px] px-3 border rounded-none text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                attachedImages.length > 0
+                  ? 'bg-[#7d8461]/15 border-[#7d8461]/40 text-[#4c5432]'
+                  : 'bg-[#f4f4ea] border-[#ecece0] text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#ecece0] disabled:opacity-40 disabled:cursor-not-allowed'
+              }`}
+              title={`Attach photo/sketch (Limit ${MAX_IMAGES} images & <5MB each)`}
+            >
+              <ImagePlus className="w-4 h-4" />
+              <span className="hidden sm:inline text-[10px] font-semibold uppercase tracking-wider">
+                Photo {attachedImages.length > 0 ? `(${attachedImages.length})` : ''}
+              </span>
+            </button>
+
+            {/* Send Button */}
             <button
               onClick={() => handleSendMessage()}
-              disabled={!inputMessage.trim() || loadingReply}
-              className="w-full sm:w-auto h-full sm:min-h-[58px] px-5 py-2.5 sm:py-0 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-xs font-bold uppercase tracking-wider shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              disabled={(!inputMessage.trim() && attachedImages.length === 0) || loadingReply}
+              className="flex-1 sm:flex-initial h-10 sm:h-[58px] px-5 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-xs font-bold uppercase tracking-wider shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               title="Send your reflection (Cmd+Enter / Ctrl+Enter)"
             >
               <span>Send</span>
@@ -566,7 +865,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
             <span className="font-medium">~{totalWords} Words</span>
             <span className="hidden sm:inline">•</span>
             <span className="hidden sm:inline text-[10px] text-[#5c5c52]/70">
-              Press <kbd className="px-1 py-0.2 bg-[#f4f4ea] rounded-none border border-[#ecece0] font-mono text-[9px]">Cmd+Enter</kbd> to send
+              Attach up to 5 images (&lt;5MB) • Dictate with Mic
             </span>
           </div>
 
@@ -599,6 +898,32 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Image Preview Lightbox Overlay Modal */}
+      {previewImageUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setPreviewImageUrl(null)}
+        >
+          <div
+            className="relative max-w-3xl max-h-[90vh] bg-white p-2 border border-[#ecece0] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreviewImageUrl(null)}
+              className="absolute -top-3 -right-3 w-7 h-7 bg-[#2c2c26] text-white rounded-full flex items-center justify-center hover:bg-black transition cursor-pointer shadow-md"
+              title="Close preview"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <img
+              src={previewImageUrl}
+              alt="Preview"
+              className="max-w-full max-h-[82vh] object-contain"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Synthesis & Review Modal */}
       <SummaryModal

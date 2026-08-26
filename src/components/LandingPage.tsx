@@ -199,7 +199,7 @@ export const LandingPage: React.FC = () => {
     {
       question: 'Can I export or print my entries?',
       answer:
-        'Yes. You have full ownership of your archive. You can export individual entries or your entire collection as formatted Markdown (.md), print-ready PDF, or raw JSON at any time.',
+        'Yes. You have complete data sovereignty with 100% Client-Side Export (Best Privacy). You can export individual entries or your entire journal archive as formatted Markdown (.md), print-ready PDF, or raw JSON. All conversion and file rendering occur exclusively inside your web browser without sending your data to any external export server.',
     },
     {
       question: 'What is the 30-Day Mood Trajectory feature?',
@@ -296,7 +296,7 @@ export const LandingPage: React.FC = () => {
             </span>
             <span className="flex items-center gap-1.5 font-medium">
               <Download className="w-3.5 h-3.5 text-[#7d8461]" />
-              Export PDF, MD, & JSON
+              100% Client-Side Export (PDF/MD/JSON)
             </span>
           </div>
         </section>
