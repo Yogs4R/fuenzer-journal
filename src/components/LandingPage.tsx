@@ -163,12 +163,12 @@ export const LandingPage: React.FC = () => {
     },
   ];
 
-  // Auto-advance carousel every 6 seconds unless paused
+  // Auto-advance carousel every 4.5 seconds unless paused
   useEffect(() => {
     if (isCarouselPaused) return;
     const interval = setInterval(() => {
       setTestimonialIndex((prev) => (prev + 1) % testimonials.length);
-    }, 6000);
+    }, 4500);
     return () => clearInterval(interval);
   }, [isCarouselPaused, testimonials.length]);
 

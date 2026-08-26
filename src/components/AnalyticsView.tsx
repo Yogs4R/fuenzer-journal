@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import {
   BarChart3,
   Flame,
@@ -13,6 +13,11 @@ import {
   Calendar,
   Clock,
   Zap,
+  ChevronDown,
+  FileText,
+  FileSpreadsheet,
+  FileCode,
+  Check,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -32,6 +37,7 @@ import {
 import type { JournalEntry } from '../types/journal';
 import { JOURNAL_FRAMEWORKS, MOOD_OPTIONS } from '../lib/constants';
 import { getLocalDateString, formatJournalDate } from '../lib/date-utils';
+import { exportAnalyticsToPdf } from '../lib/pdf-export';
 
 interface AnalyticsViewProps {
   entries: JournalEntry[];
@@ -40,21 +46,36 @@ interface AnalyticsViewProps {
 
 type TimeRangeOption = '24h' | '7d' | '14d' | '30d';
 
-const MOOD_SCORE_MAP: Record<string, { score: number; label: string; emoji: string }> = {
-  grateful: { score: 5.0, label: 'Grateful', emoji: '✨' },
-  calm: { score: 4.6, label: 'Calm', emoji: '🌿' },
-  energized: { score: 4.4, label: 'Energized', emoji: '⚡' },
-  hopeful: { score: 4.0, label: 'Hopeful', emoji: '🌱' },
-  focused: { score: 3.6, label: 'Focused', emoji: '🎯' },
-  reflective: { score: 3.2, label: 'Reflective', emoji: '🪞' },
-  tired: { score: 2.2, label: 'Tired', emoji: '🥱' },
-  anxious: { score: 1.8, label: 'Anxious', emoji: '⚡' },
-  frustrated: { score: 1.4, label: 'Frustrated', emoji: '🌪️' },
-  sad: { score: 1.2, label: 'Sad', emoji: '🌧️' },
+// Pure variables / text labels without emoticons
+const MOOD_SCORE_MAP: Record<string, { score: number; label: string }> = {
+  grateful: { score: 5.0, label: 'Grateful' },
+  calm: { score: 4.6, label: 'Calm' },
+  energized: { score: 4.4, label: 'Energized' },
+  hopeful: { score: 4.0, label: 'Hopeful' },
+  focused: { score: 3.6, label: 'Focused' },
+  reflective: { score: 3.2, label: 'Reflective' },
+  tired: { score: 2.2, label: 'Tired' },
+  anxious: { score: 1.8, label: 'Anxious' },
+  frustrated: { score: 1.4, label: 'Frustrated' },
+  sad: { score: 1.2, label: 'Sad' },
 };
 
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCount }) => {
   const [timeRange, setTimeRange] = useState<TimeRangeOption>('7d');
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [exportSuccess, setExportSuccess] = useState<string | null>(null);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setIsExportOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const stats = useMemo(() => {
     const totalEntries = entries.length;
@@ -159,12 +180,12 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
         if (matched.length > 0) {
           const latest = matched[0];
           const moodKey = (latest.detectedMood || latest.initialMood || 'reflective').toLowerCase();
-          const moodInfo = MOOD_SCORE_MAP[moodKey] || { score: 3.2, label: moodKey, emoji: '🪞' };
+          const moodInfo = MOOD_SCORE_MAP[moodKey] || { score: 3.2, label: 'Reflective' };
           data.push({
             date: displayLabel,
             fullDate: slotTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             score: moodInfo.score,
-            moodLabel: `${moodInfo.emoji} ${moodInfo.label}`,
+            moodLabel: moodInfo.label,
             hasEntry: true,
             title: latest.title,
             words: latest.wordCount || 0,
@@ -209,7 +230,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
       if (dayEntries && dayEntries.length > 0) {
         const latestEntry = dayEntries[0];
         const moodKey = (latestEntry.detectedMood || latestEntry.initialMood || 'reflective').toLowerCase();
-        const moodInfo = MOOD_SCORE_MAP[moodKey] || { score: 3.2, label: moodKey, emoji: '🪞' };
+        const moodInfo = MOOD_SCORE_MAP[moodKey] || { score: 3.2, label: 'Reflective' };
 
         const dayTotalWords = dayEntries.reduce((acc, curr) => acc + (curr.wordCount || 0), 0);
 
@@ -217,7 +238,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
           date: displayDate,
           fullDate: dateKey,
           score: moodInfo.score,
-          moodLabel: `${moodInfo.emoji} ${moodInfo.label}`,
+          moodLabel: moodInfo.label,
           hasEntry: true,
           title: latestEntry.title,
           entriesCount: dayEntries.length,
@@ -240,17 +261,102 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
     return data;
   }, [entries, timeRange]);
 
-  const handleExportAllJson = () => {
-    const jsonStr = JSON.stringify(entries, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
+  const triggerDownload = (blob: Blob, filename: string, successLabel: string) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `fuenzer_journal_export_${getLocalDateString(new Date())}.json`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    setIsExportOpen(false);
+    setExportSuccess(successLabel);
+    setTimeout(() => setExportSuccess(null), 3000);
+  };
+
+  const handleExportPdf = () => {
+    try {
+      exportAnalyticsToPdf(entries, stats, streakCount, timeRange);
+      setIsExportOpen(false);
+      setExportSuccess('Analytics PDF generated');
+      setTimeout(() => setExportSuccess(null), 3000);
+    } catch (err) {
+      console.error('Failed to export PDF:', err);
+    }
+  };
+
+  const handleExportJson = () => {
+    const jsonStr = JSON.stringify(entries, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    triggerDownload(blob, `fuenzer_journal_export_${getLocalDateString(new Date())}.json`, 'JSON file exported');
+  };
+
+  const handleExportCsv = () => {
+    const headers = ['Date', 'Title', 'Framework', 'Mood', 'Word Count', 'Themes', 'Executive Summary'];
+    const rows = entries.map((e) => [
+      `"${getLocalDateString(new Date(e.createdAt))}"`,
+      `"${(e.title || 'Untitled').replace(/"/g, '""')}"`,
+      `"${e.framework}"`,
+      `"${e.detectedMood || e.initialMood || 'Reflective'}"`,
+      e.wordCount || 0,
+      `"${(e.themes || []).join(', ')}"`,
+      `"${(e.executiveSummary || '').replace(/"/g, '""')}"`,
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    triggerDownload(blob, `fuenzer_journal_export_${getLocalDateString(new Date())}.csv`, 'CSV spreadsheet exported');
+  };
+
+  const handleExportMarkdown = () => {
+    let md = `# Fuenzer Journal — Insights & Reflection Digest\n`;
+    md += `*Generated on ${formatJournalDate(Date.now(), { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}*\n\n`;
+    md += `## Executive Metrics\n`;
+    md += `- **Total Reflections**: ${stats.totalEntries}\n`;
+    md += `- **Daily Streak**: ${streakCount} Days\n`;
+    md += `- **Total Words Reflected**: ${stats.totalWords.toLocaleString()}\n`;
+    md += `- **Avg Words / Session**: ~${stats.avgWords}\n`;
+    md += `- **Key Insights Extracted**: ${stats.totalInsights}\n\n`;
+
+    md += `## Dominant Emotional States\n`;
+    stats.topMoods.forEach((m) => {
+      md += `- **${m.mood}**: ${m.count} sessions\n`;
+    });
+    md += `\n`;
+
+    md += `## Journaling Frameworks\n`;
+    JOURNAL_FRAMEWORKS.forEach((fw) => {
+      const count = stats.frameworkCounts[fw.id] || 0;
+      if (count > 0) md += `- **${fw.name}**: ${count} entries\n`;
+    });
+    md += `\n`;
+
+    md += `## Reflection History\n\n`;
+    entries.forEach((e, idx) => {
+      md += `### ${idx + 1}. ${e.title || 'Untitled Reflection'}\n`;
+      md += `*${formatJournalDate(e.createdAt)} | Framework: ${e.framework} | Mood: ${e.detectedMood || e.initialMood || 'Reflective'}*\n\n`;
+      if (e.executiveSummary) {
+        md += `> ${e.executiveSummary}\n\n`;
+      }
+      if (e.keyInsights && e.keyInsights.length > 0) {
+        md += `**Key Realizations:**\n`;
+        e.keyInsights.forEach((ki) => {
+          md += `- ${ki}\n`;
+        });
+        md += `\n`;
+      }
+      if (e.actionItems && e.actionItems.length > 0) {
+        md += `**Intentions & Next Steps:**\n`;
+        e.actionItems.forEach((ai) => {
+          md += `- [ ] ${ai}\n`;
+        });
+        md += `\n`;
+      }
+      md += `---\n\n`;
+    });
+
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
+    triggerDownload(blob, `fuenzer_journal_digest_${getLocalDateString(new Date())}.md`, 'Markdown digest exported');
   };
 
   return (
@@ -271,14 +377,94 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
           </p>
         </div>
 
-        <button
-          onClick={handleExportAllJson}
-          disabled={entries.length === 0}
-          className="px-4 py-2 bg-[#3a3a30] hover:bg-[#2c2c26] text-[#fbfaf5] rounded-none text-xs font-bold transition flex items-center gap-2 cursor-pointer disabled:opacity-50 uppercase tracking-wider shadow-xs self-start sm:self-auto"
-        >
-          <Download className="w-3.5 h-3.5" />
-          <span>Export All Data (JSON)</span>
-        </button>
+        {/* Export Dropdown & Feedback Toast */}
+        <div className="relative self-start sm:self-auto" ref={exportMenuRef}>
+          <div className="flex items-center gap-2">
+            {exportSuccess && (
+              <span className="text-[11px] font-medium text-[#7d8461] bg-[#7d8461]/10 border border-[#7d8461]/30 px-2.5 py-1 flex items-center gap-1 animate-in fade-in duration-200">
+                <Check className="w-3 h-3" />
+                <span>{exportSuccess}</span>
+              </span>
+            )}
+            <button
+              onClick={() => setIsExportOpen((prev) => !prev)}
+              disabled={entries.length === 0}
+              className="px-4 py-2 bg-[#3a3a30] hover:bg-[#2c2c26] text-[#fbfaf5] rounded-none text-xs font-bold transition flex items-center gap-2 cursor-pointer disabled:opacity-50 uppercase tracking-wider shadow-xs"
+              title="Export analytics and reflection logs"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Export</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-150 ${isExportOpen ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+
+          {/* Dropdown Menu Popup */}
+          {isExportOpen && (
+            <div className="absolute right-0 mt-1.5 w-60 bg-white border border-[#2c2c26]/20 shadow-xl rounded-none z-30 divide-y divide-[#ecece0] animate-in fade-in zoom-in-95 duration-150">
+              <div className="p-2">
+                <p className="text-[10px] uppercase tracking-wider text-[#7d8461] font-bold px-2 py-1">
+                  Choose Export Format
+                </p>
+
+                {/* PDF Option */}
+                <button
+                  onClick={handleExportPdf}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] hover:bg-[#f4f4ea] transition cursor-pointer"
+                >
+                  <div className="w-6 h-6 bg-[#7d8461]/10 text-[#7d8461] flex items-center justify-center shrink-0">
+                    <FileText className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <span className="font-bold block">Analytics Report (PDF)</span>
+                    <span className="text-[10px] text-[#5c5c52]">Print-ready insights document</span>
+                  </div>
+                </button>
+
+                {/* CSV Option */}
+                <button
+                  onClick={handleExportCsv}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] hover:bg-[#f4f4ea] transition cursor-pointer"
+                >
+                  <div className="w-6 h-6 bg-[#b08968]/15 text-[#b08968] flex items-center justify-center shrink-0">
+                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <span className="font-bold block">Reflections Log (CSV)</span>
+                    <span className="text-[10px] text-[#5c5c52]">Spreadsheet compatible format</span>
+                  </div>
+                </button>
+
+                {/* JSON Option */}
+                <button
+                  onClick={handleExportJson}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] hover:bg-[#f4f4ea] transition cursor-pointer"
+                >
+                  <div className="w-6 h-6 bg-[#606c38]/15 text-[#606c38] flex items-center justify-center shrink-0">
+                    <FileCode className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <span className="font-bold block">Full Backup (JSON)</span>
+                    <span className="text-[10px] text-[#5c5c52]">Complete raw structured data</span>
+                  </div>
+                </button>
+
+                {/* Markdown Option */}
+                <button
+                  onClick={handleExportMarkdown}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] hover:bg-[#f4f4ea] transition cursor-pointer"
+                >
+                  <div className="w-6 h-6 bg-[#3a3a30]/10 text-[#3a3a30] flex items-center justify-center shrink-0">
+                    <BookOpen className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <span className="font-bold block">Insights Digest (.MD)</span>
+                    <span className="text-[10px] text-[#5c5c52]">Clean text with markdown headers</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Metric Cards Grid - Square */}
@@ -385,7 +571,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={moodChartData}
-                margin={{ top: 10, right: 15, left: 10, bottom: 0 }}
+                margin={{ top: 10, right: 15, left: 0, bottom: 0 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#ecece0" vertical={false} />
                 <XAxis
@@ -398,13 +584,13 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                 <YAxis
                   domain={[1, 5]}
                   ticks={[1.4, 2.2, 3.2, 4.4, 5.0]}
-                  width={80}
+                  width={68}
                   tickFormatter={(val) => {
-                    if (val >= 4.8) return '✨ Calm';
-                    if (val >= 4.0) return '🌿 Serene';
-                    if (val >= 3.0) return '⚖️ Balanced';
-                    if (val >= 2.0) return '🥱 Tired';
-                    return '🌧️ Strained';
+                    if (val >= 4.8) return 'Calm';
+                    if (val >= 4.0) return 'Serene';
+                    if (val >= 3.0) return 'Balanced';
+                    if (val >= 2.0) return 'Tired';
+                    return 'Strained';
                   }}
                   tick={{ fontSize: 10, fill: '#3a3a30', fontWeight: 500 }}
                   tickLine={false}

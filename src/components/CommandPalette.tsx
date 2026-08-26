@@ -205,14 +205,21 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="p-1 text-[#8c8c80] hover:text-[#2c2c26] transition cursor-pointer"
+              className="p-1 text-[#8c8c80] hover:text-[#2c2c26] transition cursor-pointer mr-1.5"
+              title="Clear search text"
+              aria-label="Clear search"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
-          <span className="ml-2 px-1.5 py-0.5 text-[10px] font-mono text-[#7d8461] bg-[#7d8461]/10 border border-[#7d8461]/25 uppercase font-bold shrink-0">
-            ESC
-          </span>
+          <button
+            onClick={onClose}
+            title="Close command palette (Esc)"
+            aria-label="Close command palette"
+            className="ml-1 p-1.5 text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#ecece0] transition cursor-pointer flex items-center justify-center shrink-0 border border-[#d8d8cc]/60"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Results List */}
