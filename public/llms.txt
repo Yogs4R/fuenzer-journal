@@ -1,0 +1,24 @@
+# Fuenzer Journal (LLMs Manifest)
+> https://fuenzer-journal.ai.studio / https://journal.fuenzer.web.id
+
+## Summary
+Fuenzer Journal is a privacy-first, intelligent reflective journaling platform and AI thought partner. It transforms raw personal introspection into structured clarity through Socratic inquiry, automated cognitive distillation (executive summaries, breakthroughs, CBT reframing, and action items), multimodal voice/image logging, and strictly isolated Cloud Firestore persistence.
+
+## Core Philosophical & Reflection Frameworks
+- **Stoic Reflection**: Dichotomy of control, amor fati, and tranquil emotional equanimity.
+- **Daily Gratitude**: Three specific appreciations, hidden blessings, and reciprocal reflections.
+- **CBT Cognitive Reframe**: Identification of distortions (catastrophizing, mind-reading, black-and-white thinking) and rational reframing.
+- **Weekly Retrospective**: High-level audit of personal growth, friction vectors, and habits.
+- **Future Self Visioning**: Long-range horizon planning and alignment with core personal values.
+- **Creative Free-Flow**: Uninhibited stream-of-consciousness journaling with conversational Socratic probes.
+
+## Architecture & Capabilities
+- **Frontend**: React 19, TypeScript, Tailwind CSS v4, Motion, Lucide Icons, Recharts.
+- **Backend & Security**: Express.js server, zero hardcoded API keys, server-side Google GenAI SDK integration with an automated 4-tier model fallback ladder (`gemini-3.6-flash`, `gemini-3.1-flash-lite`, `gemini-flash-latest`, `gemini-3.7-flash`).
+- **Database & Storage**: Google Cloud Firestore with owner-bound rules (`request.auth.uid == userId`) and Firebase Google Authentication.
+- **Privacy & Export**: Complete client-side export capabilities (PDF, Markdown .md, Spreadsheet CSV, raw JSON) and zero model training on user private reflections.
+
+## Primary Endpoints
+- Web App: https://fuenzer-journal.ai.studio
+- Subdomain: https://journal.fuenzer.web.id
+- Documentation & Full LLM Reference: https://fuenzer-journal.ai.studio/llms-full.txt

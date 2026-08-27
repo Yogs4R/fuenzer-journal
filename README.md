@@ -1,11 +1,38 @@
 # Fuenzer Journal
 
 > **Your Private Sanctuary for Mindful Multi-Turn Reflection, Socratic Clarity, and Personal Growth.**  
-> Built with **React 19**, **TypeScript**, **Tailwind CSS v4**, **Cloud Firestore**, **Firebase Authentication**, and the **Gemini API** (`@google/genai`).
+> Built with **React 19**, **TypeScript**, **Tailwind CSS v4**, **Cloud Firestore**, **Firebase Authentication**, **Google Analytics**, and the **Gemini API** (`@google/genai`).
 
+<!-- Tech Stack Badges -->
+[![React](https://img.shields.io/badge/React_19-20232A?style=flat&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript_5.8-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite_6.2-646CFF?style=flat&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS_v4-06B6D4?style=flat&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Express.js](https://img.shields.io/badge/Express.js_Backend-000000?style=flat&logo=express&logoColor=white)](https://expressjs.com/)
+[![Google Gemini API](https://img.shields.io/badge/Google_Gemini_API-8E75B2?style=flat&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
+[![Cloud Firestore](https://img.shields.io/badge/Cloud_Firestore-FFCA28?style=flat&logo=firebase&logoColor=black)](https://firebase.google.com/docs/firestore)
+[![Firebase Auth](https://img.shields.io/badge/Firebase_Auth-FFCA28?style=flat&logo=firebase&logoColor=black)](https://firebase.google.com/docs/auth)
+[![Google Analytics](https://img.shields.io/badge/Google_Analytics-G--90FWP0F2D3-E37400?style=flat&logo=googleanalytics&logoColor=white)](https://analytics.google.com/)
+[![Google Cloud Run](https://img.shields.io/badge/Google_Cloud_Run-4285F4?style=flat&logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
+[![Motion](https://img.shields.io/badge/Motion-0055FF?style=flat&logo=framer&logoColor=white)](https://motion.dev/)
+[![Lucide Icons](https://img.shields.io/badge/Lucide_Icons-F56565?style=flat&logo=feather&logoColor=white)](https://lucide.dev/)
+[![Recharts](https://img.shields.io/badge/Recharts-22B5BF?style=flat&logo=d3.js&logoColor=white)](https://recharts.org/)
+[![jsPDF](https://img.shields.io/badge/jsPDF_Client_Export-FF5722?style=flat&logo=adobeacrobatreader&logoColor=white)](https://parall.ax/products/jspdf)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+<!-- Social Badges -->
 [![GitHub](https://img.shields.io/badge/GitHub-Yogs4R%2Ffuenzer--journal-181717?style=flat&logo=github)](https://github.com/Yogs4R/fuenzer-journal)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Ridwan%20Suryantara-0A66C2?style=flat&logo=linkedin)](https://linkedin.com/in/ridwansuryantara)
 [![Email](https://img.shields.io/badge/Email-fuenzerofficial%40gmail.com-D14836?style=flat&logo=gmail)](mailto:fuenzerofficial@gmail.com)
+
+---
+
+## 🌐 Live Production & Domain Endpoints
+
+- **Primary Application URL**: [https://fuenzer-journal.ai.studio](https://fuenzer-journal.ai.studio)
+- **Personal Branding Subdomain**: [https://journal.fuenzer.web.id](https://journal.fuenzer.web.id)
+- **LLMs / Generative Engine Optimization (GEO) Manifest**: [https://fuenzer-journal.ai.studio/llms.txt](https://fuenzer-journal.ai.studio/llms.txt)
+- **XML Sitemap**: [https://fuenzer-journal.ai.studio/sitemap.xml](https://fuenzer-journal.ai.studio/sitemap.xml)
 
 ---
 
@@ -13,13 +40,15 @@
 
 1. [🌿 Overview (What is Fuenzer Journal?)](#-overview-what-is-fuenzer-journal)
 2. [🌟 Key Features & Capabilities](#-key-features--capabilities)
-3. [🏛️ Architecture & Tech Stack](#️-architecture--tech-stack)
-4. [🛡️ Agentic Threat Modeling & Security Directives](#️-agentic-threat-modeling--security-directives)
-5. [🔐 Database Security Configuration (`firestore.rules`)](#-database-security-configuration-firestorerules)
-6. [🚀 Production Deployment to Google Cloud Run](#-production-deployment-to-google-cloud-run)
-7. [🧪 Functional Stability & Comprehensive User Test Walkthroughs](#-functional-stability--comprehensive-user-test-walkthroughs)
-8. [💻 Local Development & Setup](#-local-development--setup)
-9. [📬 Contact & Socials](#-contact--socials)
+3. [🏛️ Architecture & Mermaid System Flowcharts](#️-architecture--mermaid-system-flowcharts)
+4. [🍪 Privacy-First Cookie System & Google Analytics (G-90FWP0F2D3)](#-privacy-first-cookie-system--google-analytics-g-90fwp0f2d3)
+5. [🤖 Generative Engine Optimization (GEO) & SEO Infrastructure](#-generative-engine-optimization-geo--seo-infrastructure)
+6. [🛡️ Agentic Threat Modeling & Security Directives](#️-agentic-threat-modeling--security-directives)
+7. [🔐 Database Security Configuration (`firestore.rules`)](#-database-security-configuration-firestorerules)
+8. [🚀 Production Deployment to Google Cloud Run](#-production-deployment-to-google-cloud-run)
+9. [🧪 Functional Stability & Comprehensive User Test Walkthroughs](#-functional-stability--comprehensive-user-test-walkthroughs)
+10. [💻 Local Development & Setup](#-local-development--setup)
+11. [📬 Contact & Socials](#-contact--socials)
 
 ---
 
@@ -67,16 +96,136 @@
 
 ---
 
-## 🏛️ Architecture & Tech Stack
+## 🏛️ Architecture & Mermaid System Flowcharts
 
-| Layer | Technologies |
-|---|---|
-| **Frontend Framework** | React 19, TypeScript, Vite, Tailwind CSS v4 |
-| **Animation & UI** | Motion (`motion/react`), Lucide React icons, Recharts |
-| **Backend & Proxy** | Express.js, Node.js (`server.ts` with Vite development middleware) |
-| **AI Intelligence** | Gemini API via `@google/genai` (with 4-tier model fallback ladder) |
-| **Database & Auth** | Google Cloud Firestore & Firebase Authentication (Google Sign-In) |
-| **Document Generation** | `jspdf` (100% Client-Side In-Memory Execution) |
+### 1. High-Level Project Architecture
+
+```mermaid
+flowchart TB
+    subgraph ClientLayer["🖥️ Frontend Client (React 19 + TypeScript + Vite)"]
+        UI["Mindful UI / Tailwind v4 / Motion"]
+        CookieSystem["🍪 Cookie & Privacy Consent Gate"]
+        GA["📊 Google Analytics (G-90FWP0F2D3)<br/><i>Opt-In Only</i>"]
+        State["⚛️ Local State & Guest Mode Storage"]
+        DocGen["📄 jsPDF / Markdown / CSV Client Exporter"]
+    end
+
+    subgraph SecurityBoundary["🛡️ Server Proxy & Security Boundary (Express.js)"]
+        RateLimiter["⏱️ Sliding Window Rate Limiter<br/>(40 req/min API, 120 req/min static)"]
+        ThreatSanitizer["🧹 OWASP Prompt Injection & XSS Sanitizer"]
+        IntentFilter["🚫 Out-of-Scope Task Refusal Filter<br/>(Refuses code scripts, recipes, etc.)"]
+        GenAIProxy["⚡ Google GenAI SDK Proxy"]
+        SecretManager["🔑 Google Cloud Secret Manager<br/>(GEMINI_API_KEY)"]
+    end
+
+    subgraph GeminiLadder["🧠 Google Gemini Model Fallback Ladder"]
+        M1["1️⃣ gemini-3.6-flash (Primary)"]
+        M2["2️⃣ gemini-3.1-flash-lite (High-Availability)"]
+        M3["3️⃣ gemini-flash-latest (Dynamic Alias)"]
+        M4["4️⃣ gemini-3.7-flash (Deep Reasoning)"]
+    end
+
+    subgraph FirebaseLayer["🔐 Cloud Firestore & Authentication"]
+        FirebaseAuth["🔑 Firebase Google Federated Auth"]
+        FirestoreDB["🗄️ Cloud Firestore Vault<br/><code>/users/{userId}/journals/{journalId}</code>"]
+        SecurityRules["📜 Owner-Bound firestore.rules<br/><code>request.auth.uid == userId</code>"]
+    end
+
+    UI --> CookieSystem
+    CookieSystem -- "Accepted" --> GA
+    UI --> State
+    UI --> DocGen
+    UI -- "HTTPS API Requests" --> RateLimiter
+
+    RateLimiter --> ThreatSanitizer
+    ThreatSanitizer --> IntentFilter
+    IntentFilter --> GenAIProxy
+    SecretManager -.-> GenAIProxy
+
+    GenAIProxy --> M1
+    M1 -- "Failover / Quota" --> M2
+    M2 -- "Failover" --> M3
+    M3 -- "Failover" --> M4
+
+    UI -- "Direct SDK (Client Auth)" --> FirebaseAuth
+    UI -- "Owner-Scoped Query (Client SDK)" --> SecurityRules
+    SecurityRules --> FirestoreDB
+```
+
+---
+
+### 2. Multi-Turn Socratic AI Reflection & Synthesis Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as 👤 Reflective Journaler
+    participant Client as 🖥️ React Client (/app)
+    participant Server as 🛡️ Express Security Proxy
+    participant Gemini as 🧠 Gemini Fallback Ladder
+    participant Firestore as 🗄️ Isolated Firestore Vault
+
+    User->>Client: Enters thought / Speaks audio / Attaches photo
+    Client->>Server: POST /api/chat (transcript, mood, tone, philosophy)
+    Server->>Server: Sanitizes injection vectors & checks scope
+    Server->>Gemini: Executes Socratic reflection via model ladder
+    Gemini-->>Server: Thoughtful Socratic inquiry & perspective
+    Server-->>Client: Returns empathetic response (JSON)
+    Client->>User: Displays conversational reply with smooth animation
+
+    Note over User,Client: User concludes reflection session
+    User->>Client: Clicks "Conclude & Save"
+    Client->>Server: POST /api/distill-reflection (full dialogue)
+    Server->>Gemini: Extracts Summary, Themes, Breakthroughs, Action Items
+    Gemini-->>Server: Structured JSON Cognitive Distillation
+    Server-->>Client: Returns structured reflection synthesis
+    Client->>Firestore: setDoc(/users/{userId}/journals/{journalId})
+    Firestore-->>Client: Confirmed persistent write
+    Client->>User: Shows preserved reflection in Archive & Analytics
+```
+
+---
+
+### 3. Cookie Consent & Analytics Gate Flow
+
+```mermaid
+flowchart TD
+    Start["User visits Fuenzer Journal"] --> CheckStored{"Check LocalStorage<br/><code>fuenzer_cookie_consent_v1</code>"}
+    
+    CheckStored -- "accepted" --> InitGA["⚡ Initialize Google Analytics<br/><code>G-90FWP0F2D3</code> with IP Anonymization"]
+    CheckStored -- "rejected" --> BlockGA["🚫 Disable GA Tracking<br/><code>ga-disable-G-90FWP0F2D3 = true</code><br/>Only essential storage allowed"]
+    CheckStored -- "undecided" --> ShowBanner["📢 Render Sleek Full-Width Cookie Banner"]
+
+    ShowBanner --> UserChoice{"User Action"}
+    UserChoice -- "Click 'Accept All'" --> SetAccept["Save 'accepted' in LocalStorage"] --> InitGA
+    UserChoice -- "Click 'Essential Only'" --> SetReject["Save 'rejected' in LocalStorage"] --> BlockGA
+    UserChoice -- "Click 'Privacy Policy'" --> OpenModal["Open Privacy Policy Modal (Section 6)"]
+```
+
+---
+
+## 🍪 Privacy-First Cookie System & Google Analytics (`G-90FWP0F2D3`)
+
+Fuenzer Journal implements an **explicit, opt-in cookie consent architecture**:
+- **Full-Width Bottom Banner**: Unobtrusive, responsive design matching light and dark themes.
+- **Choice Architecture**: Users can click **"Accept All"** or **"Essential Only"**.
+- **Google Analytics Integration**: Tag `G-90FWP0F2D3` is initialized **only after affirmative consent** with `anonymize_ip: true` and `SameSite=None;Secure` cookie flags.
+- **Zero Advertising Trackers**: No third-party ad networks, tracking pixels, or cross-site fingerprinting scripts exist in the codebase.
+- **Always Accessible Preferences**: Users can reset or change their cookie choices anytime from the footer **"Cookie Preferences"** link.
+
+---
+
+## 🤖 Generative Engine Optimization (GEO) & SEO Infrastructure
+
+To ensure optimal indexing by search engines and generative AI agents (Perplexity, ChatGPT, Gemini, Claude):
+
+| Resource | Path | Description |
+|---|---|---|
+| **Robots Exclusion** | `/public/robots.txt` | Allows all major search bots and explicitly whitelists AI crawlers (`GPTBot`, `Google-Extended`, `ClaudeBot`, `PerplexityBot`). |
+| **XML Sitemap** | `/public/sitemap.xml` | Multi-domain sitemap indexing both `https://fuenzer-journal.ai.studio` and `https://journal.fuenzer.web.id`. |
+| **LLMs Context Manifest** | `/public/llms.txt` | Standardized GEO markdown specification defining features, frameworks, and architecture for AI agents. |
+| **Full LLM Reference** | `/public/llms-full.txt` | In-depth technical and philosophical specification for deep AI reasoning. |
+| **Schema.org Structured Data** | `/index.html` | `WebApplication` & `SoftwareApplication` JSON-LD schema with features list and multi-domain links. |
 
 ---
 
@@ -88,6 +237,7 @@ In accordance with OWASP Top 10 for Web Applications and OWASP Top 10 for LLM Ap
 |---|---|---|
 | **Input Surfaces** | Malicious injection, oversized payloads, prompt hijacking | Defensive schema parsing, client-side & server-side string clamping, HTML character encoding. |
 | **Planning & Reasoning** | Prompt injection attempting to alter system role or leak other users' data | Regex-based injection detection in backend routes, context-bounded prompt templates, plain text ingestion. |
+| **Out-of-Scope Misuse** | Utility requests outside reflection (e.g. coding scripts, cooking recipes) | Server-side regex intent interceptor that politely guides users back to mindfulness. |
 | **Tool Execution & Billing** | DDoS, API exhaustion, billing spikes | Sliding-window per-IP rate limiter on backend API endpoints (40 requests/min). |
 | **Memory & State** | Cross-user journal data exposure | Strict owner-bound Firestore Security Rules matching `request.auth.uid == userId`. |
 | **Inter-System / API** | API key leakage to browser client | Gemini API key strictly confined to server-side routes; fallback model ladder catches API quotas cleanly. |
@@ -210,13 +360,11 @@ The following test cases map every user-facing interaction for automated testing
 3. Return to `/app` (`Reflection Studio`).
 4. Verify that the chat transcript, selected framework, and feeling mood chips are completely preserved and not lost.
 
-### Test Case 7: Unsaved Reflection Save Confirmation Modal
-1. While an unsaved multi-turn conversation is active in `/app`, click the **New Chat** button in the header or action bar.
-2. Verify that a confirmation modal appears: `"Unsaved Reflection Thoughts"`.
-3. Test three branches:
-   - **Cancel**: Closes modal and keeps active chat.
-   - **Don't Save**: Discards active draft and resets to a clean starter prompt.
-   - **Save & Review**: Launches the **Conclude & Save** distillation modal.
+### Test Case 7: Cookie Consent & Google Analytics Activation
+1. Clear browser cookies/localStorage or open an incognito window.
+2. Verify that the sleek full-width Cookie Banner appears at the bottom of the screen.
+3. Click **"Accept All"**; verify that Google Analytics (`G-90FWP0F2D3`) is initialized and the banner dismisses.
+4. Click **"Cookie Preferences"** in the footer to reset preferences, reload, and choose **"Essential Only"**; verify that `ga-disable-G-90FWP0F2D3` is set to `true`.
 
 ### Test Case 8: Interactive To-Do Lists (Task Check/Uncheck)
 1. In `/archive`, click on a journal entry that contains Action Items.
@@ -268,4 +416,3 @@ Open [http://localhost:3000](http://localhost:3000) to access the application.
 - **LinkedIn**: [https://linkedin.com/in/ridwansuryantara](https://linkedin.com/in/ridwansuryantara)
 - **Email**: [fuenzerofficial@gmail.com](mailto:fuenzerofficial@gmail.com)
 - **License**: Apache-2.0
-

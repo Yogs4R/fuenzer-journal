@@ -75,6 +75,29 @@ export const PrivacyPolicyModal: React.FC<ModalProps> = ({ isOpen, onClose }) =>
               You have complete ownership of your archive. You can export all your reflections anytime as PDF, formatted Markdown (.md), or raw JSON, and permanently delete any journal entry whenever you choose.
             </p>
           </div>
+
+          <div>
+            <h3 className="font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] text-sm mb-1">
+              6. Cookies, Local Storage & Google Analytics (G-90FWP0F2D3)
+            </h3>
+            <p>
+              We prioritize transparency regarding client-side data storage and analytics:
+            </p>
+            <ul className="list-disc list-inside space-y-1.5 pt-1 pl-1 text-[11px] sm:text-xs">
+              <li>
+                <strong>Essential Local Storage:</strong> Used solely to preserve your active dark/light theme preference, guest mode state, draft reflection text during navigation, and your cookie consent decision. These do not track personal identities.
+              </li>
+              <li>
+                <strong>Google Analytics (Measurement ID: G-90FWP0F2D3):</strong> Only activated if you click <em>"Accept All"</em> on the cookie consent banner. When active, it collects anonymized aggregated metrics (such as page views, feature adoption rates, and error encounters) with <strong>IP anonymization enforced</strong>.
+              </li>
+              <li>
+                <strong>Reject / Essential Only Choice:</strong> If you select <em>"Essential Only"</em>, Google Analytics is completely disabled (<code className="font-mono text-[10px] bg-[#f4f4ea] dark:bg-[#2c2c24] px-1">ga-disable-G-90FWP0F2D3 = true</code>) and no third-party tracking scripts are executed.
+              </li>
+              <li>
+                <strong>No Commercial Advertising:</strong> We never use advertising cookies, retargeting pixels, or third-party behavioral trackers.
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div className="pt-3 border-t border-[#ecece0] dark:border-[#38382e] flex justify-end">
@@ -148,6 +171,15 @@ export const TermsOfServiceModal: React.FC<ModalProps> = ({ isOpen, onClose }) =
             </h3>
             <p>
               We continuously enhance Fuenzer Journal with new journaling frameworks, analytics tools, and resilient model fallbacks to maintain high availability and delight users.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] text-sm mb-1">
+              5. Cookie & Analytics Consent
+            </h3>
+            <p>
+              By using this service, you acknowledge that essential local storage is required for app core functionality (draft persistence, theme settings, guest mode). Non-essential analytics (Google Analytics G-90FWP0F2D3) are activated solely upon your affirmative consent via the cookie banner and can be rejected at any time.
             </p>
           </div>
         </div>

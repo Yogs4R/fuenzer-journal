@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Primary Domain: https://fuenzer-journal.ai.studio -->
+  <url>
+    <loc>https://fuenzer-journal.ai.studio/</loc>
+    <xhtml:link rel="alternate" href="https://journal.fuenzer.web.id/" />
+    <lastmod>2026-08-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://fuenzer-journal.ai.studio/login</loc>
+    <xhtml:link rel="alternate" href="https://journal.fuenzer.web.id/login" />
+    <lastmod>2026-08-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fuenzer-journal.ai.studio/app</loc>
+    <xhtml:link rel="alternate" href="https://journal.fuenzer.web.id/app" />
+    <lastmod>2026-08-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://fuenzer-journal.ai.studio/archive</loc>
+    <xhtml:link rel="alternate" href="https://journal.fuenzer.web.id/archive" />
+    <lastmod>2026-08-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fuenzer-journal.ai.studio/insights</loc>
+    <xhtml:link rel="alternate" href="https://journal.fuenzer.web.id/insights" />
+    <lastmod>2026-08-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Personal Branding Subdomain: https://journal.fuenzer.web.id -->
+  <url>
+    <loc>https://journal.fuenzer.web.id/</loc>
+    <xhtml:link rel="alternate" href="https://fuenzer-journal.ai.studio/" />
+    <lastmod>2026-08-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://journal.fuenzer.web.id/login</loc>
+    <xhtml:link rel="alternate" href="https://fuenzer-journal.ai.studio/login" />
+    <lastmod>2026-08-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://journal.fuenzer.web.id/app</loc>
+    <xhtml:link rel="alternate" href="https://fuenzer-journal.ai.studio/app" />
+    <lastmod>2026-08-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://journal.fuenzer.web.id/archive</loc>
+    <xhtml:link rel="alternate" href="https://fuenzer-journal.ai.studio/archive" />
+    <lastmod>2026-08-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://journal.fuenzer.web.id/insights</loc>
+    <xhtml:link rel="alternate" href="https://fuenzer-journal.ai.studio/insights" />
+    <lastmod>2026-08-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+</urlset>

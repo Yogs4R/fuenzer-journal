@@ -18,6 +18,8 @@ import { JournalList } from './components/JournalList';
 import { AnalyticsView } from './components/AnalyticsView';
 import { CommandPalette } from './components/CommandPalette';
 import { Footer } from './components/Footer';
+import { CookieBanner } from './components/CookieBanner';
+import { PrivacyPolicyModal } from './components/LegalModals';
 import type { JournalEntry, ChatMessage, JournalFrameworkId } from './types/journal';
 import {
   fetchUserJournals,
@@ -371,6 +373,8 @@ function GlobalCommandPalette() {
 }
 
 export default function App() {
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
   return (
     <ThemeProvider>
       <AuthProvider>
@@ -395,6 +399,13 @@ export default function App() {
             {/* 404 Not Found Catch-All Route */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
+
+          {/* Global Cookie Consent System with Google Analytics G-90FWP0F2D3 */}
+          <CookieBanner onOpenPrivacyPolicy={() => setShowPrivacyModal(true)} />
+          <PrivacyPolicyModal
+            isOpen={showPrivacyModal}
+            onClose={() => setShowPrivacyModal(false)}
+          />
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>

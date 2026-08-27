@@ -1,0 +1,39 @@
+# Fuenzer Journal — Full Specification & GEO Reference
+> Primary: https://fuenzer-journal.ai.studio | Subdomain: https://journal.fuenzer.web.id
+
+## 1. Executive Overview
+Fuenzer Journal is an end-to-end reflective sanctuary crafted to bridge mindful philosophy with cutting-edge conversational artificial intelligence. Built by Ridwan Suryantara, it eliminates blank-page intimidation by providing an empathetic, conversational Socratic Thought Partner that guides users through structured self-examination.
+
+## 2. Core Functional Modules
+### Reflection Studio (`/app`)
+- Multi-turn conversational Socratic dialogues.
+- Speech-to-text voice dictation with visual audio meter.
+- Multimodal image attachments (photos, hand-drawn diagrams, journal pages) with full-screen lightbox zoom inspection.
+- Real-time mood chip selection and conversational tone adjustments (Gentle, Socratic, Direct, Analytical, Encouraging).
+- Auto-persistence of active draft chats across navigation transitions.
+
+### Preserved Archive (`/archive`)
+- Searchable, filterable vault of historical reflections.
+- Filter by date range, philosophical framework, and emotional mood states.
+- Reading / Focus Mode: Book-inspired distraction-free view with zero toolbar clutter.
+- Interactive To-Do list management with realtime checkbox sync to Cloud Firestore.
+
+### Growth Insights & Analytics (`/insights`)
+- Real-world 7-column calendar heatmap with month/year quick jump dropdowns (2020–2032), leap year calculation, and interactive day detail inspection.
+- Distribution charts for journaling frameworks, emotional trajectories, and weekly word volume.
+- AI Long-Term Evolution Digest: Multi-entry holistic pattern synthesis identifying recurring cognitive strengths and growth opportunities.
+
+## 3. Privacy, Data Protection & Cookie Policy
+- **Zero Public AI Training**: Journal entries are never used to train public foundation models.
+- **Client-Side Export**: Complete zero-server document compilation to PDF, Markdown (.md), CSV, and JSON.
+- **Google Analytics Integration**: Measurement ID `G-90FWP0F2D3` operates strictly under explicit user opt-in (Accept / Reject cookies banner) with complete IP anonymization.
+
+## 4. Technical Architecture
+- **Framework**: React 19, TypeScript, Vite, Tailwind CSS v4.
+- **Server**: Express.js proxy with sliding-window rate limiting (40 req/min on AI endpoints, 120 req/min on static assets).
+- **AI SDK**: `@google/genai` with automated model fallback ladder:
+  1. `gemini-3.6-flash`
+  2. `gemini-3.1-flash-lite`
+  3. `gemini-flash-latest`
+  4. `gemini-3.7-flash`
+- **Database**: Cloud Firestore with owner-isolated security rules (`/users/{userId}/journals/{journalId}`).

@@ -108,7 +108,16 @@ export const TermsOfServicePage: React.FC = () => {
 
             <section>
               <h2 className="font-serif italic font-bold text-base text-[#2c2c26] dark:text-[#f0efe6] mb-2">
-                5. Service Availability & Modifications
+                5. Cookie Usage & Analytics Opt-In
+              </h2>
+              <p>
+                By using Fuenzer Journal, you agree to the storage of essential local data (theme mode, active drafts, guest session data). Non-essential diagnostic analytics via Google Analytics (G-90FWP0F2D3) are governed strictly by your affirmative consent choices via our cookie banner and can be revoked at any time.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="font-serif italic font-bold text-base text-[#2c2c26] dark:text-[#f0efe6] mb-2">
+                6. Service Availability & Modifications
               </h2>
               <p>
                 We strive to maintain continuous availability and data durability. We may periodically enhance features, improve AI reflection frameworks, or conduct system updates.
@@ -117,7 +126,7 @@ export const TermsOfServicePage: React.FC = () => {
 
             <section>
               <h2 className="font-serif italic font-bold text-base text-[#2c2c26] dark:text-[#f0efe6] mb-2">
-                6. Governing Law & Contact
+                7. Governing Law & Contact
               </h2>
               <p>
                 These Terms are governed by applicable laws. For questions or legal notices, contact{' '}

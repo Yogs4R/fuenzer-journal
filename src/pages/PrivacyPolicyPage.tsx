@@ -111,13 +111,36 @@ export const PrivacyPolicyPage: React.FC = () => {
                 5. Data Ownership, Portability & Deletion
               </h2>
               <p>
-                You retain 100% intellectual property and ownership over every word you write. You can export your entire journal archive at any time in formatted Markdown (.md), PDF, or raw JSON. When you delete a journal entry, it is permanently erased from your database vault.
+                You retain 100% intellectual property and ownership over every word you write. You can export your entire journal archive at any time in formatted Markdown (.md), PDF, CSV, or raw JSON. When you delete a journal entry, it is permanently erased from your database vault.
               </p>
             </section>
 
             <section>
               <h2 className="font-serif italic font-bold text-base text-[#2c2c26] dark:text-[#f0efe6] mb-2">
-                6. Contact & Data Privacy Inquiries
+                6. Cookies, Local Storage & Google Analytics (Measurement ID: G-90FWP0F2D3)
+              </h2>
+              <p>
+                We believe in full transparency regarding client-side data and analytics cookies:
+              </p>
+              <ul className="list-disc list-inside space-y-1.5 pt-1.5 pl-1 text-[11px] sm:text-xs">
+                <li>
+                  <strong>Essential Local Storage:</strong> Preserves dark/light theme choices, guest mode authentication, active draft chat messages, and your cookie consent preference. These are essential for core site functionality.
+                </li>
+                <li>
+                  <strong>Google Analytics (G-90FWP0F2D3):</strong> Used solely to collect high-level, aggregate diagnostic metrics (page views, session durations, error encounters) to guide performance enhancements. <strong>IP anonymization is strictly enabled</strong>.
+                </li>
+                <li>
+                  <strong>Explicit User Consent:</strong> Analytics cookies are only initialized after you affirmatively choose <em>"Accept All"</em> on our cookie consent banner. If you choose <em>"Essential Only"</em>, Google Analytics is disabled (<code className="font-mono text-[10px] bg-[#f4f4ea] dark:bg-[#2c2c24] px-1">ga-disable-G-90FWP0F2D3 = true</code>) and no third-party tracking scripts are executed.
+                </li>
+                <li>
+                  <strong>Zero Advertising / Retargeting:</strong> We do not deploy third-party advertising cookies, retargeting pixels, or behavioral tracking across external websites.
+                </li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="font-serif italic font-bold text-base text-[#2c2c26] dark:text-[#f0efe6] mb-2">
+                7. Contact & Data Privacy Inquiries
               </h2>
               <p>
                 For any questions regarding your data privacy, security, or rights, please contact our team at{' '}
