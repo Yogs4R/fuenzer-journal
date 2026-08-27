@@ -227,3 +227,37 @@ export function getPromptForCurrentTime(): { title: string; body: string } {
     return MINDFUL_PROMPTS[3]; // Evening
   }
 }
+
+export interface WorkspaceIntegrationSettings {
+  tasksEnabled: boolean;
+  calendarEnabled: boolean;
+}
+
+export const DEFAULT_WORKSPACE_SETTINGS: WorkspaceIntegrationSettings = {
+  tasksEnabled: true,
+  calendarEnabled: true,
+};
+
+const WORKSPACE_SETTINGS_KEY = 'fuenzer_workspace_integrations_v1';
+
+export function getStoredWorkspaceSettings(): WorkspaceIntegrationSettings {
+  if (typeof window === 'undefined') return DEFAULT_WORKSPACE_SETTINGS;
+  try {
+    const saved = localStorage.getItem(WORKSPACE_SETTINGS_KEY);
+    if (!saved) return DEFAULT_WORKSPACE_SETTINGS;
+    return { ...DEFAULT_WORKSPACE_SETTINGS, ...JSON.parse(saved) };
+  } catch {
+    return DEFAULT_WORKSPACE_SETTINGS;
+  }
+}
+
+export function saveWorkspaceSettings(settings: WorkspaceIntegrationSettings): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(WORKSPACE_SETTINGS_KEY, JSON.stringify(settings));
+    window.dispatchEvent(new CustomEvent('workspace-settings-changed', { detail: settings }));
+  } catch (err) {
+    console.warn('[Workspace] Failed to persist workspace integration settings:', err);
+  }
+}
+

@@ -22,6 +22,8 @@ import {
   Check,
   BookOpen,
   Calendar,
+  CheckSquare,
+  Smartphone,
   Layers,
   MessageSquareQuote,
   Smile,
@@ -217,6 +219,16 @@ export const LandingPage: React.FC = () => {
       question: 'How do I log in or create an account?',
       answer:
         'We utilize seamless, passwordless Google Federated Authentication. You simply sign in securely with your existing Google account in one click—no passwords to create, manage, or lose.',
+    },
+    {
+      question: 'Can I sync my action items to Google Tasks and schedule reflection blocks on Google Calendar?',
+      answer:
+        'Yes! Fuenzer Journal integrates directly with Google Workspace via secure OAuth 2.0. Action items extracted by our Socratic companion can be synchronized straight to your Google Tasks with custom due dates, and you can schedule 15–30 minute deep focus journaling or decompression blocks on Google Calendar directly from your reflections.',
+    },
+    {
+      question: 'Does Fuenzer Journal work offline as a Progressive Web App (PWA)?',
+      answer:
+        'Yes. Fuenzer Journal is a production-grade Progressive Web App (PWA). You can install it directly to your dock or home screen on macOS, Windows, Linux, iOS, and Android. It includes an active service worker with caching for seamless offline access and customizable daily mindful reflection reminders.',
     },
     {
       question: 'Can I export or print my entries?',
@@ -425,12 +437,20 @@ export const LandingPage: React.FC = () => {
               Owner-Isolated Firestore
             </span>
             <span className="flex items-center gap-1.5 font-medium">
-              <Download className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#a3b18a]" />
-              100% Client-Side Export (PDF/MD/JSON)
+              <CheckSquare className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#a3b18a]" />
+              Google Tasks Sync
             </span>
             <span className="flex items-center gap-1.5 font-medium">
-              <Sparkles className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#a3b18a]" />
+              <Calendar className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#a3b18a]" />
+              Google Calendar Blocks
+            </span>
+            <span className="flex items-center gap-1.5 font-medium">
+              <Smartphone className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#a3b18a]" />
               Offline PWA Ready
+            </span>
+            <span className="flex items-center gap-1.5 font-medium">
+              <Download className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#a3b18a]" />
+              100% Client Export (PDF/MD)
             </span>
           </div>
         </section>
@@ -625,6 +645,95 @@ export const LandingPage: React.FC = () => {
                 </div>
               );
             })}
+          </div>
+        </section>
+
+        {/* GOOGLE WORKSPACE CLOUD INTEGRATIONS & PWA SHOWCASE */}
+        <section id="integrations" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 border-t border-[#ecece0] dark:border-[#2e2e28]">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="font-mono text-xs uppercase text-[#7d8461] dark:text-[#a3b18a] tracking-widest font-bold">
+              Connected Productivity &amp; Offline Freedom
+            </span>
+            <h2 className="text-2xl sm:text-4xl font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] mt-1.5">
+              Google Workspace &amp; Offline PWA
+            </h2>
+            <p className="text-xs sm:text-sm text-[#5c5c52] dark:text-[#a8a89b] mt-2">
+              Transform inner clarity into actionable execution with seamless Google Tasks synchronization, Google Calendar focus blocks, and desktop/mobile PWA installation.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Google Tasks Sync Card */}
+            <div className="p-6 bg-white dark:bg-[#1f1f1a] border border-[#ecece0] dark:border-[#2e2e28] shadow-xs flex flex-col justify-between hover:border-[#7d8461]/50 transition">
+              <div>
+                <div className="w-10 h-10 bg-[#7d8461]/15 text-[#555c3c] dark:text-[#9ca87a] flex items-center justify-center font-bold mb-4">
+                  <CheckSquare className="w-5 h-5" />
+                </div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <h3 className="font-serif italic font-bold text-base text-[#2c2c26] dark:text-[#f0efe6]">
+                    Google Tasks Sync
+                  </h3>
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-[#7d8461]/15 text-[#4c5432] dark:text-[#9ca87a] uppercase">
+                    OAuth 2.0
+                  </span>
+                </div>
+                <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] leading-relaxed">
+                  Automatically export AI-distilled action steps directly into your Google Tasks list with customizable due dates and notes.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-[#ecece0] dark:border-[#2e2e28] text-[11px] text-[#7d8461] dark:text-[#a3b18a] font-medium flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5" />
+                <span>Zero manual copy-pasting</span>
+              </div>
+            </div>
+
+            {/* Google Calendar Reflection Blocks Card */}
+            <div className="p-6 bg-white dark:bg-[#1f1f1a] border border-[#ecece0] dark:border-[#2e2e28] shadow-xs flex flex-col justify-between hover:border-[#7d8461]/50 transition">
+              <div>
+                <div className="w-10 h-10 bg-[#7d8461]/15 text-[#555c3c] dark:text-[#9ca87a] flex items-center justify-center font-bold mb-4">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <h3 className="font-serif italic font-bold text-base text-[#2c2c26] dark:text-[#f0efe6]">
+                    Calendar Focus Blocks
+                  </h3>
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-[#7d8461]/15 text-[#4c5432] dark:text-[#9ca87a] uppercase">
+                    OAuth 2.0
+                  </span>
+                </div>
+                <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] leading-relaxed">
+                  Protect 15–30 minute deep focus journaling or decompression sessions on Google Calendar with automated reminders and descriptions.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-[#ecece0] dark:border-[#2e2e28] text-[11px] text-[#7d8461] dark:text-[#a3b18a] font-medium flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5" />
+                <span>One-click event creation</span>
+              </div>
+            </div>
+
+            {/* Offline PWA & Standalone Mode Card */}
+            <div className="p-6 bg-white dark:bg-[#1f1f1a] border border-[#ecece0] dark:border-[#2e2e28] shadow-xs flex flex-col justify-between hover:border-[#7d8461]/50 transition">
+              <div>
+                <div className="w-10 h-10 bg-[#7d8461]/15 text-[#555c3c] dark:text-[#9ca87a] flex items-center justify-center font-bold mb-4">
+                  <Smartphone className="w-5 h-5" />
+                </div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <h3 className="font-serif italic font-bold text-base text-[#2c2c26] dark:text-[#f0efe6]">
+                    Offline PWA &amp; Reminders
+                  </h3>
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-[#7d8461]/15 text-[#4c5432] dark:text-[#9ca87a] uppercase">
+                    Service Worker
+                  </span>
+                </div>
+                <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] leading-relaxed">
+                  Install Fuenzer Journal to your desktop or mobile dock. Journal anywhere offline with local drafts and customizable mindful reminders.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-[#ecece0] dark:border-[#2e2e28] text-[11px] text-[#7d8461] dark:text-[#a3b18a] font-medium flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5" />
+                <span>Full offline caching</span>
+              </div>
+            </div>
           </div>
         </section>
 

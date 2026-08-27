@@ -12,6 +12,9 @@
 [![Google Gemini API](https://img.shields.io/badge/Google_Gemini_API-8E75B2?style=flat&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
 [![Cloud Firestore](https://img.shields.io/badge/Cloud_Firestore-FFCA28?style=flat&logo=firebase&logoColor=black)](https://firebase.google.com/docs/firestore)
 [![Firebase Auth](https://img.shields.io/badge/Firebase_Auth-FFCA28?style=flat&logo=firebase&logoColor=black)](https://firebase.google.com/docs/auth)
+[![Google Tasks API](https://img.shields.io/badge/Google_Tasks-4285F4?style=flat&logo=google&logoColor=white)](https://developers.google.com/tasks)
+[![Google Calendar API](https://img.shields.io/badge/Google_Calendar-4285F4?style=flat&logo=googlecalendar&logoColor=white)](https://developers.google.com/calendar)
+[![PWA](https://img.shields.io/badge/PWA-Offline_Ready-5A0FC8?style=flat&logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
 [![Google Analytics](https://img.shields.io/badge/Google_Analytics-G--90FWP0F2D3-E37400?style=flat&logo=googleanalytics&logoColor=white)](https://analytics.google.com/)
 [![Google Cloud Run](https://img.shields.io/badge/Google_Cloud_Run-4285F4?style=flat&logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
 [![Motion](https://img.shields.io/badge/Motion-0055FF?style=flat&logo=framer&logoColor=white)](https://motion.dev/)
@@ -60,6 +63,8 @@
 - 🧘 **Conversational Socratic Inquiries**: Socratic prompts challenge cognitive distortions and guide deep introspection without feeling transactional.
 - 🎙️ **Multimodal Voice & Image Reflections**: Speak freely with real-time speech-to-text dictation and attach up to 5 photos or sketches (<5 MB each) with full-screen lightbox preview.
 - ⚡ **Automated Cognitive Distillation**: Automatically extracts executive summaries, core philosophical themes, key breakthroughs, and actionable to-do items.
+- 📅 **Google Calendar & Tasks Cloud Sync**: Direct OAuth 2.0 sync exporting action steps to Google Tasks and scheduling 15–30 min deep focus reflection blocks on Google Calendar.
+- 📱 **Offline-Ready PWA & Daily Reminders**: Installable Progressive Web App (PWA) on mobile and desktop with offline service worker caching and configurable daily reflection notification alarms.
 - 📖 **Distraction-Free Focus & Reading Mode**: Read past reflections in a pure, book-like view with zero toolbar clutter.
 - 📅 **Real-World Calendar Heatmap**: Accurate monthly calendar supporting all past, present, and future years (including even years like 2024, 2028, and leap year days), with fast month/year selectors.
 - 🛡️ **100% Client-Side Privacy Export**: Export full archives or single entries to PDF, CSV Spreadsheets, Markdown digests, or JSON raw backups directly in the browser with zero external server dependencies.
@@ -77,18 +82,28 @@
 - **Future Self Visioning** — Aligning daily decisions with long-term aspirations.
 - **Creative Free-Flow** — Open stream of consciousness for free-form introspection.
 
-### 2. Focus & Reading Mode in Archive
+### 2. Google Workspace Cloud Synchronization (OAuth 2.0)
+- **Google Tasks Integration**: Export AI-distilled action steps directly to your Google Tasks lists with scheduled due dates and notes.
+- **Google Calendar Reflection Blocks**: Schedule 15 or 30-minute mindfulness, journaling, or evening decompression calendar events with automated descriptions.
+- **Granular Integration Toggles**: Turn Google Tasks and Google Calendar synchronization on or off individually within Settings.
+
+### 3. Progressive Web App (PWA) & Offline Freedom
+- **Cross-Platform Installation**: Native-like standalone installation on macOS, Windows, Linux, Android, and iOS.
+- **Service Worker Offline Support**: Full offline resource caching and local draft recovery so you can journal anywhere without network connectivity.
+- **Mindful Push & Daily Reminders**: Configure customizable morning or evening reflection reminder notifications.
+
+### 4. Focus & Reading Mode in Archive
 - Switch between standard inspection view and pure **Focus / Reading Mode** with an unobtrusive top exit bar for immersive reading.
 
-### 3. Real-World Calendar Heatmap & Analytics
+### 5. Real-World Calendar Heatmap & Analytics
 - Complete month/year navigation with quick jump dropdowns covering **2020 through 2032** (all odd and even years).
 - Dynamic leap year indicator (`29 Days in February`).
 - Interactive tooltips displaying daily word counts, entry counts, and dominant emotional states.
 
-### 4. Interactive Action Items & To-Do Tracking
+### 6. Interactive Action Items & To-Do Tracking
 - Extracted next action steps feature interactive checkboxes that immediately synchronize completion status with Firestore.
 
-### 5. Multi-Format Client-Side Data Export
+### 7. Multi-Format Client-Side Data Export
 - **PDF Export**: Print-ready documents generated with `jspdf`.
 - **CSV Spreadsheet**: Compatible with Excel and Google Sheets, including mood scores and cognitive distortions.
 - **JSON Backup**: Raw, structured, zero-loss backups.
@@ -102,12 +117,18 @@
 
 ```mermaid
 flowchart TB
-    subgraph ClientLayer["🖥️ Frontend Client (React 19 + TypeScript + Vite)"]
+    subgraph ClientLayer["🖥️ Frontend Client (React 19 + TypeScript + Vite + PWA)"]
         UI["Mindful UI / Tailwind v4 / Motion"]
+        PWA["📱 PWA Service Worker & Offline Cache"]
         CookieSystem["🍪 Cookie & Privacy Consent Gate"]
         GA["📊 Google Analytics (G-90FWP0F2D3)<br/><i>Opt-In Only</i>"]
         State["⚛️ Local State & Guest Mode Storage"]
         DocGen["📄 jsPDF / Markdown / CSV Client Exporter"]
+    end
+
+    subgraph GoogleWorkspace["☁️ Google Workspace Ecosystem (OAuth 2.0)"]
+        GTasks["✅ Google Tasks API<br/><code>https://www.googleapis.com/auth/tasks</code>"]
+        GCal["📅 Google Calendar API<br/><code>https://www.googleapis.com/auth/calendar</code>"]
     end
 
     subgraph SecurityBoundary["🛡️ Server Proxy & Security Boundary (Express.js)"]
@@ -131,10 +152,13 @@ flowchart TB
         SecurityRules["📜 Owner-Bound firestore.rules<br/><code>request.auth.uid == userId</code>"]
     end
 
+    UI --> PWA
     UI --> CookieSystem
     CookieSystem -- "Accepted" --> GA
     UI --> State
     UI --> DocGen
+    UI -- "Client-Side OAuth Bearer" --> GTasks
+    UI -- "Client-Side OAuth Bearer" --> GCal
     UI -- "HTTPS API Requests" --> RateLimiter
 
     RateLimiter --> ThreatSanitizer
@@ -241,6 +265,8 @@ In accordance with OWASP Top 10 for Web Applications and OWASP Top 10 for LLM Ap
 | **Tool Execution & Billing** | DDoS, API exhaustion, billing spikes | Sliding-window per-IP rate limiter on backend API endpoints (40 requests/min). |
 | **Memory & State** | Cross-user journal data exposure | Strict owner-bound Firestore Security Rules matching `request.auth.uid == userId`. |
 | **Inter-System / API** | API key leakage to browser client | Gemini API key strictly confined to server-side routes; fallback model ladder catches API quotas cleanly. |
+| **Workspace OAuth** | Accidental token leakage or privilege escalation | Pure client-side popup OAuth with minimal scopes (`tasks`, `calendar`), in-memory token lifecycle, and zero server storage of user OAuth tokens. |
+| **PWA & Offline State** | Stale cache execution or cross-session leakage on shared devices | Service worker scope-isolated cache invalidation, encrypted local storage bounds, and sanitized fallback shells. |
 
 ---
 
@@ -385,6 +411,24 @@ The following test cases map every user-facing interaction for automated testing
 1. Click the **Sun/Moon** icon in the navbar (or open the mobile hamburger drawer and toggle theme).
 2. Verify the entire UI switches between the warm sanctuary cream theme and eye-safe deep neutral dark mode (`#181814`, `#23231c`).
 3. Refresh the page and confirm the theme preference persists via `localStorage`.
+
+### Test Case 11: Google Tasks Sync & Google Calendar Scheduling
+1. Open the Settings modal via the gear icon next to the streak counter.
+2. Ensure Google Tasks and Google Calendar integration toggles are enabled.
+3. Open any journal entry containing action items in `/archive` or complete a new reflection in `/app`.
+4. Click **"Sync to Google Tasks"** in the Google Workspace Cloud Sync bar.
+5. In the sync modal, select tasks, choose a due date, and click **"Export Selected to Google Tasks"**.
+6. Verify OAuth consent popup succeeds and tasks are synchronized directly to Google Tasks.
+7. Switch to the **Google Calendar** tab, select duration (15 min / 30 min / 45 min), and click **"Create Calendar Reflection Block"**.
+8. Verify the reflection event is added to the user's primary Google Calendar with deep-link back to the journal.
+
+### Test Case 12: Progressive Web App (PWA) & Offline Reflection Reminders
+1. Visit the app in a supported browser (Chrome, Edge, Safari on iOS/macOS).
+2. Click **"Install App (PWA)"** on the landing page or in browser address bar.
+3. Launch the installed PWA in standalone window mode.
+4. Disconnect Wi-Fi / simulate offline mode in DevTools Network tab.
+5. Verify the entire application shell, archive, and reflection studio load and function seamlessly offline with cached assets.
+6. In Settings, configure a daily mindful reflection reminder time and verify browser notification triggers.
 
 ---
 

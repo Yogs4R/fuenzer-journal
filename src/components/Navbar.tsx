@@ -15,7 +15,7 @@ import {
   Sun,
   Moon,
   Download,
-  Bell,
+  Settings,
   Smartphone,
   CheckCircle2,
 } from 'lucide-react';
@@ -146,16 +146,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             )}
 
-            {/* Mindful Reminders / PWA Modal Trigger Button - Desktop Only (in mobile it is inside hamburger) */}
-            <button
-              onClick={() => setShowNotificationModal(true)}
-              className="hidden md:flex p-2 bg-[#f4f4ea] dark:bg-[#25251f] hover:bg-[#ecece0] dark:hover:bg-[#303028] border border-[#e8e8df] dark:border-[#35352c] text-[#5c5c52] dark:text-[#d0d0c4] hover:text-[#2c2c26] dark:hover:text-[#ffffff] rounded-none transition cursor-pointer"
-              title="Mindful Reminders & Offline PWA Settings"
-              aria-label="Mindful Reminders & Offline Settings"
-            >
-              <Bell className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
-            </button>
-
             {/* Quick Command Palette Button Desktop */}
             <button
               onClick={openCommandPalette}
@@ -191,6 +181,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Flame className="w-3.5 h-3.5 text-[#d48b0c] dark:text-[#f4a261] fill-[#d48b0c]/30" />
               <span>{streakCount}d</span>
             </div>
+
+            {/* Settings & Preferences Button - Directly to the right of the streak */}
+            <button
+              onClick={() => setShowNotificationModal(true)}
+              className="flex p-2 bg-[#f4f4ea] dark:bg-[#25251f] hover:bg-[#ecece0] dark:hover:bg-[#303028] border border-[#e8e8df] dark:border-[#35352c] text-[#5c5c52] dark:text-[#d0d0c4] hover:text-[#2c2c26] dark:hover:text-[#ffffff] rounded-none transition cursor-pointer"
+              title="Settings, Google Workspace Integrations & Reminders"
+              aria-label="Settings, Google Workspace Integrations & Reminders"
+            >
+              <Settings className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
+            </button>
 
             {/* Desktop User Profile Dropdown */}
             <div className="relative hidden md:block">
@@ -246,8 +246,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                         }}
                         className="w-full text-left px-2.5 py-1.5 rounded-none text-[#3a3a30] dark:text-[#e0dfd5] hover:bg-[#f4f4ea] dark:hover:bg-[#2e2e26] flex items-center gap-2 text-xs transition cursor-pointer font-medium"
                       >
-                        <Bell className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
-                        <span>Reminders &amp; PWA</span>
+                        <Settings className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
+                        <span>Settings &amp; Workspace</span>
                       </button>
 
                       {isInstallable && (
@@ -352,7 +352,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>Search</span>
                 </button>
 
-                {/* Reminders Button */}
+                {/* Settings & Integrations Button */}
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);
@@ -360,8 +360,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className="py-2 px-2 bg-[#f4f4ea] dark:bg-[#282822] hover:bg-[#ecece0] dark:hover:bg-[#32322a] border border-[#e8e8df] dark:border-[#3a3a30] text-[#2c2c26] dark:text-[#f0efe6] text-[11px] font-semibold rounded-none flex items-center justify-center gap-1 transition cursor-pointer"
                 >
-                  <Bell className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
-                  <span>Remind</span>
+                  <Settings className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
+                  <span>Settings</span>
                 </button>
 
                 {/* Theme Toggle Button inside Hamburger */}
