@@ -197,8 +197,8 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
 
   // Authenticated User Dashboard
   return (
-    <div className="min-h-screen bg-[#fbfaf5] text-[#2c2c26] flex flex-col justify-between selection:bg-[#7d8461] selection:text-white">
-      <div className="flex-1 flex flex-col">
+    <div className="min-h-screen bg-[#fbfaf5] text-[#2c2c26] flex flex-col justify-between selection:bg-[#7d8461] selection:text-white w-full overflow-x-hidden">
+      <div className="flex-1 flex flex-col w-full min-w-0">
         <Navbar
           currentTab={currentTab}
           setCurrentTab={handleTabChange}
@@ -208,7 +208,7 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
 
         {/* Daily Reflection Reminder Nudge Banner */}
         {!hasEntryToday && !reminderDismissed && (
-          <div className="bg-[#7d8461]/10 border-b border-[#7d8461]/25 px-4 py-2.5 text-xs text-[#2c2c26] animate-in fade-in duration-300">
+          <div className="bg-[#7d8461]/10 border-b border-[#7d8461]/25 px-4 py-2.5 text-xs text-[#2c2c26] animate-in fade-in duration-300 w-full">
             <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5">
               <div className="flex items-center gap-2.5">
                 <div className="w-6 h-6 rounded-none bg-[#7d8461] text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -245,7 +245,7 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
           </div>
         )}
 
-        <main className="flex-1 bg-[#fbfaf5]">
+        <main className="flex-1 bg-[#fbfaf5] w-full min-w-0">
           {currentTab === 'editor' && (
             <JournalEditor
               key={`${editorFramework || 'default'}_${editorTranscript?.length || 0}`}
