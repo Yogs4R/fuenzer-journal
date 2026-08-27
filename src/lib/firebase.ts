@@ -123,6 +123,22 @@ export async function togglePinJournal(
 }
 
 /**
+ * Update action items (todos) for a journal entry
+ */
+export async function updateJournalActionItems(
+  userId: string,
+  journalId: string,
+  actionItems: string[]
+): Promise<void> {
+  if (!userId || !journalId) return;
+  const journalDocRef = doc(db, 'users', userId, 'journals', journalId);
+  await updateDoc(journalDocRef, {
+    actionItems: sanitizeForFirestore(actionItems),
+    updatedAt: Date.now(),
+  });
+}
+
+/**
  * Save draft session interaction to Firestore /users/{userId}/interactions/active_draft
  */
 export async function saveDraftSession(

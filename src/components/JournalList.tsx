@@ -86,19 +86,19 @@ export const JournalList: React.FC<JournalListProps> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 text-[#2c2c26]">
+    <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 text-[#2c2c26] dark:text-[#f0efe6]">
       {/* Header & New Entry CTA */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#7d8461]/10 rounded-none flex items-center justify-center text-[#7d8461]">
+            <div className="w-8 h-8 bg-[#7d8461]/10 dark:bg-[#7d8461]/20 rounded-none flex items-center justify-center text-[#7d8461] dark:text-[#9ca87a]">
               <BookOpen className="w-4 h-4" />
             </div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-serif italic font-bold tracking-tight text-[#2c2c26]">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-serif italic font-bold tracking-tight text-[#2c2c26] dark:text-[#f0efe6]">
               Personal Journal Archive
             </h1>
           </div>
-          <p className="text-xs text-[#5c5c52] mt-1 font-light">
+          <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] mt-1 font-light">
             {entries.length} reflections preserved safely in your personal journal archive.
           </p>
         </div>
@@ -113,17 +113,17 @@ export const JournalList: React.FC<JournalListProps> = ({
       </div>
 
       {/* Search & Filter Bar - Square */}
-      <div className="bg-white border border-[#ecece0] p-3.5 sm:p-4 rounded-none mb-6 shadow-xs space-y-3">
+      <div className="bg-white dark:bg-[#23231c] border border-[#ecece0] dark:border-[#38382e] p-3.5 sm:p-4 rounded-none mb-6 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 text-[#7d8461] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search reflections, insights, titles, or themes..."
-              className="w-full bg-[#f4f4ea]/50 border border-[#ecece0] focus:border-[#7d8461] rounded-none pl-9 pr-3 py-2 text-xs text-[#2c2c26] placeholder-[#5c5c52]/60 focus:outline-none transition"
+              className="w-full bg-[#f4f4ea]/50 dark:bg-[#1a1a16] border border-[#ecece0] dark:border-[#38382e] focus:border-[#7d8461] rounded-none pl-9 pr-3 py-2 text-xs text-[#2c2c26] dark:text-[#f0efe6] placeholder-[#5c5c52]/60 dark:placeholder-[#a8a89b]/60 focus:outline-none transition"
             />
           </div>
 
@@ -132,7 +132,7 @@ export const JournalList: React.FC<JournalListProps> = ({
             <select
               value={selectedFramework}
               onChange={(e) => setSelectedFramework(e.target.value)}
-              className="bg-[#f4f4ea]/50 border border-[#ecece0] rounded-none px-3 py-2 text-xs text-[#2c2c26] focus:outline-none focus:border-[#7d8461] cursor-pointer font-medium"
+              className="bg-[#f4f4ea]/50 dark:bg-[#1a1a16] border border-[#ecece0] dark:border-[#38382e] rounded-none px-3 py-2 text-xs text-[#2c2c26] dark:text-[#f0efe6] focus:outline-none focus:border-[#7d8461] cursor-pointer font-medium"
             >
               <option value="all">All Frameworks</option>
               {JOURNAL_FRAMEWORKS.map((fw) => (
@@ -145,7 +145,7 @@ export const JournalList: React.FC<JournalListProps> = ({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-[#f4f4ea]/50 border border-[#ecece0] rounded-none px-3 py-2 text-xs text-[#2c2c26] focus:outline-none focus:border-[#7d8461] cursor-pointer font-medium"
+              className="bg-[#f4f4ea]/50 dark:bg-[#1a1a16] border border-[#ecece0] dark:border-[#38382e] rounded-none px-3 py-2 text-xs text-[#2c2c26] dark:text-[#f0efe6] focus:outline-none focus:border-[#7d8461] cursor-pointer font-medium"
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
@@ -156,16 +156,16 @@ export const JournalList: React.FC<JournalListProps> = ({
 
         {/* Mood Filter Chips with SVG Icons */}
         <div className="flex items-center gap-1.5 overflow-x-auto pt-1 pb-0.5 scrollbar-none text-xs">
-          <span className="text-[#5c5c52] shrink-0 flex items-center gap-1 mr-1 font-semibold text-[11px]">
-            <Filter className="w-3 h-3 text-[#7d8461]" />
+          <span className="text-[#5c5c52] dark:text-[#a8a89b] shrink-0 flex items-center gap-1 mr-1 font-semibold text-[11px]">
+            <Filter className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
             <span>Mood:</span>
           </span>
           <button
             onClick={() => setSelectedMood('all')}
             className={`px-2.5 py-1 rounded-none text-[11px] font-medium shrink-0 transition cursor-pointer ${
               selectedMood === 'all'
-                ? 'bg-[#3a3a30] text-[#fbfaf5]'
-                : 'bg-[#f4f4ea] border border-[#e8e8df] text-[#5c5c52] hover:bg-[#ecece0]'
+                ? 'bg-[#3a3a30] dark:bg-[#4a4a3e] text-[#fbfaf5]'
+                : 'bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] text-[#5c5c52] dark:text-[#a8a89b] hover:bg-[#ecece0] dark:hover:bg-[#282820]'
             }`}
           >
             All
@@ -176,8 +176,8 @@ export const JournalList: React.FC<JournalListProps> = ({
               onClick={() => setSelectedMood(selectedMood === m.id ? 'all' : m.id)}
               className={`px-2.5 py-1 rounded-none text-[11px] font-medium shrink-0 transition flex items-center gap-1.5 cursor-pointer ${
                 selectedMood === m.id
-                  ? 'bg-[#3a3a30] text-[#fbfaf5]'
-                  : 'bg-[#f4f4ea] border border-[#e8e8df] text-[#5c5c52] hover:bg-[#ecece0]'
+                  ? 'bg-[#3a3a30] dark:bg-[#4a4a3e] text-[#fbfaf5]'
+                  : 'bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] text-[#5c5c52] dark:text-[#a8a89b] hover:bg-[#ecece0] dark:hover:bg-[#282820]'
               }`}
             >
               <MoodIcon iconName={m.iconName} className="w-3 h-3" />
@@ -189,7 +189,7 @@ export const JournalList: React.FC<JournalListProps> = ({
 
       {/* Loading state */}
       {loading && (
-        <div className="py-16 text-center text-[#5c5c52]">
+        <div className="py-16 text-center text-[#5c5c52] dark:text-[#a8a89b]">
           <div className="w-7 h-7 rounded-full border-2 border-[#7d8461] border-t-transparent animate-spin mx-auto mb-3" />
           <p className="text-xs font-medium">Loading your private journal archive...</p>
         </div>
@@ -197,12 +197,12 @@ export const JournalList: React.FC<JournalListProps> = ({
 
       {/* Empty State */}
       {!loading && filteredEntries.length === 0 && (
-        <div className="py-12 text-center bg-white border border-[#ecece0] rounded-none p-8 max-w-lg mx-auto shadow-xs">
-          <div className="w-10 h-10 rounded-none bg-[#7d8461]/10 text-[#7d8461] flex items-center justify-center mx-auto mb-3">
+        <div className="py-12 text-center bg-white dark:bg-[#23231c] border border-[#ecece0] dark:border-[#38382e] rounded-none p-8 max-w-lg mx-auto shadow-xs">
+          <div className="w-10 h-10 rounded-none bg-[#7d8461]/10 dark:bg-[#7d8461]/20 text-[#7d8461] dark:text-[#9ca87a] flex items-center justify-center mx-auto mb-3">
             <BookOpen className="w-5 h-5" />
           </div>
-          <h2 className="text-lg font-serif italic font-bold text-[#2c2c26] mb-1">No reflections found</h2>
-          <p className="text-xs text-[#5c5c52] mb-5 leading-relaxed">
+          <h2 className="text-lg font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] mb-1">No reflections found</h2>
+          <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] mb-5 leading-relaxed">
             {searchQuery || selectedMood !== 'all' || selectedFramework !== 'all'
               ? 'Try adjusting your search query or mood filters.'
               : 'Begin your reflection session to start capturing insights.'}
@@ -226,44 +226,44 @@ export const JournalList: React.FC<JournalListProps> = ({
               <div
                 key={entry.id}
                 onClick={() => setSelectedEntry(entry)}
-                className="group p-5 rounded-none bg-white border border-[#e8e8df] hover:border-[#7d8461] transition-all flex flex-col justify-between shadow-xs cursor-pointer relative"
+                className="group p-5 rounded-none bg-white dark:bg-[#23231c] border border-[#e8e8df] dark:border-[#38382e] hover:border-[#7d8461] dark:hover:border-[#9ca87a] transition-all flex flex-col justify-between shadow-xs cursor-pointer relative"
               >
                 <div>
                   {/* Card Header */}
                   <div className="flex items-center justify-between gap-2 mb-2 text-xs">
-                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-none bg-[#7d8461]/10 text-[#4c5432] border border-[#7d8461]/20">
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-none bg-[#7d8461]/10 dark:bg-[#7d8461]/20 text-[#4c5432] dark:text-[#9ca87a] border border-[#7d8461]/20">
                       {getFrameworkName(entry.framework)}
                     </span>
-                    <span className="text-[10px] uppercase tracking-wider text-[#5c5c52] font-semibold flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-[#7d8461]" />
+                    <span className="text-[10px] uppercase tracking-wider text-[#5c5c52] dark:text-[#a8a89b] font-semibold flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
                       <span>{formattedDate}</span>
                     </span>
                   </div>
 
                   {/* Title */}
-                  <h3 className="font-serif italic font-bold text-[#2c2c26] text-base mb-1.5 group-hover:text-[#7d8461] transition line-clamp-2">
+                  <h3 className="font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] text-base mb-1.5 group-hover:text-[#7d8461] dark:group-hover:text-[#9ca87a] transition line-clamp-2">
                     {entry.title}
                   </h3>
 
                   {/* Executive Summary Snippet */}
-                  <p className="text-xs text-[#5c5c52] line-clamp-3 leading-relaxed mb-3">
+                  <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] line-clamp-3 leading-relaxed mb-3">
                     {entry.executiveSummary}
                   </p>
 
                   {/* Key Insight Bullet (if available) */}
                   {entry.keyInsights && entry.keyInsights[0] && (
-                    <div className="p-2.5 rounded-none bg-[#f4f4ea] border border-[#ecece0] text-[11px] text-[#2c2c26] mb-3 flex items-start gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-[#7d8461] shrink-0 mt-0.5" />
+                    <div className="p-2.5 rounded-none bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#ecece0] dark:border-[#38382e] text-[11px] text-[#2c2c26] dark:text-[#f0efe6] mb-3 flex items-start gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a] shrink-0 mt-0.5" />
                       <span className="line-clamp-2 leading-relaxed italic">{entry.keyInsights[0]}</span>
                     </div>
                   )}
                 </div>
 
                 {/* Card Footer */}
-                <div className="pt-3 border-t border-[#ecece0] flex items-center justify-between text-[11px] text-[#5c5c52]">
+                <div className="pt-3 border-t border-[#ecece0] dark:border-[#38382e] flex items-center justify-between text-[11px] text-[#5c5c52] dark:text-[#a8a89b]">
                   <div className="flex items-center gap-2">
                     {entry.detectedMood && (
-                      <span className="flex items-center gap-1 text-[#7d8461] font-medium text-[11px]">
+                      <span className="flex items-center gap-1 text-[#7d8461] dark:text-[#9ca87a] font-medium text-[11px]">
                         <Smile className="w-3 h-3" />
                         <span className="truncate max-w-[90px]">{entry.detectedMood}</span>
                       </span>
@@ -278,12 +278,12 @@ export const JournalList: React.FC<JournalListProps> = ({
                         e.stopPropagation();
                         exportJournalToPdf(entry);
                       }}
-                      className="p-1 text-[#5c5c52] hover:text-[#7d8461] hover:bg-[#f4f4ea] rounded-none transition cursor-pointer"
+                      className="p-1 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#7d8461] dark:hover:text-[#9ca87a] hover:bg-[#f4f4ea] dark:hover:bg-[#1a1a16] rounded-none transition cursor-pointer"
                       title="Export as PDF"
                     >
                       <Download className="w-3.5 h-3.5" />
                     </button>
-                    <span className="text-[#7d8461] group-hover:translate-x-0.5 transition flex items-center gap-0.5 font-bold uppercase text-[10px] tracking-wider">
+                    <span className="text-[#7d8461] dark:text-[#9ca87a] group-hover:translate-x-0.5 transition flex items-center gap-0.5 font-bold uppercase text-[10px] tracking-wider">
                       <span>Read</span>
                       <ExternalLink className="w-3 h-3" />
                     </span>
@@ -306,6 +306,11 @@ export const JournalList: React.FC<JournalListProps> = ({
         }}
         onTogglePin={onTogglePinEntry}
         onResumeSession={onResumeSession}
+        onUpdateEntryActionItems={(id, items) => {
+          if (selectedEntry && selectedEntry.id === id) {
+            setSelectedEntry({ ...selectedEntry, actionItems: items });
+          }
+        }}
       />
     </div>
   );

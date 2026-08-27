@@ -8,24 +8,24 @@ export const Footer: React.FC = () => {
   const [showTermsModal, setShowTermsModal] = useState(false);
 
   return (
-    <footer className="relative z-10 bg-white border-t border-[#ecece0] text-[#5c5c52] mt-auto">
+    <footer className="relative z-10 bg-white dark:bg-[#181814] border-t border-[#ecece0] dark:border-[#2e2e26] text-[#5c5c52] dark:text-[#a8a89b] mt-auto">
       {/* Upper Main Footer Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8">
           {/* Col 1: Brand & Mission */}
           <div className="md:col-span-2 space-y-3">
             <Link to="/" className="inline-flex items-center gap-2.5 group">
-              <div className="w-7 h-7 bg-[#7d8461] rounded-none flex items-center justify-center text-white shadow-xs group-hover:bg-[#6c7351] transition">
+              <div className="w-7 h-7 bg-[#7d8461] dark:bg-[#8e966f] rounded-none flex items-center justify-center text-white shadow-xs group-hover:bg-[#6c7351] transition">
                 <BookOpen className="w-4 h-4" />
               </div>
-              <span className="font-serif italic font-bold text-base text-[#2c2c26]">
+              <span className="font-serif italic font-bold text-base text-[#2c2c26] dark:text-[#f0efe6]">
                 Fuenzer Journal
               </span>
             </Link>
-            <p className="text-xs text-[#5c5c52] leading-relaxed max-w-md">
+            <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] leading-relaxed max-w-md">
               A private, mindful reflection sanctuary. Cultivating clarity, emotional equanimity, and deliberate self-discovery through conversational Socratic thought partnership and isolated cloud vaults.
             </p>
-            <div className="flex items-center gap-2 text-[11px] text-[#7d8461] font-medium pt-1">
+            <div className="flex items-center gap-2 text-[11px] text-[#7d8461] dark:text-[#9ca87a] font-medium pt-1">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>Owner-bound Firestore • End-to-end user isolation</span>
             </div>
@@ -33,14 +33,14 @@ export const Footer: React.FC = () => {
 
           {/* Col 2: Legal Links */}
           <div className="space-y-2.5">
-            <h3 className="font-serif italic font-bold text-xs uppercase tracking-wider text-[#2c2c26]">
+            <h3 className="font-serif italic font-bold text-xs uppercase tracking-wider text-[#2c2c26] dark:text-[#f0efe6]">
               Trust & Legal
             </h3>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link
                   to="/privacy"
-                  className="hover:text-[#7d8461] hover:underline transition text-left block"
+                  className="hover:text-[#7d8461] dark:hover:text-[#9ca87a] hover:underline transition text-left block text-[#5c5c52] dark:text-[#a8a89b]"
                 >
                   Privacy Policy
                 </Link>
@@ -48,7 +48,7 @@ export const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/terms"
-                  className="hover:text-[#7d8461] hover:underline transition text-left block"
+                  className="hover:text-[#7d8461] dark:hover:text-[#9ca87a] hover:underline transition text-left block text-[#5c5c52] dark:text-[#a8a89b]"
                 >
                   Terms of Service
                 </Link>
@@ -58,7 +58,7 @@ export const Footer: React.FC = () => {
 
           {/* Col 3: Connect & Social Channels - 3 Icon-Only Buttons on the Same Line */}
           <div className="space-y-2.5">
-            <h3 className="font-serif italic font-bold text-xs uppercase tracking-wider text-[#2c2c26]">
+            <h3 className="font-serif italic font-bold text-xs uppercase tracking-wider text-[#2c2c26] dark:text-[#f0efe6]">
               Connect & Developer
             </h3>
             <div className="flex items-center gap-2 text-xs">
@@ -67,7 +67,7 @@ export const Footer: React.FC = () => {
                 href="https://linkedin.com/in/ridwansuryantara"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 rounded-none bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] border border-[#e8e8df] hover:border-[#7d8461] flex items-center justify-center transition shadow-xs"
+                className="w-8 h-8 rounded-none bg-[#f4f4ea] dark:bg-[#25251f] hover:bg-[#ecece0] dark:hover:bg-[#303028] text-[#2c2c26] dark:text-[#f0efe6] border border-[#e8e8df] dark:border-[#35352c] hover:border-[#7d8461] dark:hover:border-[#9ca87a] flex items-center justify-center transition shadow-xs"
                 title="LinkedIn"
                 aria-label="LinkedIn Profile"
               >
@@ -81,11 +81,11 @@ export const Footer: React.FC = () => {
                 href="https://github.com/Yogs4R/fuenzer-journal"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 rounded-none bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] border border-[#e8e8df] hover:border-[#7d8461] flex items-center justify-center transition shadow-xs"
+                className="w-8 h-8 rounded-none bg-[#f4f4ea] dark:bg-[#25251f] hover:bg-[#ecece0] dark:hover:bg-[#303028] text-[#2c2c26] dark:text-[#f0efe6] border border-[#e8e8df] dark:border-[#35352c] hover:border-[#7d8461] dark:hover:border-[#9ca87a] flex items-center justify-center transition shadow-xs"
                 title="GitHub Repository"
                 aria-label="GitHub Repository"
               >
-                <svg className="w-4 h-4 fill-[#24292e]" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 fill-[#24292e] dark:fill-[#e0dfd5]" viewBox="0 0 24 24">
                   <path
                     fillRule="evenodd"
                     clipRule="evenodd"
@@ -97,11 +97,11 @@ export const Footer: React.FC = () => {
               {/* Email Contact Icon Button */}
               <a
                 href="mailto:fuenzerofficial@gmail.com"
-                className="w-8 h-8 rounded-none bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] border border-[#e8e8df] hover:border-[#7d8461] flex items-center justify-center transition shadow-xs"
+                className="w-8 h-8 rounded-none bg-[#f4f4ea] dark:bg-[#25251f] hover:bg-[#ecece0] dark:hover:bg-[#303028] text-[#2c2c26] dark:text-[#f0efe6] border border-[#e8e8df] dark:border-[#35352c] hover:border-[#7d8461] dark:hover:border-[#9ca87a] flex items-center justify-center transition shadow-xs"
                 title="Email Developer"
                 aria-label="Email Developer"
               >
-                <Mail className="w-4 h-4 text-[#7d8461]" />
+                <Mail className="w-4 h-4 text-[#7d8461] dark:text-[#9ca87a]" />
               </a>
             </div>
           </div>
@@ -109,14 +109,14 @@ export const Footer: React.FC = () => {
       </div>
 
       {/* Bottom Sub-bar */}
-      <div className="border-t border-[#ecece0] bg-[#fbfaf5] py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-[#5c5c52]">
+      <div className="border-t border-[#ecece0] dark:border-[#2e2e26] bg-[#fbfaf5] dark:bg-[#141410] py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-[#5c5c52] dark:text-[#a8a89b]">
           <div className="flex items-center gap-1.5 text-center sm:text-left">
             <span>&copy; 2026 Fuenzer Sports. All rights reserved.</span>
           </div>
 
           <div className="flex items-center gap-3 text-[11px]">
-            <span className="flex items-center gap-1 text-[#7d8461] font-medium">
+            <span className="flex items-center gap-1 text-[#7d8461] dark:text-[#9ca87a] font-medium">
               <Lock className="w-3 h-3" />
               <span>Encrypted Firebase Vault</span>
             </span>

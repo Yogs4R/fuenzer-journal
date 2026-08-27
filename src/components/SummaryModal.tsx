@@ -25,6 +25,8 @@ interface SummaryModalProps {
   transcript: ChatMessage[];
   framework: JournalFrameworkId;
   initialMood?: string;
+  editingEntryId?: string | null;
+  editingEntryCreatedAt?: number | null;
   onSavedSuccessfully: (savedEntry: JournalEntry) => void;
 }
 
@@ -35,6 +37,8 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
   transcript,
   framework,
   initialMood,
+  editingEntryId,
+  editingEntryCreatedAt,
   onSavedSuccessfully,
 }) => {
   const { user } = useAuth();
@@ -116,13 +120,15 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
     setSaveError(null);
 
     const now = Date.now();
-    const entryId = `journal_${now}_${Math.random().toString(36).substring(2, 8)}`;
+    // Preserve existing ID and original creation timestamp if editing an archive entry
+    const entryId = editingEntryId || `journal_${now}_${Math.random().toString(36).substring(2, 8)}`;
+    const createdAt = editingEntryCreatedAt || now;
 
     const newEntry: JournalEntry = {
       id: entryId,
       userId: user.uid,
       title: title.trim() || 'Untitled Reflection',
-      createdAt: now,
+      createdAt,
       updatedAt: now,
       framework,
       initialMood: initialMood || undefined,
@@ -158,38 +164,38 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-[#2c2c26]/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white border border-[#ecece0] rounded-none max-w-3xl w-full p-4 sm:p-6 shadow-xl text-[#2c2c26] relative my-4 animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-[#2c2c26]/60 dark:bg-black/80 backdrop-blur-xs overflow-y-auto">
+      <div className="bg-white dark:bg-[#23231c] border border-[#ecece0] dark:border-[#38382e] rounded-none max-w-3xl w-full p-4 sm:p-6 shadow-xl text-[#2c2c26] dark:text-[#f0efe6] relative my-4 animate-in fade-in duration-150">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-[#5c5c52] hover:text-[#2c2c26] p-1.5 rounded-none hover:bg-[#f4f4ea] transition cursor-pointer"
+          className="absolute top-4 right-4 text-[#5c5c52] dark:text-[#9e9e90] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] p-1.5 rounded-none hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition cursor-pointer"
           aria-label="Close"
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Modal Header */}
-        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[#ecece0]">
+        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[#ecece0] dark:border-[#38382e]">
           <div className="w-9 h-9 bg-[#7d8461] text-white rounded-none flex items-center justify-center shadow-xs">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg sm:text-xl font-serif italic font-bold text-[#2c2c26]">
-                Synthesized Journal Summary
+              <h2 className="text-lg sm:text-xl font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6]">
+                {editingEntryId ? 'Update & Save Reflection' : 'Synthesized Journal Summary'}
               </h2>
-              <span className="text-[9px] uppercase font-mono px-2 py-0.5 bg-[#7d8461]/10 text-[#4c5432] border border-[#7d8461]/25 rounded-none font-bold">
-                Distillation
+              <span className="text-[9px] uppercase font-mono px-2 py-0.5 bg-[#7d8461]/10 text-[#4c5432] dark:text-[#9ca87a] border border-[#7d8461]/25 rounded-none font-bold">
+                {editingEntryId ? 'Update Entry' : 'Distillation'}
               </span>
             </div>
-            <p className="text-xs text-[#5c5c52] mt-0.5">
-              Review and customize your takeaways before saving to your personal journal.
+            <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] mt-0.5">
+              Review and customize your takeaways before saving to your personal journal archive.
             </p>
           </div>
         </div>
 
         {saveError && (
-          <div className="mb-3 p-3 bg-[#c86d51]/10 border border-[#c86d51]/30 rounded-none text-[#96472d] text-xs flex items-center gap-2">
+          <div className="mb-3 p-3 bg-[#c86d51]/10 dark:bg-[#c86d51]/20 border border-[#c86d51]/30 rounded-none text-[#96472d] dark:text-[#e07a5f] text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{saveError}</span>
           </div>
@@ -198,52 +204,52 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
           {/* Title Field */}
           <div>
-            <label className="block text-[10px] font-bold text-[#7d8461] uppercase tracking-wider mb-1">
+            <label className="block text-[10px] font-bold text-[#7d8461] dark:text-[#9ca87a] uppercase tracking-wider mb-1">
               Reflection Title
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-[#f4f4ea]/40 border border-[#ecece0] focus:border-[#7d8461] rounded-none px-3 py-2 text-sm sm:text-base font-serif italic font-bold text-[#2c2c26] focus:outline-none transition"
+              className="w-full bg-[#f4f4ea]/40 dark:bg-[#1a1a16] border border-[#ecece0] dark:border-[#38382e] focus:border-[#7d8461] dark:focus:border-[#9ca87a] rounded-none px-3 py-2 text-sm sm:text-base font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] focus:outline-none transition"
               placeholder="Give this reflection a title..."
             />
           </div>
 
           {/* Executive Summary Field */}
           <div>
-            <label className="block text-[10px] font-bold text-[#7d8461] uppercase tracking-wider mb-1 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-[#7d8461]" />
+            <label className="block text-[10px] font-bold text-[#7d8461] dark:text-[#9ca87a] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
               <span>Executive Synthesis</span>
             </label>
             <textarea
               rows={3}
               value={executiveSummary}
               onChange={(e) => setExecutiveSummary(e.target.value)}
-              className="w-full bg-[#f4f4ea]/40 border border-[#ecece0] focus:border-[#7d8461] rounded-none px-3 py-2 text-xs sm:text-sm text-[#2c2c26] focus:outline-none transition leading-relaxed resize-none"
+              className="w-full bg-[#f4f4ea]/40 dark:bg-[#1a1a16] border border-[#ecece0] dark:border-[#38382e] focus:border-[#7d8461] dark:focus:border-[#9ca87a] rounded-none px-3 py-2 text-xs sm:text-sm text-[#2c2c26] dark:text-[#f0efe6] focus:outline-none transition leading-relaxed resize-none"
               placeholder="Summary of this conversation..."
             />
           </div>
 
           {/* Key Insights & Revelations */}
           <div>
-            <label className="block text-[10px] font-bold text-[#7d8461] uppercase tracking-wider mb-1 flex items-center gap-1">
-              <Lightbulb className="w-3 h-3 text-[#7d8461]" />
+            <label className="block text-[10px] font-bold text-[#7d8461] dark:text-[#9ca87a] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <Lightbulb className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
               <span>Key Insights & Realizations</span>
             </label>
             <div className="space-y-1.5 mb-2">
               {keyInsights.map((insight, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between gap-2 p-2.5 bg-[#f4f4ea] rounded-none border border-[#ecece0] text-xs text-[#2c2c26]"
+                  className="flex items-center justify-between gap-2 p-2.5 bg-[#f4f4ea] dark:bg-[#1f1f18] rounded-none border border-[#ecece0] dark:border-[#38382e] text-xs text-[#2c2c26] dark:text-[#f0efe6]"
                 >
                   <div className="flex items-start gap-2 flex-1">
-                    <span className="text-[#7d8461] font-bold">•</span>
+                    <span className="text-[#7d8461] dark:text-[#9ca87a] font-bold">•</span>
                     <span>{insight}</span>
                   </div>
                   <button
                     onClick={() => handleRemoveInsight(idx)}
-                    className="text-[#5c5c52] hover:text-[#96472d] p-1 rounded-none transition cursor-pointer"
+                    className="text-[#5c5c52] dark:text-[#9e9e90] hover:text-[#96472d] dark:hover:text-[#e07a5f] p-1 rounded-none transition cursor-pointer"
                     title="Remove insight"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -258,12 +264,12 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
                 onChange={(e) => setNewInsight(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddInsight())}
                 placeholder="Add key insight..."
-                className="flex-1 bg-[#f4f4ea]/40 border border-[#ecece0] focus:border-[#7d8461] rounded-none px-3 py-1.5 text-xs text-[#2c2c26] focus:outline-none"
+                className="flex-1 bg-[#f4f4ea]/40 dark:bg-[#1a1a16] border border-[#ecece0] dark:border-[#38382e] focus:border-[#7d8461] dark:focus:border-[#9ca87a] rounded-none px-3 py-1.5 text-xs text-[#2c2c26] dark:text-[#f0efe6] focus:outline-none"
               />
               <button
                 type="button"
                 onClick={handleAddInsight}
-                className="px-3 py-1.5 bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] rounded-none text-xs font-bold border border-[#e8e8df] flex items-center gap-1 cursor-pointer transition uppercase text-[10px]"
+                className="px-3 py-1.5 bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] rounded-none text-xs font-bold border border-[#e8e8df] dark:border-[#38382e] flex items-center gap-1 cursor-pointer transition uppercase text-[10px]"
               >
                 <Plus className="w-3 h-3" />
                 <span>Add</span>
@@ -273,23 +279,23 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
 
           {/* Action Items / Intentions */}
           <div>
-            <label className="block text-[10px] font-bold text-[#7d8461] uppercase tracking-wider mb-1 flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3 text-[#7d8461]" />
+            <label className="block text-[10px] font-bold text-[#7d8461] dark:text-[#9ca87a] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
               <span>Next Steps & Intentions</span>
             </label>
             <div className="space-y-1.5 mb-2">
               {actionItems.map((action, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between gap-2 p-2.5 bg-[#f4f4ea] rounded-none border border-[#ecece0] text-xs text-[#2c2c26]"
+                  className="flex items-center justify-between gap-2 p-2.5 bg-[#f4f4ea] dark:bg-[#1f1f18] rounded-none border border-[#ecece0] dark:border-[#38382e] text-xs text-[#2c2c26] dark:text-[#f0efe6]"
                 >
                   <div className="flex items-start gap-2 flex-1">
-                    <span className="text-[#7d8461] font-bold">✓</span>
+                    <span className="text-[#7d8461] dark:text-[#9ca87a] font-bold">✓</span>
                     <span>{action}</span>
                   </div>
                   <button
                     onClick={() => handleRemoveAction(idx)}
-                    className="text-[#5c5c52] hover:text-[#96472d] p-1 rounded-none transition cursor-pointer"
+                    className="text-[#5c5c52] dark:text-[#9e9e90] hover:text-[#96472d] dark:hover:text-[#e07a5f] p-1 rounded-none transition cursor-pointer"
                     title="Remove action"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -304,12 +310,12 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
                 onChange={(e) => setNewAction(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddAction())}
                 placeholder="Add next step..."
-                className="flex-1 bg-[#f4f4ea]/40 border border-[#ecece0] focus:border-[#7d8461] rounded-none px-3 py-1.5 text-xs text-[#2c2c26] focus:outline-none"
+                className="flex-1 bg-[#f4f4ea]/40 dark:bg-[#1a1a16] border border-[#ecece0] dark:border-[#38382e] focus:border-[#7d8461] dark:focus:border-[#9ca87a] rounded-none px-3 py-1.5 text-xs text-[#2c2c26] dark:text-[#f0efe6] focus:outline-none"
               />
               <button
                 type="button"
                 onClick={handleAddAction}
-                className="px-3 py-1.5 bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] rounded-none text-xs font-bold border border-[#e8e8df] flex items-center gap-1 cursor-pointer transition uppercase text-[10px]"
+                className="px-3 py-1.5 bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] rounded-none text-xs font-bold border border-[#e8e8df] dark:border-[#38382e] flex items-center gap-1 cursor-pointer transition uppercase text-[10px]"
               >
                 <Plus className="w-3 h-3" />
                 <span>Add</span>
@@ -320,34 +326,34 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
           {/* Mood & Theme Tags */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-bold text-[#7d8461] uppercase tracking-wider mb-1 flex items-center gap-1">
-                <Smile className="w-3 h-3 text-[#7d8461]" />
+              <label className="block text-[10px] font-bold text-[#7d8461] dark:text-[#9ca87a] uppercase tracking-wider mb-1 flex items-center gap-1">
+                <Smile className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
                 <span>Emotional Tone</span>
               </label>
               <input
                 type="text"
                 value={detectedMood}
                 onChange={(e) => setDetectedMood(e.target.value)}
-                className="w-full bg-[#f4f4ea]/40 border border-[#ecece0] focus:border-[#7d8461] rounded-none px-3 py-1.5 text-xs text-[#2c2c26] focus:outline-none font-medium"
+                className="w-full bg-[#f4f4ea]/40 dark:bg-[#1a1a16] border border-[#ecece0] dark:border-[#38382e] focus:border-[#7d8461] dark:focus:border-[#9ca87a] rounded-none px-3 py-1.5 text-xs text-[#2c2c26] dark:text-[#f0efe6] focus:outline-none font-medium"
                 placeholder="e.g. Peaceful Clarity, Energized"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-[#7d8461] uppercase tracking-wider mb-1 flex items-center gap-1">
-                <Tag className="w-3 h-3 text-[#7d8461]" />
+              <label className="block text-[10px] font-bold text-[#7d8461] dark:text-[#9ca87a] uppercase tracking-wider mb-1 flex items-center gap-1">
+                <Tag className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
                 <span>Thematic Tags</span>
               </label>
               <div className="flex flex-wrap gap-1 mb-1.5">
                 {themes.map((theme, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-none bg-[#f4f4ea] border border-[#e8e8df] text-[#2c2c26] text-[11px] font-medium"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-none bg-[#f4f4ea] dark:bg-[#2c2c24] border border-[#e8e8df] dark:border-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] text-[11px] font-medium"
                   >
                     #{theme}
                     <button
                       onClick={() => handleRemoveTheme(idx)}
-                      className="hover:text-[#96472d] transition cursor-pointer"
+                      className="hover:text-[#96472d] dark:hover:text-[#e07a5f] transition cursor-pointer"
                     >
                       <X className="w-2.5 h-2.5" />
                     </button>
@@ -361,12 +367,12 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
                   onChange={(e) => setNewTheme(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTheme())}
                   placeholder="Add tag..."
-                  className="flex-1 bg-[#f4f4ea]/40 border border-[#ecece0] focus:border-[#7d8461] rounded-none px-3 py-1 text-xs text-[#2c2c26] focus:outline-none"
+                  className="flex-1 bg-[#f4f4ea]/40 dark:bg-[#1a1a16] border border-[#ecece0] dark:border-[#38382e] focus:border-[#7d8461] dark:focus:border-[#9ca87a] rounded-none px-3 py-1 text-xs text-[#2c2c26] dark:text-[#f0efe6] focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={handleAddTheme}
-                  className="px-2.5 py-1 bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] rounded-none text-xs font-bold border border-[#e8e8df] cursor-pointer transition"
+                  className="px-2.5 py-1 bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] rounded-none text-xs font-bold border border-[#e8e8df] dark:border-[#38382e] cursor-pointer transition"
                 >
                   <Plus className="w-3 h-3" />
                 </button>
@@ -376,16 +382,16 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
 
           {/* Closing Affirmation */}
           {closingAffirmation && (
-            <div className="p-3 bg-[#ddb892]/15 rounded-none border border-[#ddb892]/30 text-xs italic text-[#7f4f24]">
+            <div className="p-3 bg-[#ddb892]/15 dark:bg-[#ddb892]/20 rounded-none border border-[#ddb892]/30 text-xs italic text-[#7f4f24] dark:text-[#f4a261]">
               <span className="font-bold not-italic block mb-0.5 uppercase tracking-wider text-[9px]">Closing Thought:</span>
               &ldquo;{closingAffirmation}&rdquo;
             </div>
           )}
 
           {/* Metadata preview */}
-          <div className="flex items-center justify-between text-[10px] text-[#5c5c52] pt-2 border-t border-[#ecece0]">
+          <div className="flex items-center justify-between text-[10px] text-[#5c5c52] dark:text-[#a8a89b] pt-2 border-t border-[#ecece0] dark:border-[#38382e]">
             <div className="flex items-center gap-1.5">
-              <Calendar className="w-3 h-3 text-[#7d8461]" />
+              <Calendar className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
               <span>{new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
             </div>
             <span>{transcript.length} turns • ~{calculateTotalWords()} words</span>
@@ -393,12 +399,12 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
         </div>
 
         {/* Modal Action Buttons */}
-        <div className="mt-4 pt-3 border-t border-[#ecece0] flex items-center justify-end gap-2.5">
+        <div className="mt-4 pt-3 border-t border-[#ecece0] dark:border-[#38382e] flex items-center justify-end gap-2.5">
           <button
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="px-4 py-2 bg-[#f4f4ea] hover:bg-[#ecece0] text-[#2c2c26] rounded-none text-xs font-bold transition cursor-pointer disabled:opacity-50 uppercase tracking-wider"
+            className="px-4 py-2 bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] rounded-none text-xs font-bold transition cursor-pointer disabled:opacity-50 uppercase tracking-wider border border-[#e8e8df] dark:border-[#38382e]"
           >
             Back
           </button>
@@ -416,7 +422,7 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
             ) : (
               <>
                 <Save className="w-3.5 h-3.5" />
-                <span>Save Reflection</span>
+                <span>{editingEntryId ? 'Update Reflection' : 'Save Reflection'}</span>
               </>
             )}
           </button>

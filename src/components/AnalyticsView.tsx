@@ -360,19 +360,19 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8 text-[#2c2c26]">
+    <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8 text-[#2c2c26] dark:text-[#f0efe6]">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#7d8461]/10 rounded-none flex items-center justify-center text-[#7d8461]">
+            <div className="w-8 h-8 bg-[#7d8461]/10 dark:bg-[#7d8461]/20 rounded-none flex items-center justify-center text-[#7d8461] dark:text-[#9ca87a]">
               <BarChart3 className="w-4 h-4" />
             </div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-serif italic font-bold tracking-tight text-[#2c2c26]">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-serif italic font-bold tracking-tight text-[#2c2c26] dark:text-[#f0efe6]">
               Reflection Insights & Growth Analytics
             </h1>
           </div>
-          <p className="text-xs text-[#5c5c52] mt-1 font-light">
+          <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] mt-1 font-light">
             Patterns, recurring breakthroughs, and emotional growth cultivated over time.
           </p>
         </div>
@@ -381,7 +381,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
         <div className="relative self-start sm:self-auto" ref={exportMenuRef}>
           <div className="flex items-center gap-2">
             {exportSuccess && (
-              <span className="text-[11px] font-medium text-[#7d8461] bg-[#7d8461]/10 border border-[#7d8461]/30 px-2.5 py-1 flex items-center gap-1 animate-in fade-in duration-200">
+              <span className="text-[11px] font-medium text-[#7d8461] dark:text-[#9ca87a] bg-[#7d8461]/10 dark:bg-[#7d8461]/20 border border-[#7d8461]/30 px-2.5 py-1 flex items-center gap-1 animate-in fade-in duration-200">
                 <Check className="w-3 h-3" />
                 <span>{exportSuccess}</span>
               </span>
@@ -389,7 +389,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
             <button
               onClick={() => setIsExportOpen((prev) => !prev)}
               disabled={entries.length === 0}
-              className="px-4 py-2 bg-[#3a3a30] hover:bg-[#2c2c26] text-[#fbfaf5] rounded-none text-xs font-bold transition flex items-center gap-2 cursor-pointer disabled:opacity-50 uppercase tracking-wider shadow-xs"
+              className="px-4 py-2 bg-[#3a3a30] dark:bg-[#e8e8df] hover:bg-[#2c2c26] dark:hover:bg-white text-[#fbfaf5] dark:text-[#181814] rounded-none text-xs font-bold transition flex items-center gap-2 cursor-pointer disabled:opacity-50 uppercase tracking-wider shadow-xs"
               title="Export analytics and reflection logs"
             >
               <Download className="w-3.5 h-3.5" />
@@ -400,65 +400,65 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
 
           {/* Dropdown Menu Popup */}
           {isExportOpen && (
-            <div className="absolute right-0 mt-1.5 w-60 bg-white border border-[#2c2c26]/20 shadow-xl rounded-none z-30 divide-y divide-[#ecece0] animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute right-0 mt-1.5 w-60 bg-white dark:bg-[#23231c] border border-[#2c2c26]/20 dark:border-[#38382e] shadow-xl rounded-none z-30 divide-y divide-[#ecece0] dark:divide-[#38382e] animate-in fade-in zoom-in-95 duration-150">
               <div className="p-2">
-                <p className="text-[10px] uppercase tracking-wider text-[#7d8461] font-bold px-2 py-1">
+                <p className="text-[10px] uppercase tracking-wider text-[#7d8461] dark:text-[#9ca87a] font-bold px-2 py-1">
                   Choose Export Format
                 </p>
 
                 {/* PDF Option */}
                 <button
                   onClick={handleExportPdf}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] hover:bg-[#f4f4ea] transition cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] dark:text-[#f0efe6] hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition cursor-pointer"
                 >
-                  <div className="w-6 h-6 bg-[#7d8461]/10 text-[#7d8461] flex items-center justify-center shrink-0">
+                  <div className="w-6 h-6 bg-[#7d8461]/10 dark:bg-[#7d8461]/20 text-[#7d8461] dark:text-[#9ca87a] flex items-center justify-center shrink-0">
                     <FileText className="w-3.5 h-3.5" />
                   </div>
                   <div>
                     <span className="font-bold block">Analytics Report (PDF)</span>
-                    <span className="text-[10px] text-[#5c5c52]">Print-ready insights document</span>
+                    <span className="text-[10px] text-[#5c5c52] dark:text-[#a8a89b]">Print-ready insights document</span>
                   </div>
                 </button>
 
                 {/* CSV Option */}
                 <button
                   onClick={handleExportCsv}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] hover:bg-[#f4f4ea] transition cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] dark:text-[#f0efe6] hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition cursor-pointer"
                 >
-                  <div className="w-6 h-6 bg-[#b08968]/15 text-[#b08968] flex items-center justify-center shrink-0">
+                  <div className="w-6 h-6 bg-[#b08968]/15 dark:bg-[#b08968]/25 text-[#b08968] dark:text-[#ddb892] flex items-center justify-center shrink-0">
                     <FileSpreadsheet className="w-3.5 h-3.5" />
                   </div>
                   <div>
                     <span className="font-bold block">Reflections Log (CSV)</span>
-                    <span className="text-[10px] text-[#5c5c52]">Spreadsheet compatible format</span>
+                    <span className="text-[10px] text-[#5c5c52] dark:text-[#a8a89b]">Spreadsheet compatible format</span>
                   </div>
                 </button>
 
                 {/* JSON Option */}
                 <button
                   onClick={handleExportJson}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] hover:bg-[#f4f4ea] transition cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] dark:text-[#f0efe6] hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition cursor-pointer"
                 >
-                  <div className="w-6 h-6 bg-[#606c38]/15 text-[#606c38] flex items-center justify-center shrink-0">
+                  <div className="w-6 h-6 bg-[#606c38]/15 dark:bg-[#606c38]/25 text-[#606c38] dark:text-[#9ca87a] flex items-center justify-center shrink-0">
                     <FileCode className="w-3.5 h-3.5" />
                   </div>
                   <div>
                     <span className="font-bold block">Full Backup (JSON)</span>
-                    <span className="text-[10px] text-[#5c5c52]">Complete raw structured data</span>
+                    <span className="text-[10px] text-[#5c5c52] dark:text-[#a8a89b]">Complete raw structured data</span>
                   </div>
                 </button>
 
                 {/* Markdown Option */}
                 <button
                   onClick={handleExportMarkdown}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] hover:bg-[#f4f4ea] transition cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] dark:text-[#f0efe6] hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition cursor-pointer"
                 >
-                  <div className="w-6 h-6 bg-[#3a3a30]/10 text-[#3a3a30] flex items-center justify-center shrink-0">
+                  <div className="w-6 h-6 bg-[#3a3a30]/10 dark:bg-[#3a3a30]/30 text-[#3a3a30] dark:text-[#d8d8cc] flex items-center justify-center shrink-0">
                     <BookOpen className="w-3.5 h-3.5" />
                   </div>
                   <div>
                     <span className="font-bold block">Insights Digest (.MD)</span>
-                    <span className="text-[10px] text-[#5c5c52]">Clean text with markdown headers</span>
+                    <span className="text-[10px] text-[#5c5c52] dark:text-[#a8a89b]">Clean text with markdown headers</span>
                   </div>
                 </button>
               </div>
@@ -469,66 +469,66 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
 
       {/* Metric Cards Grid - Square */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <div className="p-4 sm:p-5 rounded-none bg-white border border-[#e8e8df] shadow-xs">
+        <div className="p-4 sm:p-5 rounded-none bg-white dark:bg-[#23231c] border border-[#e8e8df] dark:border-[#38382e] shadow-xs">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] uppercase tracking-wider text-[#5c5c52] font-bold">Total Reflections</span>
-            <BookOpen className="w-3.5 h-3.5 text-[#7d8461]" />
+            <span className="text-[10px] uppercase tracking-wider text-[#5c5c52] dark:text-[#a8a89b] font-bold">Total Reflections</span>
+            <BookOpen className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
           </div>
-          <p className="text-2xl sm:text-3xl font-serif italic font-bold text-[#2c2c26]">{stats.totalEntries}</p>
-          <p className="text-[9px] uppercase tracking-wider text-[#7d8461] font-semibold mt-1">Saved Reflections</p>
+          <p className="text-2xl sm:text-3xl font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6]">{stats.totalEntries}</p>
+          <p className="text-[9px] uppercase tracking-wider text-[#7d8461] dark:text-[#9ca87a] font-semibold mt-1">Saved Reflections</p>
         </div>
 
-        <div className="p-4 sm:p-5 rounded-none bg-white border border-[#e8e8df] shadow-xs">
+        <div className="p-4 sm:p-5 rounded-none bg-white dark:bg-[#23231c] border border-[#e8e8df] dark:border-[#38382e] shadow-xs">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] uppercase tracking-wider text-[#5c5c52] font-bold">Daily Streak</span>
-            <Flame className="w-3.5 h-3.5 text-[#d48b0c]" />
+            <span className="text-[10px] uppercase tracking-wider text-[#5c5c52] dark:text-[#a8a89b] font-bold">Daily Streak</span>
+            <Flame className="w-3.5 h-3.5 text-[#d48b0c] dark:text-[#f4a261]" />
           </div>
-          <p className="text-2xl sm:text-3xl font-serif italic font-bold text-[#8a6b18]">{streakCount} Days</p>
-          <p className="text-[9px] uppercase tracking-wider text-[#5c5c52] font-medium mt-1">Consistent reflection</p>
+          <p className="text-2xl sm:text-3xl font-serif italic font-bold text-[#8a6b18] dark:text-[#f4a261]">{streakCount} Days</p>
+          <p className="text-[9px] uppercase tracking-wider text-[#5c5c52] dark:text-[#a8a89b] font-medium mt-1">Consistent reflection</p>
         </div>
 
-        <div className="p-4 sm:p-5 rounded-none bg-white border border-[#e8e8df] shadow-xs">
+        <div className="p-4 sm:p-5 rounded-none bg-white dark:bg-[#23231c] border border-[#e8e8df] dark:border-[#38382e] shadow-xs">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] uppercase tracking-wider text-[#5c5c52] font-bold">Words Reflected</span>
-            <PenTool className="w-3.5 h-3.5 text-[#9c6644]" />
+            <span className="text-[10px] uppercase tracking-wider text-[#5c5c52] dark:text-[#a8a89b] font-bold">Words Reflected</span>
+            <PenTool className="w-3.5 h-3.5 text-[#9c6644] dark:text-[#ddb892]" />
           </div>
-          <p className="text-2xl sm:text-3xl font-serif italic font-bold text-[#7f4f24]">{stats.totalWords.toLocaleString()}</p>
-          <p className="text-[9px] uppercase tracking-wider text-[#5c5c52] font-medium mt-1">~{stats.avgWords} words/entry</p>
+          <p className="text-2xl sm:text-3xl font-serif italic font-bold text-[#7f4f24] dark:text-[#ddb892]">{stats.totalWords.toLocaleString()}</p>
+          <p className="text-[9px] uppercase tracking-wider text-[#5c5c52] dark:text-[#a8a89b] font-medium mt-1">~{stats.avgWords} words/entry</p>
         </div>
 
-        <div className="p-4 sm:p-5 rounded-none bg-white border border-[#e8e8df] shadow-xs">
+        <div className="p-4 sm:p-5 rounded-none bg-white dark:bg-[#23231c] border border-[#e8e8df] dark:border-[#38382e] shadow-xs">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] uppercase tracking-wider text-[#5c5c52] font-bold">Insights Distilled</span>
-            <Sparkles className="w-3.5 h-3.5 text-[#7d8461]" />
+            <span className="text-[10px] uppercase tracking-wider text-[#5c5c52] dark:text-[#a8a89b] font-bold">Insights Distilled</span>
+            <Sparkles className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
           </div>
-          <p className="text-2xl sm:text-3xl font-serif italic font-bold text-[#4c5432]">{stats.totalInsights}</p>
-          <p className="text-[9px] uppercase tracking-wider text-[#5c5c52] font-medium mt-1">~{stats.avgInsights} / session</p>
+          <p className="text-2xl sm:text-3xl font-serif italic font-bold text-[#4c5432] dark:text-[#9ca87a]">{stats.totalInsights}</p>
+          <p className="text-[9px] uppercase tracking-wider text-[#5c5c52] dark:text-[#a8a89b] font-medium mt-1">~{stats.avgInsights} / session</p>
         </div>
       </div>
 
       {/* DIAGRAM 1: Mood Trends Over Time (Recharts Line Graph with Time Range & Clean Left Y-Axis) */}
-      <div className="p-5 sm:p-6 rounded-none bg-white border border-[#e8e8df] shadow-xs">
+      <div className="p-5 sm:p-6 rounded-none bg-white dark:bg-[#23231c] border border-[#e8e8df] dark:border-[#38382e] shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-[#7d8461]" />
+            <Activity className="w-4 h-4 text-[#7d8461] dark:text-[#9ca87a]" />
             <div>
-              <h2 className="text-base font-serif italic font-bold text-[#2c2c26]">
+              <h2 className="text-base font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6]">
                 Emotional State & Mood Trajectory
               </h2>
-              <p className="text-[11px] text-[#5c5c52]">
+              <p className="text-[11px] text-[#5c5c52] dark:text-[#a8a89b]">
                 Visualizing emotional equanimity, tiredness levels, and reflective breakthroughs.
               </p>
             </div>
           </div>
 
           {/* Time Range Filter: 24h, 7d (Last Week), 14d, 30d */}
-          <div className="flex items-center gap-1 bg-[#f4f4ea] border border-[#e8e8df] p-0.5 rounded-none self-start sm:self-auto text-xs">
+          <div className="flex items-center gap-1 bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] p-0.5 rounded-none self-start sm:self-auto text-xs">
             <button
               onClick={() => setTimeRange('24h')}
               className={`px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer ${
                 timeRange === '24h'
                   ? 'bg-[#7d8461] text-white shadow-xs'
-                  : 'text-[#5c5c52] hover:text-[#2c2c26]'
+                  : 'text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6]'
               }`}
             >
               24 Hours
@@ -538,7 +538,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
               className={`px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer ${
                 timeRange === '7d'
                   ? 'bg-[#7d8461] text-white shadow-xs'
-                  : 'text-[#5c5c52] hover:text-[#2c2c26]'
+                  : 'text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6]'
               }`}
             >
               Last Week
@@ -548,7 +548,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
               className={`px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer ${
                 timeRange === '14d'
                   ? 'bg-[#7d8461] text-white shadow-xs'
-                  : 'text-[#5c5c52] hover:text-[#2c2c26]'
+                  : 'text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6]'
               }`}
             >
               14 Days
@@ -558,7 +558,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
               className={`px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer ${
                 timeRange === '30d'
                   ? 'bg-[#7d8461] text-white shadow-xs'
-                  : 'text-[#5c5c52] hover:text-[#2c2c26]'
+                  : 'text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6]'
               }`}
             >
               30 Days
@@ -573,12 +573,12 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                 data={moodChartData}
                 margin={{ top: 10, right: 15, left: 0, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#ecece0" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#ecece0" vertical={false} className="dark:opacity-20" />
                 <XAxis
                   dataKey="date"
-                  tick={{ fontSize: 10, fill: '#5c5c52' }}
+                  tick={{ fontSize: 10, fill: '#8c8c80' }}
                   tickLine={false}
-                  axisLine={{ stroke: '#e8e8df' }}
+                  axisLine={{ stroke: '#8c8c80', opacity: 0.3 }}
                   interval={timeRange === '30d' ? 3 : 0}
                 />
                 <YAxis
@@ -592,9 +592,9 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                     if (val >= 2.0) return 'Tired';
                     return 'Strained';
                   }}
-                  tick={{ fontSize: 10, fill: '#3a3a30', fontWeight: 500 }}
+                  tick={{ fontSize: 10, fill: '#8c8c80', fontWeight: 500 }}
                   tickLine={false}
-                  axisLine={{ stroke: '#e8e8df' }}
+                  axisLine={{ stroke: '#8c8c80', opacity: 0.3 }}
                 />
                 <Tooltip
                   content={({ active, payload }) => {
@@ -602,24 +602,24 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                       const item = payload[0].payload;
                       if (!item.hasEntry) {
                         return (
-                          <div className="bg-white border border-[#ecece0] p-2.5 shadow-md rounded-none text-xs">
-                            <p className="font-mono text-[10px] text-[#7d8461] font-bold">{item.date}</p>
-                            <p className="text-[#5c5c52] text-[11px] italic mt-0.5">No reflection logged</p>
+                          <div className="bg-white dark:bg-[#23231c] border border-[#ecece0] dark:border-[#38382e] p-2.5 shadow-md rounded-none text-xs text-[#2c2c26] dark:text-[#f0efe6]">
+                            <p className="font-mono text-[10px] text-[#7d8461] dark:text-[#9ca87a] font-bold">{item.date}</p>
+                            <p className="text-[#5c5c52] dark:text-[#a8a89b] text-[11px] italic mt-0.5">No reflection logged</p>
                           </div>
                         );
                       }
                       return (
-                        <div className="bg-[#ffffff] border border-[#7d8461]/40 p-3 shadow-lg rounded-none text-xs max-w-xs">
-                          <div className="flex items-center justify-between gap-3 mb-1 border-b border-[#ecece0] pb-1">
-                            <span className="font-mono text-[10px] text-[#7d8461] font-bold">{item.date}</span>
-                            <span className="px-1.5 py-0.2 bg-[#7d8461]/10 text-[#7d8461] font-bold text-[10px] uppercase">
+                        <div className="bg-white dark:bg-[#23231c] border border-[#7d8461]/40 p-3 shadow-lg rounded-none text-xs max-w-xs text-[#2c2c26] dark:text-[#f0efe6]">
+                          <div className="flex items-center justify-between gap-3 mb-1 border-b border-[#ecece0] dark:border-[#38382e] pb-1">
+                            <span className="font-mono text-[10px] text-[#7d8461] dark:text-[#9ca87a] font-bold">{item.date}</span>
+                            <span className="px-1.5 py-0.2 bg-[#7d8461]/10 text-[#7d8461] dark:text-[#9ca87a] font-bold text-[10px] uppercase">
                               {item.moodLabel}
                             </span>
                           </div>
-                          <p className="font-serif italic font-bold text-xs text-[#2c2c26] truncate">
+                          <p className="font-serif italic font-bold text-xs text-[#2c2c26] dark:text-[#f0efe6] truncate">
                             {item.title || 'Journal Entry'}
                           </p>
-                          <p className="text-[10px] text-[#5c5c52] mt-1">
+                          <p className="text-[10px] text-[#5c5c52] dark:text-[#a8a89b] mt-1">
                             {item.words} words written
                           </p>
                         </div>
@@ -628,7 +628,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                     return null;
                   }}
                 />
-                <ReferenceLine y={3.2} stroke="#ddb892" strokeDasharray="3 3" />
+                <ReferenceLine y={3.2} stroke="#ddb892" strokeDasharray="3 3" opacity={0.6} />
                 <Line
                   type="monotone"
                   dataKey="score"
@@ -642,10 +642,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="h-48 flex flex-col items-center justify-center text-center p-4 bg-[#fbfaf5] border border-dashed border-[#e8e8df]">
-            <Calendar className="w-6 h-6 text-[#7d8461] mb-2" />
-            <p className="font-serif italic text-sm text-[#2c2c26]">No mood history recorded yet</p>
-            <p className="text-xs text-[#5c5c52] mt-0.5">
+          <div className="h-48 flex flex-col items-center justify-center text-center p-4 bg-[#fbfaf5] dark:bg-[#1a1a16] border border-dashed border-[#e8e8df] dark:border-[#38382e]">
+            <Calendar className="w-6 h-6 text-[#7d8461] dark:text-[#9ca87a] mb-2" />
+            <p className="font-serif italic text-sm text-[#2c2c26] dark:text-[#f0efe6]">No mood history recorded yet</p>
+            <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] mt-0.5">
               Complete your reflections to populate your emotional trajectory chart.
             </p>
           </div>
@@ -653,14 +653,14 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
       </div>
 
       {/* DIAGRAM 2: Word Volume & Reflection Output Over Time */}
-      <div className="p-5 sm:p-6 rounded-none bg-white border border-[#e8e8df] shadow-xs">
+      <div className="p-5 sm:p-6 rounded-none bg-white dark:bg-[#23231c] border border-[#e8e8df] dark:border-[#38382e] shadow-xs">
         <div className="flex items-center gap-2 mb-4">
-          <PenTool className="w-4 h-4 text-[#7d8461]" />
+          <PenTool className="w-4 h-4 text-[#7d8461] dark:text-[#9ca87a]" />
           <div>
-            <h2 className="text-base font-serif italic font-bold text-[#2c2c26]">
+            <h2 className="text-base font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6]">
               Reflection Output & Word Velocity
             </h2>
-            <p className="text-[11px] text-[#5c5c52]">
+            <p className="text-[11px] text-[#5c5c52] dark:text-[#a8a89b]">
               Track your daily writing volume ({timeRange === '24h' ? '24 Hours' : timeRange === '7d' ? 'Last Week' : `${timeRange.replace('d', '')} Days`}).
             </p>
           </div>
@@ -673,27 +673,27 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                 data={moodChartData}
                 margin={{ top: 10, right: 15, left: -10, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#ecece0" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#ecece0" vertical={false} className="dark:opacity-20" />
                 <XAxis
                   dataKey="date"
-                  tick={{ fontSize: 10, fill: '#5c5c52' }}
+                  tick={{ fontSize: 10, fill: '#8c8c80' }}
                   tickLine={false}
-                  axisLine={{ stroke: '#e8e8df' }}
+                  axisLine={{ stroke: '#8c8c80', opacity: 0.3 }}
                   interval={timeRange === '30d' ? 3 : 0}
                 />
                 <YAxis
-                  tick={{ fontSize: 10, fill: '#5c5c52' }}
+                  tick={{ fontSize: 10, fill: '#8c8c80' }}
                   tickLine={false}
-                  axisLine={{ stroke: '#e8e8df' }}
+                  axisLine={{ stroke: '#8c8c80', opacity: 0.3 }}
                 />
                 <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       const item = payload[0].payload;
                       return (
-                        <div className="bg-white border border-[#ecece0] p-2.5 shadow-md rounded-none text-xs">
-                          <p className="font-mono text-[10px] text-[#7d8461] font-bold">{item.date}</p>
-                          <p className="text-xs font-serif font-bold text-[#2c2c26] mt-0.5">
+                        <div className="bg-white dark:bg-[#23231c] border border-[#ecece0] dark:border-[#38382e] p-2.5 shadow-md rounded-none text-xs text-[#2c2c26] dark:text-[#f0efe6]">
+                          <p className="font-mono text-[10px] text-[#7d8461] dark:text-[#9ca87a] font-bold">{item.date}</p>
+                          <p className="text-xs font-serif font-bold text-[#2c2c26] dark:text-[#f0efe6] mt-0.5">
                             {item.words} words written
                           </p>
                         </div>
@@ -706,7 +706,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                   {moodChartData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={entry.words > 0 ? '#7d8461' : '#e8e8df'}
+                      fill={entry.words > 0 ? '#7d8461' : '#38382e'}
                     />
                   ))}
                 </Bar>
@@ -714,7 +714,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
             </ResponsiveContainer>
           </div>
         ) : (
-          <p className="text-xs text-[#5c5c52] py-6 text-center">
+          <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] py-6 text-center">
             Write your first entry to see your reflection output metrics.
           </p>
         )}
@@ -723,10 +723,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
       {/* Analytics Breakdown Grid - Square */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* Dominant Emotional States */}
-        <div className="p-5 sm:p-6 rounded-none bg-white border border-[#e8e8df] shadow-xs">
+        <div className="p-5 sm:p-6 rounded-none bg-white dark:bg-[#23231c] border border-[#e8e8df] dark:border-[#38382e] shadow-xs">
           <div className="flex items-center gap-2 mb-4">
-            <Smile className="w-4 h-4 text-[#7d8461]" />
-            <h2 className="text-base font-serif italic font-bold text-[#2c2c26]">Dominant Emotional States</h2>
+            <Smile className="w-4 h-4 text-[#7d8461] dark:text-[#9ca87a]" />
+            <h2 className="text-base font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6]">Dominant Emotional States</h2>
           </div>
 
           {stats.topMoods.length > 0 ? (
@@ -736,10 +736,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                 return (
                   <div key={idx}>
                     <div className="flex items-center justify-between text-xs mb-1 font-medium">
-                      <span className="text-[#2c2c26]">{item.mood}</span>
-                      <span className="text-[#5c5c52] font-mono text-[11px]">{item.count} sessions ({percentage}%)</span>
+                      <span className="text-[#2c2c26] dark:text-[#f0efe6]">{item.mood}</span>
+                      <span className="text-[#5c5c52] dark:text-[#a8a89b] font-mono text-[11px]">{item.count} sessions ({percentage}%)</span>
                     </div>
-                    <div className="w-full h-2 bg-[#f4f4ea] rounded-none overflow-hidden border border-[#e8e8df]">
+                    <div className="w-full h-2 bg-[#f4f4ea] dark:bg-[#1a1a16] rounded-none overflow-hidden border border-[#e8e8df] dark:border-[#38382e]">
                       <div
                         className="h-full bg-[#7d8461] rounded-none transition-all duration-500"
                         style={{ width: `${percentage}%` }}
@@ -750,17 +750,17 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
               })}
             </div>
           ) : (
-            <p className="text-xs text-[#5c5c52] py-6 text-center">
+            <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] py-6 text-center">
               Complete your first journal reflections to see emotional patterns.
             </p>
           )}
         </div>
 
         {/* DIAGRAM 3: Time of Day Reflection Habits */}
-        <div className="p-5 sm:p-6 rounded-none bg-white border border-[#e8e8df] shadow-xs">
+        <div className="p-5 sm:p-6 rounded-none bg-white dark:bg-[#23231c] border border-[#e8e8df] dark:border-[#38382e] shadow-xs">
           <div className="flex items-center gap-2 mb-4">
-            <Clock className="w-4 h-4 text-[#7d8461]" />
-            <h2 className="text-base font-serif italic font-bold text-[#2c2c26]">Time of Day Reflection Rhythms</h2>
+            <Clock className="w-4 h-4 text-[#7d8461] dark:text-[#9ca87a]" />
+            <h2 className="text-base font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6]">Time of Day Reflection Rhythms</h2>
           </div>
 
           {stats.totalEntries > 0 ? (
@@ -770,15 +770,15 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                 return (
                   <div key={idx}>
                     <div className="flex items-center justify-between text-xs mb-1 font-medium">
-                      <span className="text-[#2c2c26] flex items-center gap-1.5">
+                      <span className="text-[#2c2c26] dark:text-[#f0efe6] flex items-center gap-1.5">
                         <span>{item.icon}</span>
                         <span>{item.period}</span>
                       </span>
-                      <span className="text-[#5c5c52] font-mono text-[11px]">
+                      <span className="text-[#5c5c52] dark:text-[#a8a89b] font-mono text-[11px]">
                         {item.count} ({percentage}%)
                       </span>
                     </div>
-                    <div className="w-full h-2 bg-[#f4f4ea] rounded-none overflow-hidden border border-[#e8e8df]">
+                    <div className="w-full h-2 bg-[#f4f4ea] dark:bg-[#1a1a16] rounded-none overflow-hidden border border-[#e8e8df] dark:border-[#38382e]">
                       <div
                         className="h-full bg-[#b08968] rounded-none transition-all duration-500"
                         style={{ width: `${percentage}%` }}
@@ -789,7 +789,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
               })}
             </div>
           ) : (
-            <p className="text-xs text-[#5c5c52] py-6 text-center">
+            <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] py-6 text-center">
               Reflection time patterns will emerge as you journal throughout the day.
             </p>
           )}
@@ -797,10 +797,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
       </div>
 
       {/* Core Themes & Focus */}
-      <div className="p-5 sm:p-6 rounded-none bg-white border border-[#e8e8df] shadow-xs">
+      <div className="p-5 sm:p-6 rounded-none bg-white dark:bg-[#23231c] border border-[#e8e8df] dark:border-[#38382e] shadow-xs">
         <div className="flex items-center gap-2 mb-4">
-          <Tag className="w-4 h-4 text-[#7d8461]" />
-          <h2 className="text-base font-serif italic font-bold text-[#2c2c26]">Core Themes & Philosophical Focus</h2>
+          <Tag className="w-4 h-4 text-[#7d8461] dark:text-[#9ca87a]" />
+          <h2 className="text-base font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6]">Core Themes & Philosophical Focus</h2>
         </div>
 
         {stats.topThemes.length > 0 ? (
@@ -808,27 +808,27 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
             {stats.topThemes.map((item, idx) => (
               <div
                 key={idx}
-                className="px-3 py-1 rounded-none bg-[#f4f4ea] border border-[#e8e8df] text-xs text-[#2c2c26] flex items-center gap-1.5 hover:border-[#7d8461] transition font-medium"
+                className="px-3 py-1 rounded-none bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] text-xs text-[#2c2c26] dark:text-[#f0efe6] flex items-center gap-1.5 hover:border-[#7d8461] transition font-medium"
               >
-                <span className="text-[#7d8461] font-bold">#{item.theme}</span>
-                <span className="px-1 py-0.2 rounded-none bg-white text-[10px] text-[#5c5c52] font-mono border border-[#e8e8df]">
+                <span className="text-[#7d8461] dark:text-[#9ca87a] font-bold">#{item.theme}</span>
+                <span className="px-1 py-0.2 rounded-none bg-white dark:bg-[#23231c] text-[10px] text-[#5c5c52] dark:text-[#a8a89b] font-mono border border-[#e8e8df] dark:border-[#38382e]">
                   {item.count}
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-xs text-[#5c5c52] py-6 text-center">
+          <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] py-6 text-center">
             Themes extracted by AI will appear here as you log reflections.
           </p>
         )}
       </div>
 
       {/* Framework Utilization - Square */}
-      <div className="p-5 sm:p-6 rounded-none bg-white border border-[#e8e8df] shadow-xs">
+      <div className="p-5 sm:p-6 rounded-none bg-white dark:bg-[#23231c] border border-[#e8e8df] dark:border-[#38382e] shadow-xs">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-4 h-4 text-[#7d8461]" />
-          <h2 className="text-base font-serif italic font-bold text-[#2c2c26]">Journaling Framework Preferences</h2>
+          <TrendingUp className="w-4 h-4 text-[#7d8461] dark:text-[#9ca87a]" />
+          <h2 className="text-base font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6]">Journaling Framework Preferences</h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -837,15 +837,15 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
             return (
               <div
                 key={fw.id}
-                className="p-3.5 rounded-none bg-[#fbfaf5] border border-[#ecece0] flex items-center justify-between"
+                className="p-3.5 rounded-none bg-[#fbfaf5] dark:bg-[#1a1a16] border border-[#ecece0] dark:border-[#38382e] flex items-center justify-between"
               >
                 <div>
-                  <p className="font-serif italic font-bold text-xs text-[#2c2c26]">{fw.name}</p>
-                  <p className="text-[10px] text-[#7d8461] font-medium truncate max-w-[140px]">{fw.tagline}</p>
+                  <p className="font-serif italic font-bold text-xs text-[#2c2c26] dark:text-[#f0efe6]">{fw.name}</p>
+                  <p className="text-[10px] text-[#7d8461] dark:text-[#9ca87a] font-medium truncate max-w-[140px]">{fw.tagline}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-base font-bold text-[#2c2c26] font-mono">{count}</span>
-                  <span className="text-[9px] text-[#5c5c52] block uppercase tracking-wider">entries</span>
+                  <span className="text-base font-bold text-[#2c2c26] dark:text-[#f0efe6] font-mono">{count}</span>
+                  <span className="text-[9px] text-[#5c5c52] dark:text-[#a8a89b] block uppercase tracking-wider">entries</span>
                 </div>
               </div>
             );

@@ -10,29 +10,29 @@ export const PrivacyPolicyModal: React.FC<ModalProps> = ({ isOpen, onClose }) =>
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#2c2c26]/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white border border-[#ecece0] rounded-none max-w-2xl w-full p-5 sm:p-7 shadow-xl text-[#2c2c26] relative my-6 max-h-[85vh] flex flex-col animate-in fade-in duration-150">
-        <div className="flex items-center justify-between pb-3.5 border-b border-[#ecece0]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 dark:bg-black/80 backdrop-blur-xs overflow-y-auto">
+      <div className="bg-white dark:bg-[#23231c] border border-[#ecece0] dark:border-[#38382e] rounded-none max-w-2xl w-full p-5 sm:p-7 shadow-xl text-[#2c2c26] dark:text-[#f0efe6] relative my-6 max-h-[85vh] flex flex-col animate-in fade-in duration-150">
+        <div className="flex items-center justify-between pb-3.5 border-b border-[#ecece0] dark:border-[#38382e]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#7d8461]/10 flex items-center justify-center text-[#7d8461]">
+            <div className="w-8 h-8 bg-[#7d8461]/10 dark:bg-[#7d8461]/25 flex items-center justify-center text-[#7d8461] dark:text-[#9ca87a]">
               <Lock className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-serif italic font-bold text-lg text-[#2c2c26]">Privacy Policy</h2>
-              <p className="text-[11px] text-[#5c5c52]">Fuenzer Journal Data Protection Standards</p>
+              <h2 className="font-serif italic font-bold text-lg text-[#2c2c26] dark:text-[#f0efe6]">Privacy Policy</h2>
+              <p className="text-[11px] text-[#5c5c52] dark:text-[#a8a89b]">Fuenzer Journal Data Protection Standards</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#f4f4ea] transition cursor-pointer"
+            className="p-1 text-[#5c5c52] dark:text-[#9e9e90] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="overflow-y-auto py-4 space-y-4 text-xs sm:text-sm text-[#5c5c52] leading-relaxed pr-1">
+        <div className="overflow-y-auto py-4 space-y-4 text-xs sm:text-sm text-[#5c5c52] dark:text-[#a8a89b] leading-relaxed pr-1">
           <div>
-            <h3 className="font-serif italic font-bold text-[#2c2c26] text-sm mb-1">
+            <h3 className="font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] text-sm mb-1">
               1. Fundamental Privacy Guarantee
             </h3>
             <p>
@@ -41,16 +41,16 @@ export const PrivacyPolicyModal: React.FC<ModalProps> = ({ isOpen, onClose }) =>
           </div>
 
           <div>
-            <h3 className="font-serif italic font-bold text-[#2c2c26] text-sm mb-1">
+            <h3 className="font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] text-sm mb-1">
               2. User-Isolated Cloud Storage (Firestore)
             </h3>
             <p>
-              Every reflection and draft is stored strictly under your isolated document path (<code className="bg-[#f4f4ea] px-1 py-0.5 font-mono text-[11px] text-[#4c5432]">/users/{'{userId}'}/journals</code>). Access is enforced at the database engine level via granular Cloud Firestore Security Rules, ensuring zero cross-user access or data leakage.
+              Every reflection and draft is stored strictly under your isolated document path (<code className="bg-[#f4f4ea] dark:bg-[#2c2c24] px-1 py-0.5 font-mono text-[11px] text-[#4c5432] dark:text-[#c4ceaa]">/users/{'{userId}'}/journals</code>). Access is enforced at the database engine level via granular Cloud Firestore Security Rules, ensuring zero cross-user access or data leakage.
             </p>
           </div>
 
           <div>
-            <h3 className="font-serif italic font-bold text-[#2c2c26] text-sm mb-1">
+            <h3 className="font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] text-sm mb-1">
               3. AI Processing & Gemini Model Interaction
             </h3>
             <p>
@@ -59,7 +59,7 @@ export const PrivacyPolicyModal: React.FC<ModalProps> = ({ isOpen, onClose }) =>
           </div>
 
           <div>
-            <h3 className="font-serif italic font-bold text-[#2c2c26] text-sm mb-1">
+            <h3 className="font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] text-sm mb-1">
               4. Authentication & Credentials
             </h3>
             <p>
@@ -68,7 +68,7 @@ export const PrivacyPolicyModal: React.FC<ModalProps> = ({ isOpen, onClose }) =>
           </div>
 
           <div>
-            <h3 className="font-serif italic font-bold text-[#2c2c26] text-sm mb-1">
+            <h3 className="font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] text-sm mb-1">
               5. Data Portability & Deletion
             </h3>
             <p>
@@ -77,7 +77,7 @@ export const PrivacyPolicyModal: React.FC<ModalProps> = ({ isOpen, onClose }) =>
           </div>
         </div>
 
-        <div className="pt-3 border-t border-[#ecece0] flex justify-end">
+        <div className="pt-3 border-t border-[#ecece0] dark:border-[#38382e] flex justify-end">
           <button
             onClick={onClose}
             className="px-4 py-2 bg-[#7d8461] hover:bg-[#6c7351] text-white text-xs font-bold uppercase tracking-wider transition cursor-pointer"
@@ -94,29 +94,29 @@ export const TermsOfServiceModal: React.FC<ModalProps> = ({ isOpen, onClose }) =
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#2c2c26]/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white border border-[#ecece0] rounded-none max-w-2xl w-full p-5 sm:p-7 shadow-xl text-[#2c2c26] relative my-6 max-h-[85vh] flex flex-col animate-in fade-in duration-150">
-        <div className="flex items-center justify-between pb-3.5 border-b border-[#ecece0]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 dark:bg-black/80 backdrop-blur-xs overflow-y-auto">
+      <div className="bg-white dark:bg-[#23231c] border border-[#ecece0] dark:border-[#38382e] rounded-none max-w-2xl w-full p-5 sm:p-7 shadow-xl text-[#2c2c26] dark:text-[#f0efe6] relative my-6 max-h-[85vh] flex flex-col animate-in fade-in duration-150">
+        <div className="flex items-center justify-between pb-3.5 border-b border-[#ecece0] dark:border-[#38382e]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#7d8461]/10 flex items-center justify-center text-[#7d8461]">
+            <div className="w-8 h-8 bg-[#7d8461]/10 dark:bg-[#7d8461]/25 flex items-center justify-center text-[#7d8461] dark:text-[#9ca87a]">
               <FileText className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-serif italic font-bold text-lg text-[#2c2c26]">Terms of Service</h2>
-              <p className="text-[11px] text-[#5c5c52]">Fuenzer Journal Usage Guidelines</p>
+              <h2 className="font-serif italic font-bold text-lg text-[#2c2c26] dark:text-[#f0efe6]">Terms of Service</h2>
+              <p className="text-[11px] text-[#5c5c52] dark:text-[#a8a89b]">Fuenzer Journal Usage Guidelines</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-[#5c5c52] hover:text-[#2c2c26] hover:bg-[#f4f4ea] transition cursor-pointer"
+            className="p-1 text-[#5c5c52] dark:text-[#9e9e90] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="overflow-y-auto py-4 space-y-4 text-xs sm:text-sm text-[#5c5c52] leading-relaxed pr-1">
+        <div className="overflow-y-auto py-4 space-y-4 text-xs sm:text-sm text-[#5c5c52] dark:text-[#a8a89b] leading-relaxed pr-1">
           <div>
-            <h3 className="font-serif italic font-bold text-[#2c2c26] text-sm mb-1">
+            <h3 className="font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] text-sm mb-1">
               1. Intended Use & Mindful Reflection
             </h3>
             <p>
@@ -125,7 +125,7 @@ export const TermsOfServiceModal: React.FC<ModalProps> = ({ isOpen, onClose }) =
           </div>
 
           <div>
-            <h3 className="font-serif italic font-bold text-[#2c2c26] text-sm mb-1">
+            <h3 className="font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] text-sm mb-1">
               2. Non-Medical / Non-Psychiatric Disclaimer
             </h3>
             <p>
@@ -134,7 +134,7 @@ export const TermsOfServiceModal: React.FC<ModalProps> = ({ isOpen, onClose }) =
           </div>
 
           <div>
-            <h3 className="font-serif italic font-bold text-[#2c2c26] text-sm mb-1">
+            <h3 className="font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] text-sm mb-1">
               3. User Responsibilities
             </h3>
             <p>
@@ -143,7 +143,7 @@ export const TermsOfServiceModal: React.FC<ModalProps> = ({ isOpen, onClose }) =
           </div>
 
           <div>
-            <h3 className="font-serif italic font-bold text-[#2c2c26] text-sm mb-1">
+            <h3 className="font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] text-sm mb-1">
               4. Service Availability & Evolution
             </h3>
             <p>
@@ -152,7 +152,7 @@ export const TermsOfServiceModal: React.FC<ModalProps> = ({ isOpen, onClose }) =
           </div>
         </div>
 
-        <div className="pt-3 border-t border-[#ecece0] flex justify-end">
+        <div className="pt-3 border-t border-[#ecece0] dark:border-[#38382e] flex justify-end">
           <button
             onClick={onClose}
             className="px-4 py-2 bg-[#7d8461] hover:bg-[#6c7351] text-white text-xs font-bold uppercase tracking-wider transition cursor-pointer"

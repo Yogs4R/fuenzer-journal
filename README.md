@@ -140,6 +140,73 @@ gcloud run services update fuenzer-journal \
   --region=us-central1
 ```
 
+## 🧪 Functional Stability & Comprehensive User Test Walkthroughs
+
+The following test cases map every user-facing interaction for automated testing tools and manual verification:
+
+### Test Case 1: Multi-Turn Socratic AI Reflection & Fallback Model Ladder
+1. Navigate to `/app` (Reflection Studio).
+2. Type a message (e.g., `"I felt overwhelmed by work deadlines today"`) and press **Cmd+Enter** or click **Send**.
+3. Verify that the AI generates an empathetic Socratic reflection within 2 seconds.
+4. Verify that sending further messages builds a multi-turn reflection transcript seamlessly.
+
+### Test Case 2: Voice Dictation & Multimodal Image Attachment
+1. Click the **Microphone** icon in the reflection input bar.
+2. Grant browser microphone access and speak aloud.
+3. Verify that transcribed voice text streams directly into the reflection textarea. Click the microphone icon again to stop.
+4. Click the **Image Attachment** icon or drag and drop up to 5 image files (<5 MB each).
+5. Verify thumbnail preview badges render with file sizes.
+6. Click any image thumbnail to trigger the full-screen lightbox zoom view.
+7. Click the **X** button on a thumbnail to remove it.
+
+### Test Case 3: Draft Chat Auto-Persistence & Navigation Survival
+1. In `/app`, start a new reflection and type two back-and-forth messages.
+2. Without saving, click **Archive** (`/archive`) or **Insights** (`/analytics`) in the navigation bar.
+3. Return to `/app` (`Reflection Studio`).
+4. Verify that the chat transcript, selected framework, and feeling mood chips are completely preserved and not lost.
+
+### Test Case 4: Microsoft Word-Style Save Confirmation & New Chat
+1. While an unsaved multi-turn conversation is active in `/app`, click the **New Chat** button in the header or action bar.
+2. Verify that a confirmation modal appears: `"Unsaved Reflection Thoughts"`.
+3. Test three branches:
+   - **Cancel**: Closes modal and keeps active chat.
+   - **Don't Save**: Discards active draft and resets to a clean starter prompt.
+   - **Save & Review**: Launches the **Conclude & Save** distillation modal.
+4. When on a clean starter session with no user messages, click **New Chat** and verify that it immediately resets without prompting.
+
+### Test Case 5: Session Deletion & Confirmation Modal
+1. On an active session, click the **Trash** icon in the bottom action bar.
+2. Verify the **Clear Reflection Session** confirmation modal appears.
+3. Click **Clear Session** and verify the active chat and local draft are erased, resetting to the default framework prompt.
+
+### Test Case 6: Edit & Update Archive Journal (No Duplicates)
+1. Navigate to `/archive` and click on an existing journal card to open the detail view.
+2. Click **Continue Reflection** / **Edit in Studio**.
+3. Verify that the transcript loads into `/app` with the badge `"Editing Archive Entry"`.
+4. Add a follow-up reflection, click **Conclude & Save**, and save the journal.
+5. Verify in `/archive` that the existing journal entry was updated in-place without creating a duplicate record.
+
+### Test Case 7: Interactive To-Do Lists (Task Check/Uncheck)
+1. In `/archive`, click on a journal entry that contains Action Items.
+2. Click on the checkbox next to any action item.
+3. Verify the item toggles immediately with strikethrough styling and syncs to Firestore (`updateJournalActionItems`).
+4. Close and re-open the modal to confirm the checked state was persisted.
+
+### Test Case 8: Archive Journal Deletion with Safety Modal
+1. In `/archive`, click the **Delete** (Trash) icon on any journal card or inside the detail modal.
+2. Verify the confirmation popup appears asking for verification.
+3. Confirm deletion and verify the entry is permanently removed from the archive and Firestore.
+
+### Test Case 9: Light & Dark Theme Switching
+1. Click the **Sun/Moon** icon in the navbar (or open the mobile hamburger drawer and toggle theme).
+2. Verify the entire UI switches between the warm sanctuary cream theme and eye-safe deep neutral dark mode (`#181814`, `#23231c`).
+3. Refresh the page and confirm the theme preference persists via `localStorage`.
+
+### Test Case 10: 100% Client-Side Privacy Export (PDF, Markdown, JSON)
+1. In `/archive` (or single journal view), click **Export**.
+2. Select **Export as PDF**, **Export as Markdown**, or **Export as JSON**.
+3. Verify that the file downloads instantly in the browser without any network calls to external file conversion servers.
+
 ---
 
 ## 💻 Local Development

@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Navbar } from './components/Navbar';
 import { LandingPage } from './components/LandingPage';
 import { LoginPage } from './pages/LoginPage';
@@ -55,6 +56,8 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
   const [editorTranscript, setEditorTranscript] = useState<ChatMessage[] | undefined>(undefined);
   const [editorFramework, setEditorFramework] = useState<JournalFrameworkId | undefined>(undefined);
   const [editorMood, setEditorMood] = useState<string | undefined>(undefined);
+  const [editingEntryId, setEditingEntryId] = useState<string | undefined>(undefined);
+  const [editingEntryCreatedAt, setEditingEntryCreatedAt] = useState<number | undefined>(undefined);
 
   // Load journals from Firestore when user is authenticated
   useEffect(() => {
@@ -130,8 +133,14 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
   }, [entries]);
 
   const handleEntrySaved = (newEntry: JournalEntry) => {
-    // Prepend new entry
+    // Prepend or update new entry
     setEntries((prev) => [newEntry, ...prev.filter((e) => e.id !== newEntry.id)]);
+    // Reset editor state
+    setEditorTranscript(undefined);
+    setEditorFramework(undefined);
+    setEditorMood(undefined);
+    setEditingEntryId(undefined);
+    setEditingEntryCreatedAt(undefined);
     // Switch to history tab / archive route
     navigate('/archive');
   };
@@ -162,6 +171,8 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
     setEditorTranscript(entry.transcript);
     setEditorFramework(entry.framework);
     setEditorMood(entry.detectedMood || entry.initialMood);
+    setEditingEntryId(entry.id);
+    setEditingEntryCreatedAt(entry.createdAt);
     navigate('/app');
   };
 
@@ -169,6 +180,8 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
     setEditorTranscript(undefined);
     setEditorFramework(undefined);
     setEditorMood(undefined);
+    setEditingEntryId(undefined);
+    setEditingEntryCreatedAt(undefined);
     navigate('/app');
   };
 
@@ -181,10 +194,10 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
   // Auth Loading Screen
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#fbfaf5] flex items-center justify-center text-[#5c5c52]">
+      <div className="min-h-screen bg-[#fbfaf5] dark:bg-[#181814] flex items-center justify-center text-[#5c5c52] dark:text-[#a8a89b]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-[#7d8461]" />
-          <p className="text-sm font-serif italic text-[#2c2c26]">Loading your sanctuary...</p>
+          <p className="text-sm font-serif italic text-[#2c2c26] dark:text-[#f0efe6]">Loading your sanctuary...</p>
         </div>
       </div>
     );
@@ -197,7 +210,7 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
 
   // Authenticated User Dashboard
   return (
-    <div className="min-h-screen bg-[#fbfaf5] text-[#2c2c26] flex flex-col justify-between selection:bg-[#7d8461] selection:text-white w-full overflow-x-hidden">
+    <div className="min-h-screen bg-[#fbfaf5] dark:bg-[#181814] text-[#2c2c26] dark:text-[#f0efe6] flex flex-col justify-between selection:bg-[#7d8461] selection:text-white w-full overflow-x-hidden">
       <div className="flex-1 flex flex-col w-full min-w-0">
         <Navbar
           currentTab={currentTab}
@@ -208,7 +221,7 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
 
         {/* Daily Reflection Reminder Nudge Banner */}
         {!hasEntryToday && !reminderDismissed && (
-          <div className="bg-[#7d8461]/10 border-b border-[#7d8461]/25 px-4 py-2.5 text-xs text-[#2c2c26] animate-in fade-in duration-300 w-full">
+          <div className="bg-[#7d8461]/10 dark:bg-[#7d8461]/15 border-b border-[#7d8461]/25 px-4 py-2.5 text-xs text-[#2c2c26] dark:text-[#f0efe6] animate-in fade-in duration-300 w-full">
             <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5">
               <div className="flex items-center gap-2.5">
                 <div className="w-6 h-6 rounded-none bg-[#7d8461] text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -218,7 +231,7 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
                   <span className="font-serif italic font-bold text-xs">
                     Daily Reflection Nudge:
                   </span>
-                  <span className="text-[#5c5c52] ml-1.5 hidden sm:inline">
+                  <span className="text-[#5c5c52] dark:text-[#a8a89b] ml-1.5 hidden sm:inline">
                     You haven&apos;t logged a reflection today. Taking 3 minutes cultivates calm and self-clarity.
                   </span>
                 </div>
@@ -234,7 +247,7 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
                 </button>
                 <button
                   onClick={handleDismissReminder}
-                  className="p-1 hover:bg-[#7d8461]/20 rounded-none text-[#5c5c52] hover:text-[#2c2c26] transition cursor-pointer"
+                  className="p-1 hover:bg-[#7d8461]/20 rounded-none text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] transition cursor-pointer"
                   title="Dismiss for today"
                   aria-label="Dismiss daily reminder"
                 >
@@ -245,14 +258,17 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
           </div>
         )}
 
-        <main className="flex-1 bg-[#fbfaf5] w-full min-w-0">
+        <main className="flex-1 bg-[#fbfaf5] dark:bg-[#181814] w-full min-w-0">
           {currentTab === 'editor' && (
             <JournalEditor
-              key={`${editorFramework || 'default'}_${editorTranscript?.length || 0}`}
+              key={`${editingEntryId || 'new'}_${editorFramework || 'default'}_${editorTranscript?.length || 0}`}
               initialTranscript={editorTranscript}
               initialFramework={editorFramework}
               initialMood={editorMood}
+              editingEntryId={editingEntryId}
+              editingEntryCreatedAt={editingEntryCreatedAt}
               onEntrySaved={handleEntrySaved}
+              onStartNewChat={handleStartNewEntry}
             />
           )}
 
@@ -304,29 +320,31 @@ function GlobalCommandPalette() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <GlobalCommandPalette />
-        <Routes>
-          {/* Landing Page */}
-          <Route path="/" element={<LandingPage />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <GlobalCommandPalette />
+          <Routes>
+            {/* Landing Page */}
+            <Route path="/" element={<LandingPage />} />
 
-          {/* Dedicated Login Page */}
-          <Route path="/login" element={<LoginPage />} />
+            {/* Dedicated Login Page */}
+            <Route path="/login" element={<LoginPage />} />
 
-          {/* Legal Pages */}
-          <Route path="/privacy" element={<PrivacyPolicyPage />} />
-          <Route path="/terms" element={<TermsOfServicePage />} />
+            {/* Legal Pages */}
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms" element={<TermsOfServicePage />} />
 
-          {/* Authenticated Dashboard Routes */}
-          <Route path="/app" element={<JournalDashboard initialTab="editor" />} />
-          <Route path="/archive" element={<JournalDashboard initialTab="history" />} />
-          <Route path="/analytics" element={<JournalDashboard initialTab="analytics" />} />
+            {/* Authenticated Dashboard Routes */}
+            <Route path="/app" element={<JournalDashboard initialTab="editor" />} />
+            <Route path="/archive" element={<JournalDashboard initialTab="history" />} />
+            <Route path="/analytics" element={<JournalDashboard initialTab="analytics" />} />
 
-          {/* 404 Not Found Catch-All Route */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+            {/* 404 Not Found Catch-All Route */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
