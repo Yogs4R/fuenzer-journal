@@ -12,11 +12,13 @@ import {
   Save,
   Loader2,
   AlertCircle,
+  CheckSquare,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { JournalFrameworkId, JournalSummary, ChatMessage, JournalEntry } from '../types/journal';
 import { saveJournalToFirestore } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
+import { WorkspaceSyncModal } from './WorkspaceSyncModal';
 
 interface SummaryModalProps {
   isOpen: boolean;
@@ -55,6 +57,8 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [workspaceSyncOpen, setWorkspaceSyncOpen] = useState(false);
+  const [workspaceDefaultTab, setWorkspaceDefaultTab] = useState<'tasks' | 'calendar'>('tasks');
 
   // Sync state when summary changes
   React.useEffect(() => {
@@ -333,6 +337,42 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
                 <span>Add</span>
               </button>
             </div>
+
+            {/* Google Workspace Quick Sync Bar */}
+            <div className="mt-2.5 p-2 bg-[#7d8461]/10 dark:bg-[#7d8461]/20 border border-[#7d8461]/25 rounded-none flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-[#4c5432] dark:text-[#9ca87a]">
+                  Google Workspace Sync:
+                </span>
+                <span className="text-[10px] text-[#5c5c52] dark:text-[#a8a89b]">
+                  {actionItems.length} action item{actionItems.length === 1 ? '' : 's'} extracted
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWorkspaceDefaultTab('tasks');
+                    setWorkspaceSyncOpen(true);
+                  }}
+                  className="px-2.5 py-1 bg-white dark:bg-[#282820] hover:bg-[#f4f4ea] dark:hover:bg-[#33332a] border border-[#7d8461]/40 text-[#2c2c26] dark:text-[#f0efe6] text-[10px] font-bold rounded-none flex items-center gap-1 transition cursor-pointer shadow-2xs"
+                >
+                  <CheckSquare className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
+                  <span>Sync to Google Tasks</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWorkspaceDefaultTab('calendar');
+                    setWorkspaceSyncOpen(true);
+                  }}
+                  className="px-2.5 py-1 bg-white dark:bg-[#282820] hover:bg-[#f4f4ea] dark:hover:bg-[#33332a] border border-[#7d8461]/40 text-[#2c2c26] dark:text-[#f0efe6] text-[10px] font-bold rounded-none flex items-center gap-1 transition cursor-pointer shadow-2xs"
+                >
+                  <Calendar className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
+                  <span>Schedule in Calendar</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Mood & Theme Tags */}
@@ -447,6 +487,17 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Google Workspace Sync Modal */}
+      <WorkspaceSyncModal
+        isOpen={workspaceSyncOpen}
+        onClose={() => setWorkspaceSyncOpen(false)}
+        defaultTab={workspaceDefaultTab}
+        entryTitle={title}
+        actionItems={actionItems}
+        executiveSummary={executiveSummary}
+        closingAffirmation={closingAffirmation}
+      />
     </div>
   );
 };

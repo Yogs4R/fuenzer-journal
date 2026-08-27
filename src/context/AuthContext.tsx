@@ -6,7 +6,13 @@ import {
   signInWithPopup,
   firebaseSignOut,
   onAuthStateChanged,
+  GoogleAuthProvider,
 } from '../lib/firebase';
+import {
+  setCachedAccessToken,
+  getCachedAccessToken,
+  clearCachedAccessToken,
+} from '../lib/google-workspace';
 
 interface AuthContextType {
   user: User | null;
@@ -17,6 +23,7 @@ interface AuthContextType {
   continueAsGuest: () => void;
   signOut: () => Promise<void>;
   clearError: () => void;
+  getWorkspaceToken: () => Promise<string>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,6 +44,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (currentUser) {
           setIsGuest(false);
           localStorage.removeItem('fuenzer_guest_mode');
+        } else {
+          clearCachedAccessToken();
         }
         setLoading(false);
       },
@@ -59,7 +68,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      if (credential?.accessToken) {
+        setCachedAccessToken(credential.accessToken);
+      }
       setIsGuest(false);
       localStorage.removeItem('fuenzer_guest_mode');
     } catch (err: any) {
@@ -73,9 +86,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const getWorkspaceToken = async (): Promise<string> => {
+    const existing = getCachedAccessToken();
+    if (existing) {
+      return existing;
+    }
+
+    // Interactive token request if not in memory
+    const result = await signInWithPopup(auth, googleProvider);
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    if (!credential?.accessToken) {
+      throw new Error('Could not acquire Google Workspace access token.');
+    }
+    setCachedAccessToken(credential.accessToken);
+    return credential.accessToken;
+  };
+
   const signOut = async () => {
     setError(null);
     try {
+      clearCachedAccessToken();
       if (user) {
         await firebaseSignOut(auth);
       }
@@ -101,6 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         continueAsGuest,
         signOut,
         clearError,
+        getWorkspaceToken,
       }}
     >
       {children}

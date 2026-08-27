@@ -30,6 +30,7 @@ import { formatJournalDate, formatJournalTime } from '../lib/date-utils';
 import { ConfirmationModal } from './ConfirmationModal';
 import { updateJournalActionItems } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
+import { WorkspaceSyncModal } from './WorkspaceSyncModal';
 
 /**
  * Strict image URI validator to prevent script execution or malformed URLs
@@ -89,6 +90,8 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
 
   // Local action items state for immediate to-do toggle responsiveness
   const [localActionItems, setLocalActionItems] = useState<string[]>([]);
+  const [workspaceSyncOpen, setWorkspaceSyncOpen] = useState(false);
+  const [workspaceDefaultTab, setWorkspaceDefaultTab] = useState<'tasks' | 'calendar'>('tasks');
 
   useEffect(() => {
     if (entry?.actionItems) {
@@ -501,6 +504,37 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
                         );
                       })}
                     </ul>
+
+                    {/* Google Workspace Cloud Sync Bar */}
+                    <div className="mt-3 pt-2.5 border-t border-[#ecece0] dark:border-[#38382e] flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-[10px] text-[#7d8461] dark:text-[#9ca87a] font-bold uppercase tracking-wider">
+                        Google Workspace Cloud Sync
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setWorkspaceDefaultTab('tasks');
+                            setWorkspaceSyncOpen(true);
+                          }}
+                          className="px-2.5 py-1 bg-white dark:bg-[#282820] hover:bg-[#f4f4ea] dark:hover:bg-[#33332a] border border-[#7d8461]/40 text-[#2c2c26] dark:text-[#f0efe6] text-[10px] font-bold rounded-none flex items-center gap-1 transition cursor-pointer shadow-2xs"
+                        >
+                          <CheckSquare className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
+                          <span>Sync to Google Tasks</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setWorkspaceDefaultTab('calendar');
+                            setWorkspaceSyncOpen(true);
+                          }}
+                          className="px-2.5 py-1 bg-white dark:bg-[#282820] hover:bg-[#f4f4ea] dark:hover:bg-[#33332a] border border-[#7d8461]/40 text-[#2c2c26] dark:text-[#f0efe6] text-[10px] font-bold rounded-none flex items-center gap-1 transition cursor-pointer shadow-2xs"
+                        >
+                          <Calendar className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
+                          <span>Schedule in Calendar</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -718,6 +752,17 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
         cancelLabel="Keep Entry"
         variant="danger"
         icon="trash"
+      />
+
+      {/* Google Workspace Sync Modal */}
+      <WorkspaceSyncModal
+        isOpen={workspaceSyncOpen}
+        onClose={() => setWorkspaceSyncOpen(false)}
+        defaultTab={workspaceDefaultTab}
+        entryTitle={entry.title}
+        actionItems={localActionItems}
+        executiveSummary={entry.executiveSummary}
+        closingAffirmation={entry.closingAffirmation}
       />
     </>
   );

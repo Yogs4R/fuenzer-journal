@@ -31,6 +31,10 @@ export const db = getFirestore(app, (firebaseConfigJson as any).firestoreDatabas
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
+// Add Google Tasks and Calendar scopes for seamless incremental sync
+googleProvider.addScope('https://www.googleapis.com/auth/tasks');
+googleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
+
 /**
  * Strict Undefined-Stripping Utility per Production Directive 6
  * Strips all `undefined` values and ensures clean payloads before passing to Firestore
@@ -169,5 +173,5 @@ export async function clearDraftSession(userId: string): Promise<void> {
   await deleteDoc(draftRef).catch(() => {});
 }
 
-export { firebaseSignOut, signInWithPopup, onAuthStateChanged };
+export { firebaseSignOut, signInWithPopup, onAuthStateChanged, GoogleAuthProvider };
 export type { User };

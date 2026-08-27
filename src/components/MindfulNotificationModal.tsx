@@ -20,6 +20,7 @@ import {
   Laptop,
   PenLine,
   HelpCircle,
+  Calendar,
 } from 'lucide-react';
 import {
   isNotificationSupported,
@@ -33,6 +34,7 @@ import {
   NotificationResult,
 } from '../lib/notifications';
 import { usePwaInstall } from '../hooks/usePwaInstall';
+import { WorkspaceSyncModal } from './WorkspaceSyncModal';
 
 interface MindfulNotificationModalProps {
   isOpen: boolean;
@@ -52,6 +54,7 @@ export const MindfulNotificationModal: React.FC<MindfulNotificationModalProps> =
   const [installSuccess, setInstallSuccess] = useState(false);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [guidePlatform, setGuidePlatform] = useState<'desktop' | 'ios' | 'android'>('desktop');
+  const [calendarSyncOpen, setCalendarSyncOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -437,6 +440,30 @@ export const MindfulNotificationModal: React.FC<MindfulNotificationModalProps> =
               </div>
             )}
           </div>
+
+          {/* Google Calendar Reflection Block Scheduling */}
+          <div className="p-3.5 bg-[#f4f4ea] dark:bg-[#25251f] border border-[#d8d8cc] dark:border-[#38382e] flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-start gap-2.5">
+              <div className="p-2 bg-[#7d8461]/15 text-[#555c3c] dark:text-[#9ca87a]">
+                <Calendar className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#2c2c26] dark:text-[#f0efe6]">
+                  Google Calendar Reflection Blocks
+                </p>
+                <p className="text-[11px] text-[#5c5c52] dark:text-[#a8a89b]">
+                  Block out protected 15–30 min deep focus reflection time in your Google Calendar
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setCalendarSyncOpen(true)}
+              className="px-3 py-1.5 bg-[#7d8461] hover:bg-[#6c7351] text-white text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Schedule on Calendar</span>
+            </button>
+          </div>
         </div>
 
         {/* Footer */}
@@ -449,6 +476,16 @@ export const MindfulNotificationModal: React.FC<MindfulNotificationModalProps> =
           </button>
         </div>
       </div>
+
+      {/* Google Calendar Schedule Modal */}
+      <WorkspaceSyncModal
+        isOpen={calendarSyncOpen}
+        onClose={() => setCalendarSyncOpen(false)}
+        defaultTab="calendar"
+        entryTitle="Mindful Reflection Session"
+        actionItems={[]}
+        executiveSummary="Dedicated mindful reflection block for clarity and journaling."
+      />
     </div>
   );
 };
