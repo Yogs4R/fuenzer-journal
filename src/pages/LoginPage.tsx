@@ -5,15 +5,15 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 export const LoginPage: React.FC = () => {
-  const { user, signInWithGoogle, loading, error } = useAuth();
+  const { user, signInWithGoogle, continueAsGuest, isGuest, loading, error } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user && !loading) {
+    if ((user || isGuest) && !loading) {
       navigate('/app', { replace: true });
     }
-  }, [user, loading, navigate]);
+  }, [user, isGuest, loading, navigate]);
 
   const handleSignIn = async () => {
     try {
@@ -122,13 +122,17 @@ export const LoginPage: React.FC = () => {
             </div>
 
             {/* Continue as Guest Button */}
-            <Link
-              to="/app"
+            <button
+              type="button"
+              onClick={() => {
+                continueAsGuest();
+                navigate('/app');
+              }}
               className="w-full py-2.5 px-4 bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#35352c] border border-[#d8d8cc] dark:border-[#424236] text-[#2c2c26] dark:text-[#f0efe6] font-semibold text-xs uppercase tracking-wider rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
             >
               <span>Continue as Guest</span>
               <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
-            </Link>
+            </button>
             <p className="text-[11px] text-[#7d8461] dark:text-[#9ca87a] italic">
               Guest entries are stored locally on your device without an account.
             </p>

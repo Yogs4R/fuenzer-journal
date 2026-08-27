@@ -12,7 +12,9 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
+  isGuest: boolean;
   signInWithGoogle: () => Promise<void>;
+  continueAsGuest: () => void;
   signOut: () => Promise<void>;
   clearError: () => void;
 }
@@ -23,12 +25,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isGuest, setIsGuest] = useState<boolean>(() => {
+    return localStorage.getItem('fuenzer_guest_mode') === 'true';
+  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
       auth,
       (currentUser) => {
         setUser(currentUser);
+        if (currentUser) {
+          setIsGuest(false);
+          localStorage.removeItem('fuenzer_guest_mode');
+        }
         setLoading(false);
       },
       (authErr) => {
@@ -41,11 +50,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
+  const continueAsGuest = () => {
+    setIsGuest(true);
+    localStorage.setItem('fuenzer_guest_mode', 'true');
+  };
+
   const signInWithGoogle = async () => {
     setError(null);
     setLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
+      setIsGuest(false);
+      localStorage.removeItem('fuenzer_guest_mode');
     } catch (err: any) {
       console.error('Google Sign-in failed:', err);
       // Suppress popup-closed-by-user error message nicely
@@ -60,8 +76,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     setError(null);
     try {
-      await firebaseSignOut(auth);
+      if (user) {
+        await firebaseSignOut(auth);
+      }
       setUser(null);
+      setIsGuest(false);
+      localStorage.removeItem('fuenzer_guest_mode');
     } catch (err: any) {
       console.error('Sign-out error:', err);
       setError('Failed to sign out cleanly.');
@@ -76,7 +96,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         loading,
         error,
+        isGuest,
         signInWithGoogle,
+        continueAsGuest,
         signOut,
         clearError,
       }}

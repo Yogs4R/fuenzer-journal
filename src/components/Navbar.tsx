@@ -31,7 +31,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   streakCount,
   onNewEntry,
 }) => {
-  const { user, signOut } = useAuth();
+  const { user, isGuest, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -176,11 +176,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                   />
                 ) : (
                   <div className="w-6 h-6 rounded-none bg-[#7d8461] dark:bg-[#8e966f] flex items-center justify-center text-white text-[11px] font-bold font-serif italic">
-                    {user?.displayName ? user.displayName.charAt(0).toUpperCase() : <UserIcon className="w-3.5 h-3.5" />}
+                    {user?.displayName ? user.displayName.charAt(0).toUpperCase() : isGuest ? 'G' : <UserIcon className="w-3.5 h-3.5" />}
                   </div>
                 )}
                 <span className="text-xs font-medium text-[#2c2c26] dark:text-[#f0efe6] max-w-[90px] truncate">
-                  {user?.displayName?.split(' ')[0] || 'User'}
+                  {user?.displayName?.split(' ')[0] || (isGuest ? 'Guest' : 'User')}
                 </span>
                 <ChevronDown className="w-3 h-3 text-[#5c5c52] dark:text-[#a8a89b]" />
               </button>
@@ -194,9 +194,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <div className="absolute right-0 mt-1 w-56 rounded-none bg-[#ffffff] dark:bg-[#25251f] border border-[#ecece0] dark:border-[#35352c] shadow-lg p-2 text-sm z-50 animate-in fade-in">
                     <div className="p-2.5 border-b border-[#ecece0] dark:border-[#35352c] bg-[#fbfaf5] dark:bg-[#1f1f1a] rounded-none mb-1">
                       <p className="font-semibold text-[#2c2c26] dark:text-[#f0efe6] truncate font-serif italic text-xs">
-                        {user?.displayName || 'Journaler'}
+                        {user?.displayName || (isGuest ? 'Guest Writer' : 'Journaler')}
                       </p>
-                      <p className="text-[11px] text-[#5c5c52] dark:text-[#a8a89b] truncate font-mono">{user?.email}</p>
+                      <p className="text-[11px] text-[#5c5c52] dark:text-[#a8a89b] truncate font-mono">
+                        {user?.email || (isGuest ? 'Stored on device' : 'Not signed in')}
+                      </p>
                     </div>
                     <div className="py-1 space-y-0.5">
                       <button
@@ -206,6 +208,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                         <Plus className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
                         <span>New Reflection</span>
                       </button>
+                      {isGuest && (
+                        <button
+                          onClick={() => {
+                            setShowUserMenu(false);
+                            navigate('/login');
+                          }}
+                          className="w-full text-left px-2.5 py-1.5 rounded-none text-[#7d8461] dark:text-[#9ca87a] hover:bg-[#7d8461]/10 flex items-center gap-2 text-xs transition cursor-pointer font-semibold"
+                        >
+                          <UserIcon className="w-3.5 h-3.5" />
+                          <span>Sign In with Google</span>
+                        </button>
+                      )}
                     </div>
                     <div className="pt-1 border-t border-[#ecece0] dark:border-[#35352c] mt-1">
                       <button
@@ -217,7 +231,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         className="w-full text-left px-2.5 py-1.5 rounded-none text-[#96472d] dark:text-[#e07a5f] hover:bg-[#c86d51]/10 dark:hover:bg-[#c86d51]/20 flex items-center gap-2 text-xs transition cursor-pointer font-medium"
                       >
                         <LogOut className="w-3.5 h-3.5" />
-                        <span>Sign Out</span>
+                        <span>{isGuest ? 'Exit Guest Mode' : 'Sign Out'}</span>
                       </button>
                     </div>
                   </div>
@@ -258,14 +272,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-none bg-[#7d8461] dark:bg-[#8e966f] flex items-center justify-center text-white text-xs font-bold font-serif italic">
-                      {user?.displayName ? user.displayName.charAt(0).toUpperCase() : <UserIcon className="w-4 h-4" />}
+                      {user?.displayName ? user.displayName.charAt(0).toUpperCase() : isGuest ? 'G' : <UserIcon className="w-4 h-4" />}
                     </div>
                   )}
                   <div>
                     <p className="text-xs font-bold text-[#2c2c26] dark:text-[#f0efe6] font-serif italic">
-                      {user?.displayName || 'Reflective Journaler'}
+                      {user?.displayName || (isGuest ? 'Guest Writer' : 'Reflective Journaler')}
                     </p>
-                    <p className="text-[10px] text-[#5c5c52] dark:text-[#a8a89b] font-mono">{user?.email}</p>
+                    <p className="text-[10px] text-[#5c5c52] dark:text-[#a8a89b] font-mono">
+                      {user?.email || (isGuest ? 'Stored locally on device' : 'Not signed in')}
+                    </p>
                   </div>
                 </div>
 

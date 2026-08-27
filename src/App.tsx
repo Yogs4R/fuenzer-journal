@@ -32,7 +32,7 @@ interface JournalDashboardProps {
 }
 
 function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isGuest, loading: authLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -255,12 +255,12 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
     );
   }
 
-  // If user is not signed in, redirect to login page
-  if (!user) {
+  // If user is not signed in and not a guest, redirect to login page
+  if (!user && !isGuest) {
     return <Navigate to="/login" replace />;
   }
 
-  // Authenticated User Dashboard
+  // Dashboard View (Authenticated or Guest)
   return (
     <div className="min-h-screen bg-[#fbfaf5] dark:bg-[#181814] text-[#2c2c26] dark:text-[#f0efe6] flex flex-col justify-between selection:bg-[#7d8461] selection:text-white w-full overflow-x-clip">
       <div className="flex-1 flex flex-col w-full min-w-0">
