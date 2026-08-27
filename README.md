@@ -211,7 +211,7 @@ Fuenzer Journal implements an **explicit, opt-in cookie consent architecture**:
 - **Choice Architecture**: Users can click **"Accept All"** or **"Essential Only"**.
 - **Google Analytics Integration**: Tag `G-90FWP0F2D3` is initialized **only after affirmative consent** with `anonymize_ip: true` and `SameSite=None;Secure` cookie flags.
 - **Zero Advertising Trackers**: No third-party ad networks, tracking pixels, or cross-site fingerprinting scripts exist in the codebase.
-- **Always Accessible Preferences**: Users can reset or change their cookie choices anytime from the footer **"Cookie Preferences"** link.
+- **Privacy Policy Transparency**: Comprehensive explanation of all storage and analytics in Privacy Policy.
 
 ---
 
@@ -364,7 +364,7 @@ The following test cases map every user-facing interaction for automated testing
 1. Clear browser cookies/localStorage or open an incognito window.
 2. Verify that the sleek full-width Cookie Banner appears at the bottom of the screen.
 3. Click **"Accept All"**; verify that Google Analytics (`G-90FWP0F2D3`) is initialized and the banner dismisses.
-4. Click **"Cookie Preferences"** in the footer to reset preferences, reload, and choose **"Essential Only"**; verify that `ga-disable-G-90FWP0F2D3` is set to `true`.
+4. If **"Essential Only"** is selected, verify that `ga-disable-G-90FWP0F2D3` is set to `true` and tracking scripts are blocked.
 
 ### Test Case 8: Interactive To-Do Lists (Task Check/Uncheck)
 1. In `/archive`, click on a journal entry that contains Action Items.

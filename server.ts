@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
+import rateLimit from 'express-rate-limit';
 import { GoogleGenAI } from '@google/genai';
 
 dotenv.config();
@@ -8,96 +9,35 @@ dotenv.config();
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
+// Trust first proxy for accurate IP identification in Cloud Run / Nginx
+app.set('trust proxy', 1);
+
 // Ordering guarantee: Mount JSON parser before all API routes
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
-// In-memory sliding window rate limiter to protect billing & API quota
-interface RateLimitRecord {
-  count: number;
-  resetTime: number;
-}
-const rateLimitMap = new Map<string, RateLimitRecord>();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute window
-const MAX_REQUESTS_PER_WINDOW = 40; // Max 40 calls per minute per IP
+// Standard rate limiter for general requests and static assets (mitigates CodeQL missing rate limiting)
+const generalRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 120, // 120 requests per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too Many Requests. Please slow down.',
+});
 
-function apiRateLimiter(req: Request, res: Response, next: NextFunction) {
-  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown-ip';
-  const now = Date.now();
-  
-  let record = rateLimitMap.get(ip);
-  if (!record || now > record.resetTime) {
-    record = {
-      count: 1,
-      resetTime: now + RATE_LIMIT_WINDOW_MS,
-    };
-    rateLimitMap.set(ip, record);
-  } else {
-    record.count += 1;
-  }
+// Specialized rate limiter for AI and chat endpoints
+const apiRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 40, // 40 calls per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Rate limit exceeded',
+    message: 'Too many requests. Please wait a moment before sending more reflections to keep your billing quota safe.',
+  },
+});
 
-  const remaining = Math.max(0, MAX_REQUESTS_PER_WINDOW - record.count);
-  const resetSeconds = Math.ceil((record.resetTime - now) / 1000);
-
-  res.setHeader('X-RateLimit-Limit', MAX_REQUESTS_PER_WINDOW);
-  res.setHeader('X-RateLimit-Remaining', remaining);
-  res.setHeader('X-RateLimit-Reset', resetSeconds);
-
-  if (record.count > MAX_REQUESTS_PER_WINDOW) {
-    res.status(429).json({
-      error: 'Rate limit exceeded',
-      message: 'Too many requests. Please wait a moment before sending more reflections to keep your billing quota safe.',
-      retryAfterSeconds: resetSeconds,
-    });
-    return;
-  }
-
-  next();
-}
-
-// General web asset & static request rate limiter (prevents un-rate-limited file system access)
-const generalRateLimitMap = new Map<string, RateLimitRecord>();
-const MAX_GENERAL_REQUESTS = 120; // 120 requests/minute for general asset requests
-
-function generalRateLimiter(req: Request, res: Response, next: NextFunction) {
-  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown-ip';
-  const now = Date.now();
-
-  let record = generalRateLimitMap.get(ip);
-  if (!record || now > record.resetTime) {
-    record = {
-      count: 1,
-      resetTime: now + RATE_LIMIT_WINDOW_MS,
-    };
-    generalRateLimitMap.set(ip, record);
-  } else {
-    record.count += 1;
-  }
-
-  if (record.count > MAX_GENERAL_REQUESTS) {
-    res.status(429).send('Too Many Requests. Please slow down.');
-    return;
-  }
-
-  next();
-}
-
-// Clean up stale rate limit records every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, record] of rateLimitMap.entries()) {
-    if (now > record.resetTime) {
-      rateLimitMap.delete(ip);
-    }
-  }
-  for (const [ip, record] of generalRateLimitMap.entries()) {
-    if (now > record.resetTime) {
-      generalRateLimitMap.delete(ip);
-    }
-  }
-}, 5 * 60 * 1000);
-
-// Apply rate limiting across all incoming requests
+// Apply general rate limiting across all incoming requests
 app.use(generalRateLimiter);
 // Apply specialized rate limiting to API routes
 app.use('/api', apiRateLimiter);

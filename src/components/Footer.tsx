@@ -67,18 +67,6 @@ export const Footer: React.FC = () => {
                   Terms of Service
                 </Link>
               </li>
-              <li>
-                <button
-                  type="button"
-                  onClick={() => {
-                    localStorage.removeItem('fuenzer_cookie_consent_v1');
-                    window.location.reload();
-                  }}
-                  className="hover:text-[#7d8461] dark:hover:text-[#9ca87a] hover:underline transition text-left block text-[#5c5c52] dark:text-[#a8a89b] cursor-pointer"
-                >
-                  Cookie Preferences
-                </button>
-              </li>
             </ul>
           </div>
 

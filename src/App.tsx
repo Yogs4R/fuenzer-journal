@@ -20,6 +20,7 @@ import { CommandPalette } from './components/CommandPalette';
 import { Footer } from './components/Footer';
 import { CookieBanner } from './components/CookieBanner';
 import { PrivacyPolicyModal } from './components/LegalModals';
+import { PageTitleManager } from './hooks/usePageTitle';
 import type { JournalEntry, ChatMessage, JournalFrameworkId } from './types/journal';
 import {
   fetchUserJournals,
@@ -379,6 +380,7 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
+          <PageTitleManager />
           <GlobalCommandPalette />
           <Routes>
             {/* Landing Page */}

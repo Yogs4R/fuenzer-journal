@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { BookOpen, FileText, ArrowLeft, CheckCircle, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { Footer } from '../components/Footer';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export const TermsOfServicePage: React.FC = () => {
+  usePageTitle('Fuenzer Journal | Terms');
   const { theme, toggleTheme } = useTheme();
 
   return (

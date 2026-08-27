@@ -3,8 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { BookOpen, ShieldCheck, Lock, ArrowLeft, CheckCircle2, Sparkles, Feather, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export const LoginPage: React.FC = () => {
+  usePageTitle('Fuenzer Journal | Login');
   const { user, signInWithGoogle, continueAsGuest, isGuest, loading, error } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();

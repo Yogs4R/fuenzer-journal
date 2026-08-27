@@ -4,8 +4,10 @@ import { BookOpen, Compass, Home, Feather, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Footer } from '../components/Footer';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export const NotFoundPage: React.FC = () => {
+  usePageTitle('Fuenzer Journal | Page Not Found');
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
