@@ -20,6 +20,7 @@ import {
   Maximize2,
   Minimize2,
   BookOpen,
+  ZoomIn,
 } from 'lucide-react';
 import type { JournalEntry } from '../types/journal';
 import { JOURNAL_FRAMEWORKS } from '../lib/constants';
@@ -29,6 +30,35 @@ import { formatJournalDate, formatJournalTime } from '../lib/date-utils';
 import { ConfirmationModal } from './ConfirmationModal';
 import { updateJournalActionItems } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
+
+/**
+ * Strict image URI validator to prevent script execution or malformed URLs
+ */
+function getSafeImageUrl(rawUrl: string | undefined): string {
+  if (!rawUrl || typeof rawUrl !== 'string') return '';
+  const trimmed = rawUrl.trim();
+  // Safe base64 image data URI
+  if (/^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/i.test(trimmed)) {
+    return trimmed;
+  }
+  // Safe HTTPS URL
+  if (/^https:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/[a-zA-Z0-9\-._~:/?#[\]@!$&'()*+,;=]*)?$/i.test(trimmed)) {
+    return trimmed;
+  }
+  // Safe Blob URL
+  if (/^blob:[a-zA-Z0-9-]+$/i.test(trimmed)) {
+    return trimmed;
+  }
+  return '';
+}
+
+/**
+ * Escapes characters for HTML/DOM attribute safety
+ */
+function sanitizeTextAttr(text: string | undefined): string {
+  if (!text || typeof text !== 'string') return '';
+  return text.replace(/[<>"'&]/g, '').trim();
+}
 
 interface JournalDetailModalProps {
   entry: JournalEntry | null;
@@ -55,6 +85,7 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [selectedLightboxImage, setSelectedLightboxImage] = useState<{ src: string; name: string } | null>(null);
 
   // Local action items state for immediate to-do toggle responsiveness
   const [localActionItems, setLocalActionItems] = useState<string[]>([]);
@@ -529,22 +560,31 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
                       >
                         {hasImages && (
                           <div className="mb-2.5 flex flex-wrap gap-2">
-                            {msg.images!.map((img, idx) => (
-                              <a
-                                key={idx}
-                                href={img.data}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="border border-[#ecece0]/40 overflow-hidden block bg-black/10 max-w-[120px] max-h-[120px]"
-                                title={`${img.name} (Click to open full size)`}
-                              >
-                                <img
-                                  src={img.data}
-                                  alt={img.name}
-                                  className="w-full h-20 object-cover hover:scale-105 transition-transform"
-                                />
-                              </a>
-                            ))}
+                            {msg.images!.map((img, idx) => {
+                              const safeSrc = getSafeImageUrl(img?.data);
+                              const safeName = sanitizeTextAttr(img?.name || 'Journal attachment');
+                              if (!safeSrc) return null;
+                              return (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => setSelectedLightboxImage({ src: safeSrc, name: safeName })}
+                                  className="relative group border border-[#ecece0]/40 overflow-hidden block bg-black/10 max-w-[120px] max-h-[120px] text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#7d8461]"
+                                  title={`${safeName} (Click to expand in full size)`}
+                                  aria-label={`View ${safeName} in high resolution`}
+                                >
+                                  <img
+                                    src={safeSrc}
+                                    alt={safeName}
+                                    className="w-full h-20 object-cover group-hover:scale-105 transition-transform"
+                                    loading="lazy"
+                                  />
+                                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                                    <ZoomIn className="w-4 h-4 drop-shadow" />
+                                  </div>
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
                         <MarkdownRenderer content={msg.content} isUser={isUser} />
@@ -630,6 +670,38 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
           )}
         </div>
       </div>
+
+      {/* Full-Screen Image Lightbox Modal */}
+      {selectedLightboxImage && (
+        <div
+          className="fixed inset-0 z-60 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => setSelectedLightboxImage(null)}
+        >
+          <div
+            className="relative max-w-4xl max-h-[90vh] bg-[#181814] border border-[#38382e] p-2 shadow-2xl flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-full flex items-center justify-between px-2 py-1.5 border-b border-[#38382e] mb-2 text-white">
+              <span className="text-xs font-serif italic truncate max-w-[80%]">
+                {selectedLightboxImage.name}
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedLightboxImage(null)}
+                className="p-1 hover:bg-white/10 text-[#d8d8cc] hover:text-white transition cursor-pointer"
+                aria-label="Close image preview"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <img
+              src={selectedLightboxImage.src}
+              alt={selectedLightboxImage.name}
+              className="max-h-[75vh] max-w-full object-contain rounded-none"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       <ConfirmationModal

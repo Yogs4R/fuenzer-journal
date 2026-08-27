@@ -25,6 +25,10 @@ import {
   FileCode,
   Check,
   Info,
+  Eye,
+  ExternalLink,
+  X,
+  Pin,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -45,6 +49,7 @@ import type { JournalEntry } from '../types/journal';
 import { JOURNAL_FRAMEWORKS, MOOD_OPTIONS } from '../lib/constants';
 import { getLocalDateString, formatJournalDate } from '../lib/date-utils';
 import { exportAnalyticsToPdf } from '../lib/pdf-export';
+import { JournalDetailModal } from './JournalDetailModal';
 
 interface AnalyticsViewProps {
   entries: JournalEntry[];
@@ -152,6 +157,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
   const [calendarYear, setCalendarYear] = useState<number>(now.getFullYear());
   const [calendarMonth, setCalendarMonth] = useState<number>(now.getMonth()); // 0 = Jan, 11 = Dec
   const [selectedHeatmapMood, setSelectedHeatmapMood] = useState<string>('all');
+  const [pinnedDateKey, setPinnedDateKey] = useState<string | null>(null);
+  const [selectedEntryForModal, setSelectedEntryForModal] = useState<JournalEntry | null>(null);
   const [activeHeatmapTooltip, setActiveHeatmapTooltip] = useState<{
     dateKey: string;
     formattedDate: string;
@@ -1038,6 +1045,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                   (day.dominantMood && day.dominantMood.toLowerCase() === selectedHeatmapMood.toLowerCase());
                 const isDimmed = selectedHeatmapMood !== 'all' && !isMoodMatch;
                 const isSelected = activeHeatmapTooltip?.dateKey === day.dateKey;
+                const isPinned = pinnedDateKey === day.dateKey;
 
                 // Color coding based on frequency intensity
                 let bgClass = 'bg-[#fbfaf5] dark:bg-[#1a1a16] border-[#ecece0] dark:border-[#35352c] text-[#8c8c80]';
@@ -1068,9 +1076,11 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                     key={day.dateKey || idx}
                     type="button"
                     onClick={() => {
-                      if (activeHeatmapTooltip?.dateKey === day.dateKey) {
+                      if (pinnedDateKey === day.dateKey) {
+                        setPinnedDateKey(null);
                         setActiveHeatmapTooltip(null);
                       } else {
+                        setPinnedDateKey(day.dateKey);
                         setActiveHeatmapTooltip({
                           dateKey: day.dateKey,
                           formattedDate: day.formattedDate,
@@ -1084,7 +1094,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                       }
                     }}
                     onMouseEnter={() => {
-                      if (hasEntries) {
+                      if (!pinnedDateKey && hasEntries) {
                         setActiveHeatmapTooltip({
                           dateKey: day.dateKey,
                           formattedDate: day.formattedDate,
@@ -1099,14 +1109,19 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                     }}
                     className={`relative h-14 sm:h-16 p-1.5 border rounded-none text-left flex flex-col justify-between transition-all duration-150 cursor-pointer ${bgClass} ${
                       isDimmed ? 'opacity-25 scale-95' : 'hover:scale-[1.02] hover:shadow-md'
-                    } ${isSelected ? 'ring-2 ring-[#7d8461] dark:ring-[#a3b18a] shadow-md z-10' : ''}`}
-                    title={`${day.formattedDate}: ${day.count} reflections (${day.words} words)`}
+                    } ${isPinned ? 'ring-2 ring-[#7d8461] dark:ring-[#a3b18a] shadow-md z-10 scale-[1.02]' : isSelected ? 'ring-1 ring-[#7d8461] shadow-xs' : ''}`}
+                    title={`${day.formattedDate}: ${day.count} reflections (${day.words} words) - Click to inspect`}
                   >
                     {/* Top Row: Day Number */}
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-[11px] font-mono leading-none font-medium">
-                        {day.dayOfMonth}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[11px] font-mono leading-none font-medium">
+                          {day.dayOfMonth}
+                        </span>
+                        {isPinned && (
+                          <Pin className="w-2.5 h-2.5 text-[#7d8461] dark:text-[#a3b18a] fill-current" />
+                        )}
+                      </div>
                       {hasEntries && (
                         <span className="text-[9px] px-1 py-0.2 bg-black/10 dark:bg-white/10 rounded-none font-mono">
                           {day.count}x
@@ -1139,20 +1154,29 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
           </div>
         </div>
 
-        {/* Selected / Hovered Day Detail Inspector Banner */}
+        {/* Selected / Pinned Day Detail Inspector Banner & Interactive Reflection Cards */}
         {activeHeatmapTooltip && (
-          <div className="p-3.5 sm:p-4 bg-[#fbfaf5] dark:bg-[#1a1a16] border border-[#7d8461]/40 rounded-none shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
+          <div className="p-3.5 sm:p-4 bg-[#fbfaf5] dark:bg-[#1a1a16] border border-[#7d8461]/60 rounded-none shadow-sm flex flex-col gap-3 animate-in fade-in duration-150">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#ecece0] dark:border-[#2e2e28] pb-2.5">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="font-serif italic font-bold text-xs sm:text-sm text-[#2c2c26] dark:text-[#f0efe6]">
                   {activeHeatmapTooltip.formattedDate}
                 </span>
+                {pinnedDateKey === activeHeatmapTooltip.dateKey ? (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[#7d8461] text-white uppercase tracking-wider flex items-center gap-1">
+                    <Pin className="w-2.5 h-2.5 fill-current" /> Pinned
+                  </span>
+                ) : (
+                  <span className="text-[9px] font-medium px-1.5 py-0.5 bg-[#ecece0] dark:bg-[#2e2e28] text-[#5c5c52] dark:text-[#a8a89b] uppercase tracking-wider">
+                    Hover Preview (Click cell to pin)
+                  </span>
+                )}
                 {activeHeatmapTooltip.count > 0 ? (
                   <span className="text-[10px] font-bold px-2 py-0.5 bg-[#7d8461]/15 text-[#4c5432] dark:text-[#9ca87a] uppercase tracking-wider">
                     {activeHeatmapTooltip.count} Reflection{activeHeatmapTooltip.count > 1 ? 's' : ''} ({activeHeatmapTooltip.words} words)
                   </span>
                 ) : (
-                  <span className="text-[10px] text-[#8c8c80] italic">No reflections logged</span>
+                  <span className="text-[10px] text-[#8c8c80] italic">No reflections logged on this date</span>
                 )}
                 {activeHeatmapTooltip.dominantMood && (
                   <span className="text-[10px] font-medium text-[#7d8461] dark:text-[#9ca87a] bg-[#7d8461]/10 px-2 py-0.5">
@@ -1161,31 +1185,77 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                 )}
               </div>
 
-              {activeHeatmapTooltip.entries.length > 0 ? (
-                <div className="flex flex-wrap gap-2 pt-1 text-xs">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPinnedDateKey(null);
+                    setActiveHeatmapTooltip(null);
+                  }}
+                  className="p-1 text-[#8c8c80] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] transition cursor-pointer flex items-center gap-1 text-[11px]"
+                  title="Close summary box"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span className="font-semibold">Dismiss</span>
+                </button>
+              </div>
+            </div>
+
+            {/* List of Clickable Reflection Cards for this day */}
+            {activeHeatmapTooltip.entries.length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold text-[#5c5c52] dark:text-[#a8a89b] uppercase tracking-wider">
+                  Select a reflection to open full notes & AI insights:
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {activeHeatmapTooltip.entries.map((entry, eIdx) => (
-                    <div key={eIdx} className="flex items-center gap-1.5 text-[11px] text-[#5c5c52] dark:text-[#a8a89b]">
-                      <span className="text-[#7d8461] dark:text-[#9ca87a] font-bold">•</span>
-                      <span className="font-semibold text-[#2c2c26] dark:text-[#f0efe6] truncate max-w-[200px]">
-                        {entry.title || 'Untitled Reflection'}
-                      </span>
-                      <span className="text-[10px] font-mono text-[#8c8c80]">({entry.wordCount || 0}w)</span>
+                    <div
+                      key={entry.id || eIdx}
+                      onClick={() => setSelectedEntryForModal(entry)}
+                      className="p-2.5 bg-white dark:bg-[#23231c] border border-[#ecece0] dark:border-[#38382e] hover:border-[#7d8461] dark:hover:border-[#9ca87a] transition shadow-xs flex items-center justify-between gap-3 cursor-pointer group"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#7d8461] shrink-0" />
+                          <h4 className="font-serif italic font-bold text-xs text-[#2c2c26] dark:text-[#f0efe6] truncate group-hover:text-[#7d8461] dark:group-hover:text-[#9ca87a] transition-colors">
+                            {entry.title || 'Untitled Reflection'}
+                          </h4>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 text-[10px] text-[#5c5c52] dark:text-[#a8a89b]">
+                          <span className="font-mono">{entry.wordCount || 0} words</span>
+                          {entry.framework && (
+                            <span className="px-1 py-0.2 bg-[#7d8461]/10 text-[#7d8461] dark:text-[#9ca87a] font-mono uppercase text-[9px]">
+                              {entry.framework}
+                            </span>
+                          )}
+                          {(entry.detectedMood || entry.initialMood) && (
+                            <span className="truncate max-w-[90px]">
+                              • {entry.detectedMood || entry.initialMood}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedEntryForModal(entry);
+                        }}
+                        className="px-2.5 py-1 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-[10px] font-bold flex items-center gap-1 transition shadow-xs cursor-pointer uppercase tracking-wider shrink-0"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>Read</span>
+                      </button>
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="text-[11px] text-[#8c8c80] italic">
-                  Take a moment today to reflect and light up this calendar square.
-                </p>
-              )}
-            </div>
-
-            <button
-              onClick={() => setActiveHeatmapTooltip(null)}
-              className="text-[11px] font-semibold text-[#7d8461] dark:text-[#9ca87a] hover:underline self-end sm:self-center cursor-pointer"
-            >
-              Dismiss
-            </button>
+              </div>
+            ) : (
+              <p className="text-[11px] text-[#8c8c80] italic py-1">
+                No journal reflections were logged on this date. Click another highlighted date to inspect entries.
+              </p>
+            )}
           </div>
         )}
 
@@ -1573,6 +1643,14 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
           })}
         </div>
       </div>
+
+      {/* Full Journal Entry Detail Modal for Clicked Heatmap Entries */}
+      <JournalDetailModal
+        entry={selectedEntryForModal}
+        isOpen={Boolean(selectedEntryForModal)}
+        onClose={() => setSelectedEntryForModal(null)}
+        onDelete={() => setSelectedEntryForModal(null)}
+      />
     </div>
   );
 };
