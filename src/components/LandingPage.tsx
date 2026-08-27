@@ -27,15 +27,31 @@ import {
   Smile,
   Sun,
   Moon,
+  LogOut,
+  User as UserIcon,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Footer } from './Footer';
 
 export const LandingPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+
+  // Profile dropdown menu state
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // FAQ accordion state
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -53,42 +69,42 @@ export const LandingPage: React.FC = () => {
       title: 'Stoic Evening Reflection',
       tagline: 'Equanimity & Control',
       icon: ShieldCheck,
-      color: 'border-[#9c6644]/30 bg-[#9c6644]/10 text-[#7f4f24]',
+      color: 'border-[#9c6644]/40 bg-[#9c6644]/10 dark:bg-[#9c6644]/25 text-[#7f4f24] dark:text-[#f4a261]',
       sample: '"I felt overwhelmed by unexpected feedback today. Help me separate what is within my control from what is outside it."',
     },
     {
       title: 'Emotional Untangling',
       tagline: 'Clarity & Validation',
       icon: HeartHandshake,
-      color: 'border-[#c86d51]/30 bg-[#c86d51]/10 text-[#96472d]',
+      color: 'border-[#c86d51]/40 bg-[#c86d51]/10 dark:bg-[#c86d51]/25 text-[#96472d] dark:text-[#f28e79]',
       sample: '"I feel frustrated with my progress but guilty for feeling impatient. Help me unpack where this tension is coming from."',
     },
     {
       title: 'CBT Cognitive Reframe',
       tagline: 'Challenging Distortions',
       icon: Brain,
-      color: 'border-[#85756e]/30 bg-[#85756e]/10 text-[#53463f]',
+      color: 'border-[#85756e]/40 bg-[#85756e]/10 dark:bg-[#85756e]/25 text-[#53463f] dark:text-[#d5c7be]',
       sample: '"I made a minor mistake in my presentation and I feel like everything failed. Walk me through cognitive reframing."',
     },
     {
       title: 'Daily Gratitude & Mindfulness',
       tagline: 'Grounded Presence',
       icon: Sparkles,
-      color: 'border-[#7d8461]/30 bg-[#7d8461]/10 text-[#4c5432]',
+      color: 'border-[#7d8461]/40 bg-[#7d8461]/10 dark:bg-[#7d8461]/25 text-[#4c5432] dark:text-[#b4c498]',
       sample: '"What are 3 small ordinary moments today that brought quiet joy, and why do they matter?"',
     },
     {
       title: 'Future Self Visioning',
       tagline: 'Purpose & Alignment',
       icon: Compass,
-      color: 'border-[#b08968]/30 bg-[#b08968]/10 text-[#6f4e37]',
+      color: 'border-[#b08968]/40 bg-[#b08968]/10 dark:bg-[#b08968]/25 text-[#6f4e37] dark:text-[#e5c29f]',
       sample: '"What small micro-habit today will my 5-year future self thank me for staying committed to?"',
     },
     {
       title: 'Weekly Retrospective',
       tagline: 'Bottlenecks & Momentum',
       icon: Calendar,
-      color: 'border-[#606c38]/30 bg-[#606c38]/10 text-[#283618]',
+      color: 'border-[#606c38]/40 bg-[#606c38]/10 dark:bg-[#606c38]/25 text-[#283618] dark:text-[#c5cb82]',
       sample: '"Review my week: Where did my energy drain, where did I make meaningful progress, and what is next week’s focus?"',
     },
   ];
@@ -221,45 +237,127 @@ export const LandingPage: React.FC = () => {
         <div className="absolute bottom-1/4 -left-40 w-[450px] h-[450px] bg-[#7d8461]/10 blur-[110px] dark:bg-[#7d8461]/5" />
       </div>
 
-      {/* Navigation Header */}
-      <header className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between w-full border-b border-[#ecece0] dark:border-[#2e2e28]">
-        <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#7d8461] rounded-none flex items-center justify-center text-white shadow-xs group-hover:bg-[#6c7351] transition">
-            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+      {/* Sticky Navigation Header */}
+      <header className="sticky top-0 z-50 w-full bg-[#fbfaf5]/95 dark:bg-[#181814]/95 backdrop-blur-md border-b border-[#ecece0] dark:border-[#2e2e28] shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#7d8461] rounded-none flex items-center justify-center text-white shadow-xs group-hover:bg-[#6c7351] transition">
+              <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+            </div>
+            <h1 className="text-base sm:text-lg font-serif italic font-bold leading-tight text-[#2c2c26] dark:text-[#f0efe6]">
+              Fuenzer Journal
+            </h1>
+          </Link>
+
+          {/* Right Header Navigation */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              className="p-2 text-[#5c5c52] hover:text-[#2c2c26] dark:text-[#a8a89b] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#252520] transition border border-[#e8e8df] dark:border-[#2e2e28] rounded-none cursor-pointer"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4 text-[#e0a96d]" /> : <Moon className="w-4 h-4 text-[#5c5c52]" />}
+            </button>
+
+            {user ? (
+              <div className="flex items-center gap-2">
+                {/* Profile Button with Dropdown */}
+                <div className="relative" ref={profileMenuRef}>
+                  <button
+                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    className="flex items-center gap-1.5 p-1 pl-1.5 pr-2 rounded-none bg-[#f4f4ea] dark:bg-[#25251f] hover:bg-[#ecece0] dark:hover:bg-[#303028] border border-[#e8e8df] dark:border-[#35352c] transition cursor-pointer text-xs whitespace-nowrap"
+                    title="Your Profile"
+                    aria-label="User profile menu"
+                  >
+                    {user.photoURL ? (
+                      <img
+                        src={user.photoURL}
+                        alt={user.displayName || 'User'}
+                        className="w-6 h-6 rounded-none object-cover border border-[#d8d8cc] dark:border-[#424236]"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-none bg-[#7d8461] dark:bg-[#8e966f] flex items-center justify-center text-white text-[11px] font-bold font-serif italic">
+                        {user.displayName ? user.displayName.charAt(0).toUpperCase() : <UserIcon className="w-3.5 h-3.5" />}
+                      </div>
+                    )}
+                    <span className="text-xs font-medium text-[#2c2c26] dark:text-[#f0efe6] max-w-[85px] sm:max-w-[110px] truncate">
+                      {user.displayName?.split(' ')[0] || 'Profile'}
+                    </span>
+                    <ChevronDown className="w-3 h-3 text-[#5c5c52] dark:text-[#a8a89b]" />
+                  </button>
+
+                  {showProfileMenu && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#23231c] border border-[#2c2c26]/20 dark:border-[#38382e] shadow-2xl rounded-none py-1 z-50 divide-y divide-[#ecece0] dark:divide-[#38382e] animate-in fade-in zoom-in-95 duration-100">
+                      <div className="px-3 py-2">
+                        <p className="text-xs font-bold text-[#2c2c26] dark:text-[#f0efe6] truncate font-serif italic">
+                          {user.displayName || 'Reflective Writer'}
+                        </p>
+                        <p className="text-[10px] text-[#5c5c52] dark:text-[#a8a89b] truncate">{user.email}</p>
+                      </div>
+                      <div className="py-1">
+                        <Link
+                          to="/app"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[#2c2c26] dark:text-[#f0efe6] hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition"
+                        >
+                          <BookOpen className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
+                          <span>Journal Sanctuary</span>
+                        </Link>
+                        <Link
+                          to="/archive"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[#2c2c26] dark:text-[#f0efe6] hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition"
+                        >
+                          <Layers className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
+                          <span>Personal Archive</span>
+                        </Link>
+                        <Link
+                          to="/analytics"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[#2c2c26] dark:text-[#f0efe6] hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition"
+                        >
+                          <TrendingUp className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
+                          <span>Insights & Growth</span>
+                        </Link>
+                      </div>
+                      <div className="py-1">
+                        <button
+                          onClick={async () => {
+                            setShowProfileMenu(false);
+                            await signOut();
+                            navigate('/');
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[#c86d51] dark:text-[#e07a5f] hover:bg-[#c86d51]/10 transition cursor-pointer text-left font-medium"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Main CTA to app */}
+                <Link
+                  to="/app"
+                  className="whitespace-nowrap px-3.5 py-1.5 sm:px-4 sm:py-2 bg-[#7d8461] hover:bg-[#6c7351] text-white text-xs font-bold uppercase tracking-wider rounded-none shadow-xs transition flex items-center gap-1.5"
+                >
+                  <span>Go to Journal</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="whitespace-nowrap px-3.5 py-1.5 sm:px-4 sm:py-2 bg-[#2c2c26] hover:bg-[#3a3a30] dark:bg-[#e0ded5] dark:hover:bg-[#f0efe6] text-[#fbfaf5] dark:text-[#181814] text-xs font-semibold uppercase tracking-wider rounded-none shadow-xs transition flex items-center gap-1.5"
+              >
+                <UserIcon className="w-3.5 h-3.5" />
+                <span>Sign In</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            )}
           </div>
-          <h1 className="text-base sm:text-lg font-serif italic font-bold leading-tight text-[#2c2c26] dark:text-[#f0efe6]">
-            Fuenzer Journal
-          </h1>
-        </Link>
-
-        {/* Right Header Navigation: Single-line button on mobile */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Theme Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-            className="p-2 text-[#5c5c52] hover:text-[#2c2c26] dark:text-[#a8a89b] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#252520] transition border border-[#e8e8df] dark:border-[#2e2e28] rounded-none cursor-pointer"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4 text-[#e0a96d]" /> : <Moon className="w-4 h-4 text-[#5c5c52]" />}
-          </button>
-
-          {user ? (
-            <Link
-              to="/app"
-              className="whitespace-nowrap px-3.5 py-1.5 sm:px-4 sm:py-2 bg-[#7d8461] hover:bg-[#6c7351] text-white text-xs font-bold uppercase tracking-wider rounded-none shadow-xs transition flex items-center gap-1.5"
-            >
-              <span>Go to Journal</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          ) : (
-            <Link
-              to="/login"
-              className="whitespace-nowrap px-3.5 py-1.5 sm:px-4 sm:py-2 bg-[#2c2c26] hover:bg-[#3a3a30] dark:bg-[#e0ded5] dark:hover:bg-[#f0efe6] text-[#fbfaf5] dark:text-[#181814] text-xs font-semibold uppercase tracking-wider rounded-none shadow-xs transition flex items-center gap-1.5"
-            >
-              <span>Sign In</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          )}
         </div>
       </header>
 
@@ -497,7 +595,7 @@ export const LandingPage: React.FC = () => {
                     <h3 className="font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] text-sm mb-1.5">
                       {item.title}
                     </h3>
-                    <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] italic leading-relaxed bg-[#fbfaf5] dark:bg-[#181814] p-2.5 border border-[#ecece0] dark:border-[#2e2e28]">
+                    <p className="text-xs text-[#5c5c52] dark:text-[#dcdcd2] italic leading-relaxed bg-[#fbfaf5] dark:bg-[#181814] p-2.5 border border-[#ecece0] dark:border-[#2e2e28]">
                       {item.sample}
                     </p>
                   </div>

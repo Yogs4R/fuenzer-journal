@@ -96,6 +96,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
   // Horizontal scroll container refs
   const frameworkScrollRef = useRef<HTMLDivElement>(null);
   const feelingScrollRef = useRef<HTMLDivElement>(null);
+  const inspireScrollRef = useRef<HTMLDivElement>(null);
 
   // Font Size Accessibility State ('sm' | 'md' | 'lg')
   const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>(() => {
@@ -125,8 +126,10 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
   // Copy feedback
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Auto-scroll ref
+  // Auto-scroll refs
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isInitialMountRef = useRef<boolean>(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -234,9 +237,24 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
     setLoadingPrompts(false);
   };
 
-  // Scroll to bottom when messages change
+  // Scroll only the chat container to bottom when messages change without moving the browser window
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Reset window to top on mount
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as any });
+  }, []);
+
+  useEffect(() => {
+    if (messagesContainerRef.current) {
+      if (isInitialMountRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        isInitialMountRef.current = false;
+      } else {
+        messagesContainerRef.current.scrollTo({
+          top: messagesContainerRef.current.scrollHeight,
+          behavior: 'smooth',
+        });
+      }
+    }
   }, [messages, loadingReply]);
 
   // Autosave draft to Firestore and localStorage
@@ -552,7 +570,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col flex-1 min-w-0">
+    <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col flex-1 min-w-0">
       {/* Top Header & Framework Navigation - Square */}
       <div className="bg-white dark:bg-[#23231c] border border-[#ecece0] dark:border-[#38382e] rounded-none p-3 sm:p-4 mb-3 sm:mb-4 shadow-xs w-full min-w-0">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
@@ -577,7 +595,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
             <button
               type="button"
               onClick={() => scrollContainer(frameworkScrollRef, 'left')}
-              className="p-1 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#35352c] transition cursor-pointer shrink-0 hidden sm:flex items-center justify-center mr-1"
+              className="p-1 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#35352c] transition cursor-pointer shrink-0 flex items-center justify-center mr-1"
               title="Scroll frameworks left"
               aria-label="Scroll frameworks left"
             >
@@ -612,7 +630,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
             <button
               type="button"
               onClick={() => scrollContainer(frameworkScrollRef, 'right')}
-              className="p-1 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#35352c] transition cursor-pointer shrink-0 hidden sm:flex items-center justify-center ml-1"
+              className="p-1 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#35352c] transition cursor-pointer shrink-0 flex items-center justify-center ml-1"
               title="Scroll frameworks right"
               aria-label="Scroll frameworks right"
             >
@@ -630,7 +648,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
           <button
             type="button"
             onClick={() => scrollContainer(feelingScrollRef, 'left')}
-            className="p-0.5 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#35352c] transition cursor-pointer shrink-0 hidden sm:flex items-center justify-center"
+            className="p-1 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#35352c] transition cursor-pointer shrink-0 flex items-center justify-center mr-0.5"
             title="Scroll feelings left"
             aria-label="Scroll feelings left"
           >
@@ -663,7 +681,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
           <button
             type="button"
             onClick={() => scrollContainer(feelingScrollRef, 'right')}
-            className="p-0.5 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#35352c] transition cursor-pointer shrink-0 hidden sm:flex items-center justify-center"
+            className="p-1 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#35352c] transition cursor-pointer shrink-0 flex items-center justify-center ml-0.5"
             title="Scroll feelings right"
             aria-label="Scroll feelings right"
           >
@@ -771,7 +789,10 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
       </div>
 
       {/* Main Conversation Stream */}
-      <div className="flex-1 overflow-y-auto space-y-3.5 pr-1 pb-3 min-h-[220px] max-h-[55vh] w-full min-w-0">
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto space-y-4 pr-1 pb-3 min-h-[420px] sm:min-h-[500px] max-h-[72vh] sm:max-h-[76vh] w-full min-w-0"
+      >
         {messages.map((msg) => {
           const isUser = msg.role === 'user';
           const isCopied = copiedId === msg.id;
@@ -780,11 +801,11 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
           return (
             <div
               key={msg.id}
-              className={`flex items-start gap-2 sm:gap-2.5 w-full min-w-0 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
+              className={`flex items-start gap-2.5 sm:gap-3 w-full min-w-0 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
             >
               {/* Avatar / Icon */}
               <div
-                className={`w-6 h-6 sm:w-7 sm:h-7 rounded-none shrink-0 flex items-center justify-center text-[10px] sm:text-[11px] font-bold shadow-xs ${
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-none shrink-0 flex items-center justify-center text-[10px] sm:text-[11px] font-bold shadow-xs ${
                   isUser
                     ? 'bg-[#3a3a30] dark:bg-[#e8e8df] text-[#fbfaf5] dark:text-[#181814]'
                     : 'bg-[#7d8461] text-white'
@@ -799,7 +820,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
 
               {/* Message Bubble */}
               <div
-                className={`group relative max-w-[88%] sm:max-w-[80%] p-3.5 sm:p-4 ${messageTextClass} shadow-xs rounded-none break-words min-w-0 ${
+                className={`group relative max-w-[88%] sm:max-w-[82%] lg:max-w-[78%] p-3.5 sm:p-4.5 ${messageTextClass} shadow-xs rounded-none break-words min-w-0 ${
                   isUser
                     ? 'bg-[#3a3a30] dark:bg-[#2d2d24] text-[#fbfaf5] dark:text-[#f0efe6]'
                     : 'bg-white dark:bg-[#23231c] border border-[#ecece0] dark:border-[#38382e] text-[#2c2c26] dark:text-[#f0efe6]'
@@ -895,33 +916,63 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Suggested Thought Prompts Tray */}
+      {/* Suggested Thought Prompts Tray with Navigation Arrows */}
       {suggestedPrompts.length > 0 && (
-        <div className="mb-2 py-1 flex items-center gap-1.5 overflow-x-auto scrollbar-none w-full min-w-0">
+        <div className="mb-2.5 py-1 flex items-center gap-1.5 min-w-0 w-full">
           <div className="flex items-center gap-1 text-[10px] sm:text-[11px] text-[#7d8461] dark:text-[#9ca87a] shrink-0 font-bold uppercase tracking-wider">
-            <Lightbulb className="w-3 h-3" />
+            <Lightbulb className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Inspire:</span>
           </div>
 
-          {suggestedPrompts.slice(0, 3).map((prompt, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleSendMessage(prompt)}
-              className="px-2.5 py-1 bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#35352c] border border-[#e8e8df] dark:border-[#424236] hover:border-[#7d8461]/40 rounded-none text-[11px] text-[#2c2c26] dark:text-[#f0efe6] text-left shrink-0 max-w-[200px] sm:max-w-[300px] truncate transition cursor-pointer font-medium"
-              title={prompt}
-            >
-              &ldquo;{prompt}&rdquo;
-            </button>
-          ))}
-
+          {/* Left Scroll Arrow */}
           <button
+            type="button"
+            onClick={() => scrollContainer(inspireScrollRef, 'left')}
+            className="p-1 rounded-none text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#35352c] transition cursor-pointer shrink-0 flex items-center justify-center border border-[#e8e8df] dark:border-[#424236] bg-[#f4f4ea] dark:bg-[#2c2c24]"
+            title="Scroll inspiration prompts left"
+            aria-label="Scroll inspiration prompts left"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Scrollable Container with all inspiration prompts */}
+          <div
+            ref={inspireScrollRef}
+            className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none w-full min-w-0"
+          >
+            {suggestedPrompts.map((prompt, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSendMessage(prompt)}
+                className="px-3 py-1 bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#35352c] border border-[#e8e8df] dark:border-[#424236] hover:border-[#7d8461]/40 rounded-none text-[11px] text-[#2c2c26] dark:text-[#f0efe6] text-left shrink-0 max-w-[240px] sm:max-w-[340px] truncate transition cursor-pointer font-medium"
+                title={prompt}
+              >
+                &ldquo;{prompt}&rdquo;
+              </button>
+            ))}
+          </div>
+
+          {/* Right Scroll Arrow */}
+          <button
+            type="button"
+            onClick={() => scrollContainer(inspireScrollRef, 'right')}
+            className="p-1 rounded-none text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#35352c] transition cursor-pointer shrink-0 flex items-center justify-center border border-[#e8e8df] dark:border-[#424236] bg-[#f4f4ea] dark:bg-[#2c2c24]"
+            title="Scroll inspiration prompts right"
+            aria-label="Scroll inspiration prompts right"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Refresh Prompts Button */}
+          <button
+            type="button"
             onClick={loadPrompts}
             disabled={loadingPrompts}
-            className="p-1 rounded-none bg-[#f4f4ea] dark:bg-[#2c2c24] border border-[#e8e8df] dark:border-[#424236] text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#35352c] shrink-0 cursor-pointer transition"
+            className="p-1 rounded-none bg-[#f4f4ea] dark:bg-[#2c2c24] border border-[#e8e8df] dark:border-[#424236] text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#35352c] shrink-0 cursor-pointer transition flex items-center justify-center"
             title="Refresh prompts"
             aria-label="Refresh reflection prompts"
           >
-            <RefreshCw className={`w-3 h-3 ${loadingPrompts ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loadingPrompts ? 'animate-spin' : ''}`} />
           </button>
         </div>
       )}
@@ -937,33 +988,79 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
       >
         {/* Attached Images Preview Strip */}
         {attachedImages.length > 0 && (
-          <div className="mb-2 pb-2 border-b border-[#ecece0] dark:border-[#38382e] flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#7d8461] dark:text-[#9ca87a]">
-              Attached ({attachedImages.length}/{MAX_IMAGES}):
-            </span>
-            {attachedImages.map((img, idx) => (
-              <div
-                key={idx}
-                className="relative group flex items-center gap-1.5 bg-[#f4f4ea] dark:bg-[#2c2c24] border border-[#e8e8df] dark:border-[#424236] px-2 py-1 text-xs"
-              >
-                <img src={img.data} alt={img.name} className="w-5 h-5 object-cover" />
-                <span className="text-[10px] font-medium text-[#2c2c26] dark:text-[#f0efe6] max-w-[90px] sm:max-w-[140px] truncate">
-                  {img.name}
-                </span>
-                <span className="text-[9px] text-[#8c8c80] dark:text-[#9e9e90]">
-                  ({(img.size / 1024).toFixed(0)} KB)
-                </span>
+          <div className="mb-3 p-2.5 bg-[#fbfaf5] dark:bg-[#1c1c17] border border-[#ecece0] dark:border-[#38382e] rounded-none">
+            <div className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-[#ecece0]/80 dark:border-[#38382e]/80">
+              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#7d8461] dark:text-[#9ca87a]">
+                <ImagePlus className="w-3.5 h-3.5" />
+                <span>Attached Images Preview ({attachedImages.length}/{MAX_IMAGES})</span>
+              </div>
+              <span className="text-[10px] text-[#8c8c80] dark:text-[#9e9e90]">
+                Click thumbnail to zoom / preview
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              {attachedImages.map((img, idx) => (
+                <div
+                  key={idx}
+                  className="relative group bg-white dark:bg-[#25251f] border border-[#d8d8cc] dark:border-[#424236] p-1 shadow-2xs flex flex-col items-center max-w-[120px] sm:max-w-[130px]"
+                >
+                  {/* Thumbnail with overlay view button */}
+                  <div
+                    className="relative w-20 h-20 sm:w-22 sm:h-22 overflow-hidden bg-black/5 dark:bg-black/20 cursor-pointer"
+                    onClick={() => setPreviewImageUrl(img.data)}
+                    title={`Click to zoom ${img.name}`}
+                  >
+                    <img
+                      src={img.data}
+                      alt={img.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-medium gap-1">
+                      <Maximize2 className="w-3.5 h-3.5" />
+                      <span>Zoom</span>
+                    </div>
+                  </div>
+
+                  {/* Remove Button Badge */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeAttachedImage(idx);
+                    }}
+                    className="absolute -top-2 -right-2 w-5 h-5 bg-[#c86d51] text-white hover:bg-[#b0583e] rounded-full flex items-center justify-center shadow-xs transition cursor-pointer z-10"
+                    title="Remove image"
+                    aria-label={`Remove image ${img.name}`}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+
+                  {/* Filename & size label */}
+                  <div className="w-full px-1 pt-1 text-center">
+                    <p className="text-[10px] font-medium text-[#2c2c26] dark:text-[#f0efe6] truncate w-full" title={img.name}>
+                      {img.name}
+                    </p>
+                    <span className="text-[9px] text-[#8c8c80] dark:text-[#9e9e90] block">
+                      {(img.size / 1024).toFixed(0)} KB
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {/* Add more button if below MAX_IMAGES */}
+              {attachedImages.length < MAX_IMAGES && (
                 <button
                   type="button"
-                  onClick={() => removeAttachedImage(idx)}
-                  className="text-[#8c8c80] dark:text-[#9e9e90] hover:text-[#c86d51] dark:hover:text-[#e07a5f] p-0.5 transition cursor-pointer"
-                  title="Remove image"
-                  aria-label="Remove attached image"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-20 h-20 sm:w-22 sm:h-22 border border-dashed border-[#7d8461]/50 hover:border-[#7d8461] bg-[#7d8461]/5 hover:bg-[#7d8461]/10 text-[#7d8461] dark:text-[#9ca87a] flex flex-col items-center justify-center gap-1 transition cursor-pointer p-1"
+                  title="Upload additional image"
                 >
-                  <X className="w-3 h-3" />
+                  <Plus className="w-4 h-4" />
+                  <span className="text-[9px] font-bold uppercase tracking-wider">Add More</span>
                 </button>
-              </div>
-            ))}
+              )}
+            </div>
           </div>
         )}
 

@@ -59,12 +59,30 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
   const [editingEntryId, setEditingEntryId] = useState<string | undefined>(undefined);
   const [editingEntryCreatedAt, setEditingEntryCreatedAt] = useState<number | undefined>(undefined);
 
-  // Load journals from Firestore when user is authenticated
+  // Local storage key for guest reflection archive
+  const GUEST_STORAGE_KEY = 'fuenzer_guest_journal_entries';
+
+  // Load journals from Firestore when authenticated, or from localStorage in guest mode
   useEffect(() => {
     if (user?.uid) {
       loadJournals(user.uid);
     } else {
-      setEntries([]);
+      try {
+        const localData = localStorage.getItem(GUEST_STORAGE_KEY);
+        if (localData) {
+          const parsed = JSON.parse(localData);
+          if (Array.isArray(parsed)) {
+            setEntries(parsed);
+          } else {
+            setEntries([]);
+          }
+        } else {
+          setEntries([]);
+        }
+      } catch (err) {
+        console.warn('Failed to load guest journals from localStorage:', err);
+        setEntries([]);
+      }
     }
   }, [user?.uid]);
 
@@ -134,7 +152,17 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
 
   const handleEntrySaved = (newEntry: JournalEntry) => {
     // Prepend or update new entry
-    setEntries((prev) => [newEntry, ...prev.filter((e) => e.id !== newEntry.id)]);
+    setEntries((prev) => {
+      const updated = [newEntry, ...prev.filter((e) => e.id !== newEntry.id)];
+      if (!user?.uid) {
+        try {
+          localStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(updated));
+        } catch (e) {
+          console.warn('Failed to persist guest entry to localStorage:', e);
+        }
+      }
+      return updated;
+    });
     // Reset editor state
     setEditorTranscript(undefined);
     setEditorFramework(undefined);
@@ -146,24 +174,48 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
   };
 
   const handleDeleteEntry = async (entryId: string) => {
-    if (!user?.uid) return;
-    try {
-      await deleteJournalFromFirestore(user.uid, entryId);
-      setEntries((prev) => prev.filter((e) => e.id !== entryId));
-    } catch (err) {
-      console.error('Failed to delete entry:', err);
+    if (user?.uid) {
+      try {
+        await deleteJournalFromFirestore(user.uid, entryId);
+        setEntries((prev) => prev.filter((e) => e.id !== entryId));
+      } catch (err) {
+        console.error('Failed to delete entry from Firestore:', err);
+      }
+    } else {
+      // Guest mode: update state and localStorage
+      setEntries((prev) => {
+        const updated = prev.filter((e) => e.id !== entryId);
+        try {
+          localStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(updated));
+        } catch (e) {
+          console.warn('Failed to delete guest entry from localStorage:', e);
+        }
+        return updated;
+      });
     }
   };
 
   const handleTogglePinEntry = async (entryId: string, currentPin: boolean) => {
-    if (!user?.uid) return;
-    try {
-      await togglePinJournal(user.uid, entryId, currentPin);
-      setEntries((prev) =>
-        prev.map((e) => (e.id === entryId ? { ...e, pinned: !currentPin } : e))
-      );
-    } catch (err) {
-      console.error('Failed to toggle pin:', err);
+    if (user?.uid) {
+      try {
+        await togglePinJournal(user.uid, entryId, currentPin);
+        setEntries((prev) =>
+          prev.map((e) => (e.id === entryId ? { ...e, pinned: !currentPin } : e))
+        );
+      } catch (err) {
+        console.error('Failed to toggle pin in Firestore:', err);
+      }
+    } else {
+      // Guest mode: update state and localStorage
+      setEntries((prev) => {
+        const updated = prev.map((e) => (e.id === entryId ? { ...e, pinned: !currentPin } : e));
+        try {
+          localStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(updated));
+        } catch (e) {
+          console.warn('Failed to toggle pin for guest in localStorage:', e);
+        }
+        return updated;
+      });
     }
   };
 

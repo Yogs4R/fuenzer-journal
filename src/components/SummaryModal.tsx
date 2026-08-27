@@ -111,11 +111,6 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
   };
 
   const handleConfirmSave = async () => {
-    if (!user) {
-      setSaveError('You must be signed in to save entries.');
-      return;
-    }
-
     setSaving(true);
     setSaveError(null);
 
@@ -123,10 +118,11 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
     // Preserve existing ID and original creation timestamp if editing an archive entry
     const entryId = editingEntryId || `journal_${now}_${Math.random().toString(36).substring(2, 8)}`;
     const createdAt = editingEntryCreatedAt || now;
+    const userId = user?.uid || 'guest_user';
 
     const newEntry: JournalEntry = {
       id: entryId,
-      userId: user.uid,
+      userId,
       title: title.trim() || 'Untitled Reflection',
       createdAt,
       updatedAt: now,
@@ -144,7 +140,23 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
     };
 
     try {
-      await saveJournalToFirestore(user.uid, newEntry);
+      if (user?.uid) {
+        await saveJournalToFirestore(user.uid, newEntry);
+      } else {
+        // Guest mode: save to localStorage
+        const GUEST_STORAGE_KEY = 'fuenzer_guest_journal_entries';
+        const existingRaw = localStorage.getItem(GUEST_STORAGE_KEY);
+        let existingList: JournalEntry[] = [];
+        if (existingRaw) {
+          try {
+            existingList = JSON.parse(existingRaw);
+          } catch {
+            existingList = [];
+          }
+        }
+        const updated = [newEntry, ...existingList.filter((e) => e.id !== newEntry.id)];
+        localStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(updated));
+      }
 
       // Trigger celebratory confetti
       confetti({
@@ -156,8 +168,8 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
 
       onSavedSuccessfully(newEntry);
     } catch (err: any) {
-      console.error('Error saving journal entry to Firestore:', err);
-      setSaveError(err?.message || 'Failed to save to Firestore. Please try again.');
+      console.error('Error saving journal entry:', err);
+      setSaveError(err?.message || 'Failed to save reflection. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -399,33 +411,40 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
         </div>
 
         {/* Modal Action Buttons */}
-        <div className="mt-4 pt-3 border-t border-[#ecece0] dark:border-[#38382e] flex items-center justify-end gap-2.5">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={saving}
-            className="px-4 py-2 bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] rounded-none text-xs font-bold transition cursor-pointer disabled:opacity-50 uppercase tracking-wider border border-[#e8e8df] dark:border-[#38382e]"
-          >
-            Back
-          </button>
-          <button
-            type="button"
-            onClick={handleConfirmSave}
-            disabled={saving}
-            className="px-5 py-2 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 uppercase tracking-wider"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Saving...</span>
-              </>
-            ) : (
-              <>
-                <Save className="w-3.5 h-3.5" />
-                <span>{editingEntryId ? 'Update Reflection' : 'Save Reflection'}</span>
-              </>
-            )}
-          </button>
+        <div className="mt-4 pt-3 border-t border-[#ecece0] dark:border-[#38382e] flex flex-wrap items-center justify-between gap-2.5">
+          {!user && (
+            <span className="text-[11px] text-[#7d8461] dark:text-[#9ca87a] italic">
+              Guest session: saving to this browser's local storage.
+            </span>
+          )}
+          <div className="flex items-center gap-2.5 ml-auto">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+              className="px-4 py-2 bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] rounded-none text-xs font-bold transition cursor-pointer disabled:opacity-50 uppercase tracking-wider border border-[#e8e8df] dark:border-[#38382e]"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmSave}
+              disabled={saving}
+              className="px-5 py-2 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 uppercase tracking-wider"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-3.5 h-3.5" />
+                  <span>{editingEntryId ? 'Update Reflection' : 'Save Reflection'}</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

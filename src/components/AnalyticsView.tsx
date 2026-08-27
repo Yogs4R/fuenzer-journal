@@ -46,19 +46,93 @@ interface AnalyticsViewProps {
 
 type TimeRangeOption = '24h' | '7d' | '14d' | '30d';
 
-// Pure variables / text labels without emoticons
-const MOOD_SCORE_MAP: Record<string, { score: number; label: string }> = {
-  grateful: { score: 5.0, label: 'Grateful' },
-  calm: { score: 4.6, label: 'Calm' },
-  energized: { score: 4.4, label: 'Energized' },
-  hopeful: { score: 4.0, label: 'Hopeful' },
-  focused: { score: 3.6, label: 'Focused' },
-  reflective: { score: 3.2, label: 'Reflective' },
-  tired: { score: 2.2, label: 'Tired' },
-  anxious: { score: 1.8, label: 'Anxious' },
-  frustrated: { score: 1.4, label: 'Frustrated' },
-  sad: { score: 1.2, label: 'Sad' },
-};
+// Comprehensive mood scoring and label resolution across user chips & AI-detected emotions
+export function resolveMoodInfo(rawMood: string | undefined | null): { score: number; label: string } {
+  if (!rawMood || typeof rawMood !== 'string') {
+    return { score: 3.3, label: 'Reflective' };
+  }
+
+  const clean = rawMood.trim();
+  const lower = clean.toLowerCase();
+
+  // 1. Direct matches
+  if (lower === 'depression' || lower === 'depressed' || lower === 'grief' || lower === 'melancholy' || lower === 'hopeless' || lower === 'heartbroken') {
+    return { score: 1.2, label: clean };
+  }
+  if (lower === 'sad' || lower === 'sorrow' || lower === 'down') {
+    return { score: 1.4, label: clean };
+  }
+  if (lower === 'frustrated' || lower === 'frustration' || lower === 'angry' || lower === 'anger' || lower === 'irritated' || lower === 'resentful' || lower === 'annoyed') {
+    return { score: 1.6, label: clean };
+  }
+  if (lower === 'anxious' || lower === 'anxiety' || lower === 'anxious or hesitant' || lower === 'nervous' || lower === 'worried' || lower === 'panic' || lower === 'fearful') {
+    return { score: 2.0, label: clean };
+  }
+  if (lower === 'overwhelmed' || lower === 'overwhelmed & busy' || lower === 'stressed' || lower === 'stress' || lower === 'busy') {
+    return { score: 2.3, label: clean };
+  }
+  if (lower === 'tired' || lower === 'tired & drained' || lower === 'exhausted' || lower === 'drained' || lower === 'burnout' || lower === 'fatigued' || lower === 'weary') {
+    return { score: 2.6, label: clean };
+  }
+  if (lower === 'vulnerable' || lower === 'hesitant' || lower === 'uncertain' || lower === 'conflicted' || lower === 'confused') {
+    return { score: 2.9, label: clean };
+  }
+  if (lower === 'reflective' || lower === 'pensive' || lower === 'pensive & reflective' || lower === 'contemplative' || lower === 'thoughtful' || lower === 'introspective') {
+    return { score: 3.3, label: clean };
+  }
+  if (lower === 'focused' || lower === 'determined' || lower === 'curious' || lower === 'productive' || lower === 'balanced') {
+    return { score: 3.7, label: clean };
+  }
+  if (lower === 'calm' || lower === 'calm & grounded' || lower === 'peaceful' || lower === 'serene' || lower === 'relaxed' || lower === 'content' || lower === 'grounded') {
+    return { score: 4.2, label: clean };
+  }
+  if (lower === 'inspired' || lower === 'inspired & focused' || lower === 'energized' || lower === 'energized & motivated' || lower === 'motivated' || lower === 'hopeful' || lower === 'optimistic' || lower === 'creative') {
+    return { score: 4.6, label: clean };
+  }
+  if (lower === 'grateful' || lower === 'grateful & warm' || lower === 'joyful' || lower === 'happy' || lower === 'euphoric' || lower === 'loving' || lower === 'thriving') {
+    return { score: 5.0, label: clean };
+  }
+
+  // 2. Substring matching for AI-generated dynamic mood variations
+  if (lower.includes('depress') || lower.includes('grief') || lower.includes('melanchol') || lower.includes('hopeless')) {
+    return { score: 1.2, label: clean };
+  }
+  if (lower.includes('sad') || lower.includes('sorrow')) {
+    return { score: 1.4, label: clean };
+  }
+  if (lower.includes('frustrat') || lower.includes('ang') || lower.includes('irritat') || lower.includes('resent')) {
+    return { score: 1.6, label: clean };
+  }
+  if (lower.includes('anx') || lower.includes('panic') || lower.includes('fear') || lower.includes('nervous')) {
+    return { score: 2.0, label: clean };
+  }
+  if (lower.includes('overwhelm') || lower.includes('stress') || lower.includes('hectic')) {
+    return { score: 2.3, label: clean };
+  }
+  if (lower.includes('tir') || lower.includes('exhaust') || lower.includes('drain') || lower.includes('burnout') || lower.includes('fatigue')) {
+    return { score: 2.6, label: clean };
+  }
+  if (lower.includes('vulnerab') || lower.includes('hesit') || lower.includes('doubt') || lower.includes('confus')) {
+    return { score: 2.9, label: clean };
+  }
+  if (lower.includes('reflect') || lower.includes('pens') || lower.includes('contemplat') || lower.includes('thought')) {
+    return { score: 3.3, label: clean };
+  }
+  if (lower.includes('focus') || lower.includes('determ') || lower.includes('curio') || lower.includes('balanc')) {
+    return { score: 3.7, label: clean };
+  }
+  if (lower.includes('calm') || lower.includes('peace') || lower.includes('seren') || lower.includes('ground') || lower.includes('relax')) {
+    return { score: 4.2, label: clean };
+  }
+  if (lower.includes('inspir') || lower.includes('energ') || lower.includes('motivat') || lower.includes('hope') || lower.includes('optimis')) {
+    return { score: 4.6, label: clean };
+  }
+  if (lower.includes('grat') || lower.includes('joy') || lower.includes('happ') || lower.includes('love') || lower.includes('warm')) {
+    return { score: 5.0, label: clean };
+  }
+
+  return { score: 3.3, label: clean };
+}
 
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCount }) => {
   const [timeRange, setTimeRange] = useState<TimeRangeOption>('7d');
@@ -179,8 +253,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
 
         if (matched.length > 0) {
           const latest = matched[0];
-          const moodKey = (latest.detectedMood || latest.initialMood || 'reflective').toLowerCase();
-          const moodInfo = MOOD_SCORE_MAP[moodKey] || { score: 3.2, label: 'Reflective' };
+          const rawMood = latest.detectedMood || latest.initialMood;
+          const moodInfo = resolveMoodInfo(rawMood);
           data.push({
             date: displayLabel,
             fullDate: slotTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -229,8 +303,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
 
       if (dayEntries && dayEntries.length > 0) {
         const latestEntry = dayEntries[0];
-        const moodKey = (latestEntry.detectedMood || latestEntry.initialMood || 'reflective').toLowerCase();
-        const moodInfo = MOOD_SCORE_MAP[moodKey] || { score: 3.2, label: 'Reflective' };
+        const rawMood = latestEntry.detectedMood || latestEntry.initialMood;
+        const moodInfo = resolveMoodInfo(rawMood);
 
         const dayTotalWords = dayEntries.reduce((acc, curr) => acc + (curr.wordCount || 0), 0);
 
@@ -582,15 +656,15 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                   interval={timeRange === '30d' ? 3 : 0}
                 />
                 <YAxis
-                  domain={[1, 5]}
-                  ticks={[1.4, 2.2, 3.2, 4.4, 5.0]}
-                  width={68}
+                  domain={[1.0, 5.0]}
+                  ticks={[1.2, 2.0, 3.3, 4.2, 5.0]}
+                  width={72}
                   tickFormatter={(val) => {
-                    if (val >= 4.8) return 'Calm';
-                    if (val >= 4.0) return 'Serene';
-                    if (val >= 3.0) return 'Balanced';
-                    if (val >= 2.0) return 'Tired';
-                    return 'Strained';
+                    if (val >= 4.8) return 'Grateful';
+                    if (val >= 4.0) return 'Calm';
+                    if (val >= 3.0) return 'Reflective';
+                    if (val >= 1.8) return 'Anxious/Tired';
+                    return 'Heavy';
                   }}
                   tick={{ fontSize: 10, fill: '#8c8c80', fontWeight: 500 }}
                   tickLine={false}

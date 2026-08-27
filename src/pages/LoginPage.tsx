@@ -82,7 +82,7 @@ export const LoginPage: React.FC = () => {
           </p>
 
           {/* Sign In Button */}
-          <div className="mt-7">
+          <div className="mt-7 space-y-3">
             <button
               onClick={handleSignIn}
               disabled={loading}
@@ -112,6 +112,26 @@ export const LoginPage: React.FC = () => {
               )}
               <span>{loading ? 'Connecting to Google...' : 'Continue with Google'}</span>
             </button>
+
+            {/* Divider */}
+            <div className="relative flex items-center justify-center my-3">
+              <div className="border-t border-[#ecece0] dark:border-[#38382e] w-full" />
+              <span className="bg-white dark:bg-[#23231c] px-2 text-[10px] uppercase font-mono tracking-widest text-[#8c8c80] dark:text-[#88887a] absolute">
+                or
+              </span>
+            </div>
+
+            {/* Continue as Guest Button */}
+            <Link
+              to="/app"
+              className="w-full py-2.5 px-4 bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#35352c] border border-[#d8d8cc] dark:border-[#424236] text-[#2c2c26] dark:text-[#f0efe6] font-semibold text-xs uppercase tracking-wider rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+            >
+              <span>Continue as Guest</span>
+              <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+            </Link>
+            <p className="text-[11px] text-[#7d8461] dark:text-[#9ca87a] italic">
+              Guest entries are stored locally on your device without an account.
+            </p>
           </div>
 
           {error && (
