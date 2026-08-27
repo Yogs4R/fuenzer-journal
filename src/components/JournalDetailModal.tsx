@@ -15,6 +15,11 @@ import {
   ArrowRight,
   Square,
   CheckSquare,
+  Eye,
+  EyeOff,
+  Maximize2,
+  Minimize2,
+  BookOpen,
 } from 'lucide-react';
 import type { JournalEntry } from '../types/journal';
 import { JOURNAL_FRAMEWORKS } from '../lib/constants';
@@ -49,6 +54,7 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
   const [copiedText, setCopiedText] = useState(false);
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isFocusMode, setIsFocusMode] = useState(false);
 
   // Local action items state for immediate to-do toggle responsiveness
   const [localActionItems, setLocalActionItems] = useState<string[]>([]);
@@ -236,19 +242,50 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-[#2c2c26]/60 dark:bg-black/80 backdrop-blur-xs overflow-y-auto">
-        <div className="bg-white dark:bg-[#23231c] border border-[#ecece0] dark:border-[#38382e] rounded-none max-w-4xl w-full p-4 sm:p-6 shadow-xl text-[#2c2c26] dark:text-[#f0efe6] relative my-4 flex flex-col max-h-[92vh] animate-in fade-in duration-150">
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-[#5c5c52] dark:text-[#9e9e90] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] p-1.5 rounded-none hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition cursor-pointer"
-            aria-label="Close"
-          >
-            <X className="w-4 h-4" />
-          </button>
+        <div
+          className={`bg-white dark:bg-[#23231c] border border-[#ecece0] dark:border-[#38382e] rounded-none w-full shadow-xl text-[#2c2c26] dark:text-[#f0efe6] relative my-4 flex flex-col transition-all duration-200 ${
+            isFocusMode
+              ? 'max-w-3xl p-6 sm:p-10 max-h-[96vh]'
+              : 'max-w-4xl p-4 sm:p-6 max-h-[92vh]'
+          } animate-in fade-in duration-150`}
+        >
+          {/* Top Bar Actions (Focus Mode & Close) */}
+          <div className="absolute top-4 right-4 flex items-center gap-1.5 z-10">
+            <button
+              onClick={() => setIsFocusMode((prev) => !prev)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-none border transition cursor-pointer ${
+                isFocusMode
+                  ? 'bg-[#7d8461] text-white border-[#7d8461] shadow-xs'
+                  : 'bg-[#f4f4ea] dark:bg-[#1a1a16] text-[#5c5c52] dark:text-[#a8a89b] border-[#e8e8df] dark:border-[#38382e] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#2c2c24]'
+              }`}
+              title={isFocusMode ? 'Exit distraction-free reading mode' : 'Enter distraction-free reading mode'}
+              aria-label={isFocusMode ? 'Exit focus mode' : 'Enter focus mode'}
+            >
+              {isFocusMode ? (
+                <>
+                  <Minimize2 className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Exit Focus</span>
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Focus Mode</span>
+                </>
+              )}
+            </button>
 
-          {/* Modal Header */}
-          <div className="border-b border-[#ecece0] dark:border-[#38382e] pb-4 pr-8">
-            <div className="flex flex-wrap items-center gap-2 mb-2">
+            <button
+              onClick={onClose}
+              className="text-[#5c5c52] dark:text-[#9e9e90] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] p-1.5 rounded-none hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition cursor-pointer"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Modal Header (Streamlined in Focus Mode) */}
+          <div className={`border-b border-[#ecece0] dark:border-[#38382e] pb-4 ${isFocusMode ? 'pr-28 text-center sm:text-left' : 'pr-24 sm:pr-32'}`}>
+            <div className={`flex flex-wrap items-center gap-2 mb-2 ${isFocusMode ? 'justify-center sm:justify-start' : ''}`}>
               <span className="text-xs text-[#5c5c52] dark:text-[#a8a89b] flex items-center gap-1 font-mono">
                 <Calendar className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
                 <span>{formattedDate} • {formattedTime}</span>
@@ -265,12 +302,14 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
               )}
             </div>
 
-            <h1 className="text-xl sm:text-2xl font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] tracking-tight">
+            <h1 className={`font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] tracking-tight leading-tight ${
+              isFocusMode ? 'text-2xl sm:text-3xl mt-2' : 'text-xl sm:text-2xl'
+            }`}>
               {entry.title}
             </h1>
 
-            {/* Tags */}
-            {entry.themes && entry.themes.length > 0 && (
+            {/* Tags (Only in standard mode) */}
+            {!isFocusMode && entry.themes && entry.themes.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {entry.themes.map((theme, idx) => (
                   <span
@@ -284,86 +323,88 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
             )}
           </div>
 
-          {/* Tab Selector & Export Controls */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5 py-2.5 border-b border-[#ecece0] dark:border-[#38382e]">
-            <div className="flex items-center bg-[#f4f4ea] dark:bg-[#1a1a16] p-0.5 rounded-none border border-[#e8e8df] dark:border-[#38382e]">
-              <button
-                onClick={() => setActiveTab('insights')}
-                className={`flex items-center gap-1 px-3 py-1 rounded-none text-xs font-semibold transition-all cursor-pointer ${
-                  activeTab === 'insights'
-                    ? 'bg-[#7d8461] text-white shadow-xs'
-                    : 'text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6]'
-                }`}
-              >
-                <FileText className="w-3 h-3" />
-                <span>Executive Synthesis</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('transcript')}
-                className={`flex items-center gap-1 px-3 py-1 rounded-none text-xs font-semibold transition-all cursor-pointer ${
-                  activeTab === 'transcript'
-                    ? 'bg-[#7d8461] text-white shadow-xs'
-                    : 'text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6]'
-                }`}
-              >
-                <MessageSquare className="w-3 h-3" />
-                <span>Transcript ({entry.transcript?.length || 0})</span>
-              </button>
+          {/* Tab Selector & Export Controls (Hidden in Focus Mode for Pure Distraction-Free Reading) */}
+          {!isFocusMode && (
+            <div className="flex flex-wrap items-center justify-between gap-2.5 py-2.5 border-b border-[#ecece0] dark:border-[#38382e]">
+              <div className="flex items-center bg-[#f4f4ea] dark:bg-[#1a1a16] p-0.5 rounded-none border border-[#e8e8df] dark:border-[#38382e]">
+                <button
+                  onClick={() => setActiveTab('insights')}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-none text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === 'insights'
+                      ? 'bg-[#7d8461] text-white shadow-xs'
+                      : 'text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6]'
+                  }`}
+                >
+                  <FileText className="w-3 h-3" />
+                  <span>Executive Synthesis</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('transcript')}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-none text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === 'transcript'
+                      ? 'bg-[#7d8461] text-white shadow-xs'
+                      : 'text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6]'
+                  }`}
+                >
+                  <MessageSquare className="w-3 h-3" />
+                  <span>Transcript ({entry.transcript?.length || 0})</span>
+                </button>
+              </div>
+
+              {/* Export tools */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+                {/* Copy Plain Text */}
+                <button
+                  onClick={handleCopyPlainText}
+                  className="px-2.5 py-1 rounded-none bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] dark:border-[#38382e] transition cursor-pointer shrink-0"
+                  title="Copy clean plain text"
+                >
+                  {copiedText ? <Check className="w-3 h-3 text-[#7d8461]" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedText ? 'Copied' : 'Copy Text'}</span>
+                </button>
+
+                {/* Copy Markdown */}
+                <button
+                  onClick={handleCopyMarkdown}
+                  className="px-2.5 py-1 rounded-none bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] dark:border-[#38382e] transition cursor-pointer shrink-0"
+                  title="Copy entry as formatted Markdown"
+                >
+                  {copiedMd ? <Check className="w-3 h-3 text-[#7d8461]" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedMd ? 'Copied' : 'Copy MD'}</span>
+                </button>
+
+                {/* PDF Export */}
+                <button
+                  onClick={handleExportPdf}
+                  className="px-2.5 py-1 rounded-none bg-[#7d8461]/15 hover:bg-[#7d8461]/25 text-[#4c5432] dark:text-[#9ca87a] text-xs font-semibold flex items-center gap-1 border border-[#7d8461]/30 transition cursor-pointer shrink-0"
+                  title="Export and download as formatted PDF"
+                >
+                  <Download className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
+                  <span>PDF</span>
+                </button>
+
+                {/* Markdown file download */}
+                <button
+                  onClick={handleDownloadMarkdown}
+                  className="px-2 py-1 rounded-none bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] dark:border-[#38382e] transition cursor-pointer shrink-0"
+                  title="Download Markdown file"
+                >
+                  <Download className="w-3 h-3" />
+                  <span>.md</span>
+                </button>
+
+                {/* JSON file download */}
+                <button
+                  onClick={handleDownloadJson}
+                  className="px-2 py-1 rounded-none bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] dark:border-[#38382e] transition cursor-pointer shrink-0"
+                  title="Download JSON file"
+                >
+                  <Download className="w-3 h-3" />
+                  <span>.json</span>
+                </button>
+              </div>
             </div>
-
-            {/* Export tools */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-              {/* Copy Plain Text */}
-              <button
-                onClick={handleCopyPlainText}
-                className="px-2.5 py-1 rounded-none bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] dark:border-[#38382e] transition cursor-pointer shrink-0"
-                title="Copy clean plain text"
-              >
-                {copiedText ? <Check className="w-3 h-3 text-[#7d8461]" /> : <Copy className="w-3 h-3" />}
-                <span>{copiedText ? 'Copied' : 'Copy Text'}</span>
-              </button>
-
-              {/* Copy Markdown */}
-              <button
-                onClick={handleCopyMarkdown}
-                className="px-2.5 py-1 rounded-none bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] dark:border-[#38382e] transition cursor-pointer shrink-0"
-                title="Copy entry as formatted Markdown"
-              >
-                {copiedMd ? <Check className="w-3 h-3 text-[#7d8461]" /> : <Copy className="w-3 h-3" />}
-                <span>{copiedMd ? 'Copied' : 'Copy MD'}</span>
-              </button>
-
-              {/* PDF Export */}
-              <button
-                onClick={handleExportPdf}
-                className="px-2.5 py-1 rounded-none bg-[#7d8461]/15 hover:bg-[#7d8461]/25 text-[#4c5432] dark:text-[#9ca87a] text-xs font-semibold flex items-center gap-1 border border-[#7d8461]/30 transition cursor-pointer shrink-0"
-                title="Export and download as formatted PDF"
-              >
-                <Download className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
-                <span>PDF</span>
-              </button>
-
-              {/* Markdown file download */}
-              <button
-                onClick={handleDownloadMarkdown}
-                className="px-2 py-1 rounded-none bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] dark:border-[#38382e] transition cursor-pointer shrink-0"
-                title="Download Markdown file"
-              >
-                <Download className="w-3 h-3" />
-                <span>.md</span>
-              </button>
-
-              {/* JSON file download */}
-              <button
-                onClick={handleDownloadJson}
-                className="px-2 py-1 rounded-none bg-[#f4f4ea] dark:bg-[#2c2c24] hover:bg-[#ecece0] dark:hover:bg-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] text-xs font-medium flex items-center gap-1 border border-[#e8e8df] dark:border-[#38382e] transition cursor-pointer shrink-0"
-                title="Download JSON file"
-              >
-                <Download className="w-3 h-3" />
-                <span>.json</span>
-              </button>
-            </div>
-          </div>
+          )}
 
           {/* Modal Body */}
           <div className="flex-1 overflow-y-auto py-4 pr-1 space-y-4">
@@ -552,39 +593,41 @@ export const JournalDetailModal: React.FC<JournalDetailModalProps> = ({
             )}
           </div>
 
-          {/* Modal Footer Actions */}
-          <div className="pt-3 border-t border-[#ecece0] dark:border-[#38382e] flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5 mt-auto">
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="px-3 py-2 bg-[#c86d51]/10 dark:bg-[#c86d51]/20 hover:bg-[#c86d51]/20 dark:hover:bg-[#c86d51]/30 text-[#96472d] dark:text-[#e07a5f] border border-[#c86d51]/30 rounded-none text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0"
-              title="Delete this reflection"
-            >
-              <Trash2 className="w-3.5 h-3.5 shrink-0" />
-              <span>Delete</span>
-            </button>
-
-            <div className="flex items-center gap-2 shrink-0">
-              {onResumeSession && (
-                <button
-                  onClick={() => {
-                    onResumeSession(entry);
-                    onClose();
-                  }}
-                  className="px-3.5 sm:px-4 py-2 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer uppercase tracking-wider whitespace-nowrap"
-                  title="Open this entry back in the reflection studio"
-                >
-                  <span>Continue / Edit</span>
-                  <ArrowRight className="w-3 h-3 shrink-0" />
-                </button>
-              )}
+          {/* Modal Footer Actions (Hidden in Focus Mode for a clean, distraction-free reading experience) */}
+          {!isFocusMode && (
+            <div className="pt-3 border-t border-[#ecece0] dark:border-[#38382e] flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5 mt-auto">
               <button
-                onClick={onClose}
-                className="px-3.5 sm:px-4 py-2 bg-[#3a3a30] dark:bg-[#2c2c24] hover:bg-[#2c2c26] dark:hover:bg-[#38382e] text-[#fbfaf5] rounded-none text-xs font-bold transition cursor-pointer uppercase tracking-wider shrink-0"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="px-3 py-2 bg-[#c86d51]/10 dark:bg-[#c86d51]/20 hover:bg-[#c86d51]/20 dark:hover:bg-[#c86d51]/30 text-[#96472d] dark:text-[#e07a5f] border border-[#c86d51]/30 rounded-none text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0"
+                title="Delete this reflection"
               >
-                Done
+                <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                <span>Delete</span>
               </button>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {onResumeSession && (
+                  <button
+                    onClick={() => {
+                      onResumeSession(entry);
+                      onClose();
+                    }}
+                    className="px-3.5 sm:px-4 py-2 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer uppercase tracking-wider whitespace-nowrap"
+                    title="Open this entry back in the reflection studio"
+                  >
+                    <span>Continue / Edit</span>
+                    <ArrowRight className="w-3 h-3 shrink-0" />
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="px-3.5 sm:px-4 py-2 bg-[#3a3a30] dark:bg-[#2c2c24] hover:bg-[#2c2c26] dark:hover:bg-[#38382e] text-[#fbfaf5] rounded-none text-xs font-bold transition cursor-pointer uppercase tracking-wider shrink-0"
+                >
+                  Done
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

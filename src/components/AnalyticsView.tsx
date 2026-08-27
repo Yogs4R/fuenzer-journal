@@ -15,6 +15,9 @@ import {
   Clock,
   Zap,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
   FileText,
   FileSpreadsheet,
   FileCode,
@@ -142,7 +145,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
   const [exportSuccess, setExportSuccess] = useState<string | null>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
-  // Heatmap interactive state
+  // Heatmap interactive state & Real-life monthly calendar view
+  const now = new Date();
+  const [calendarYear, setCalendarYear] = useState<number>(now.getFullYear());
+  const [calendarMonth, setCalendarMonth] = useState<number>(now.getMonth()); // 0 = Jan, 11 = Dec
   const [selectedHeatmapMood, setSelectedHeatmapMood] = useState<string>('all');
   const [activeHeatmapTooltip, setActiveHeatmapTooltip] = useState<{
     dateKey: string;
@@ -154,6 +160,36 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
     moodScore?: number;
     frameworks: string[];
   } | null>(null);
+
+  // Month navigation handlers
+  const handlePrevMonth = () => {
+    setCalendarMonth((prevMonth) => {
+      if (prevMonth === 0) {
+        setCalendarYear((prevYear) => prevYear - 1);
+        return 11;
+      }
+      return prevMonth - 1;
+    });
+    setActiveHeatmapTooltip(null);
+  };
+
+  const handleNextMonth = () => {
+    setCalendarMonth((prevMonth) => {
+      if (prevMonth === 11) {
+        setCalendarYear((prevYear) => prevYear + 1);
+        return 0;
+      }
+      return prevMonth + 1;
+    });
+    setActiveHeatmapTooltip(null);
+  };
+
+  const handleResetToCurrentMonth = () => {
+    const current = new Date();
+    setCalendarYear(current.getFullYear());
+    setCalendarMonth(current.getMonth());
+    setActiveHeatmapTooltip(null);
+  };
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -350,16 +386,41 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
     return data;
   }, [entries, timeRange]);
 
-  // Calendar Heatmap data calculation (Last 35 days: 5 weeks x 7 days)
+  // Calendar Heatmap data calculation based on real-life calendar month and year (28, 29, 30, or 31 days)
   const heatmapData = useMemo(() => {
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
+    // Determine the number of days in the selected calendar month (taking leap years into account)
+    // Date(year, month + 1, 0).getDate() gives exact days: 28/29 for Feb, 30 for Apr/Jun/Sep/Nov, 31 for Jan/Mar/May/Jul/Aug/Oct/Dec
+    const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+    const firstDayOfWeek = new Date(calendarYear, calendarMonth, 1).getDay(); // 0 = Sun, 1 = Mon ...
+    const monthDisplayName = new Date(calendarYear, calendarMonth, 1).toLocaleDateString('en-US', {
+      month: 'long',
+    });
 
-    const totalDays = 35;
     const days = [];
 
-    for (let i = totalDays - 1; i >= 0; i--) {
-      const d = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+    // Prepend empty / padding slots for days of week before the 1st of the month to align correctly under Sun-Sat columns
+    for (let p = 0; p < firstDayOfWeek; p++) {
+      days.push({
+        isPadding: true,
+        date: null,
+        dateKey: `padding-start-${p}`,
+        dayOfMonth: null,
+        dayOfWeek: '',
+        dayOfWeekIndex: p,
+        formattedDate: '',
+        monthName: '',
+        entries: [] as JournalEntry[],
+        count: 0,
+        words: 0,
+        dominantMood: undefined,
+        dominantMoodScore: undefined,
+        frameworks: [] as string[],
+      });
+    }
+
+    // Populate actual days of the month (1 to daysInMonth)
+    for (let dNum = 1; dNum <= daysInMonth; dNum++) {
+      const d = new Date(calendarYear, calendarMonth, dNum);
       const dateKey = getLocalDateString(d);
 
       const dayEntries = entries.filter((e) => {
@@ -383,12 +444,13 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
       const frameworks = Array.from(new Set(dayEntries.map((e) => e.framework)));
 
       days.push({
+        isPadding: false,
         date: d,
         dateKey,
-        dayOfMonth: d.getDate(),
+        dayOfMonth: dNum,
         dayOfWeek: d.toLocaleDateString('en-US', { weekday: 'short' }),
         dayOfWeekIndex: d.getDay(),
-        formattedDate: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+        formattedDate: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
         monthName: d.toLocaleDateString('en-US', { month: 'short' }),
         entries: dayEntries,
         count,
@@ -399,12 +461,13 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
       });
     }
 
-    const activeDays = days.filter((d) => d.count > 0);
+    const realDays = days.filter((d) => !d.isPadding);
+    const activeDays = realDays.filter((d) => d.count > 0);
     const activeDaysCount = activeDays.length;
-    const consistencyRate = Math.round((activeDaysCount / totalDays) * 100);
-    const totalMonthWords = days.reduce((acc, d) => acc + d.words, 0);
+    const consistencyRate = Math.round((activeDaysCount / daysInMonth) * 100);
+    const totalMonthWords = realDays.reduce((acc, d) => acc + d.words, 0);
 
-    // Calculate mood distribution across the active heatmap days
+    // Calculate mood distribution across the active heatmap days in this month
     const moodBreakdown: Record<string, number> = {};
     activeDays.forEach((d) => {
       if (d.dominantMood) {
@@ -416,14 +479,20 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
 
     return {
       days,
+      realDays,
+      daysInMonth,
+      firstDayOfWeek,
+      monthDisplayName,
+      calendarYear,
+      calendarMonth,
       activeDaysCount,
-      totalDays,
+      totalDays: daysInMonth,
       consistencyRate,
       totalMonthWords,
       uniqueMoods,
       moodBreakdown,
     };
-  }, [entries]);
+  }, [entries, calendarYear, calendarMonth]);
 
   const triggerDownload = (blob: Blob, filename: string, successLabel: string) => {
     const url = URL.createObjectURL(blob);
@@ -541,8 +610,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
           </p>
         </div>
 
-        {/* Export Dropdown & Feedback Toast */}
-        <div className="relative self-start sm:self-auto" ref={exportMenuRef}>
+        {/* Export Dropdown & Feedback Toast (Aligned right on both mobile and desktop) */}
+        <div className="relative self-end sm:self-auto" ref={exportMenuRef}>
           <div className="flex items-center gap-2">
             {exportSuccess && (
               <span className="text-[11px] font-medium text-[#7d8461] dark:text-[#9ca87a] bg-[#7d8461]/10 dark:bg-[#7d8461]/20 border border-[#7d8461]/30 px-2.5 py-1 flex items-center gap-1 animate-in fade-in duration-200">
@@ -562,9 +631,9 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
             </button>
           </div>
 
-          {/* Dropdown Menu Popup - Left-aligned on mobile to prevent clipping */}
+          {/* Dropdown Menu Popup - Right-aligned to stay neatly within viewport bounds */}
           {isExportOpen && (
-            <div className="absolute left-0 sm:right-0 sm:left-auto mt-1.5 w-60 bg-white dark:bg-[#23231c] border border-[#2c2c26]/20 dark:border-[#38382e] shadow-xl rounded-none z-30 divide-y divide-[#ecece0] dark:divide-[#38382e] animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute right-0 mt-1.5 w-60 bg-white dark:bg-[#23231c] border border-[#2c2c26]/20 dark:border-[#38382e] shadow-xl rounded-none z-30 divide-y divide-[#ecece0] dark:divide-[#38382e] animate-in fade-in zoom-in-95 duration-150">
               <div className="p-2">
                 <p className="text-[10px] uppercase tracking-wider text-[#7d8461] dark:text-[#9ca87a] font-bold px-2 py-1">
                   Choose Export Format
@@ -670,33 +739,75 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
         </div>
       </div>
 
-      {/* NEW: CALENDAR HEATMAP VISUALIZATION (Journaling Consistency & Mood Trends over 35-Day Window) */}
+      {/* CALENDAR HEATMAP VISUALIZATION (Real-Life Month Calendar with Prev/Next Navigation & Accurate Days) */}
       <div className="p-5 sm:p-6 rounded-none bg-white dark:bg-[#23231c] border border-[#e8e8df] dark:border-[#38382e] shadow-xs space-y-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <CalendarDays className="w-4 h-4 text-[#7d8461] dark:text-[#9ca87a]" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-[#7d8461]/10 dark:bg-[#7d8461]/20 rounded-none flex items-center justify-center text-[#7d8461] dark:text-[#9ca87a]">
+              <CalendarDays className="w-4 h-4" />
+            </div>
             <div>
-              <h2 className="text-base font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6]">
-                Journaling Consistency & Mood Heatmap
-              </h2>
-              <p className="text-[11px] text-[#5c5c52] dark:text-[#a8a89b]">
-                Daily reflection frequency and emotional trajectory across the past 35 days (5-week cycle).
+              <div className="flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6]">
+                  {heatmapData.monthDisplayName} {heatmapData.calendarYear}
+                </h2>
+                <span className="text-[10px] uppercase font-mono px-2 py-0.5 bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] text-[#5c5c52] dark:text-[#a8a89b]">
+                  {heatmapData.daysInMonth} Days
+                </span>
+              </div>
+              <p className="text-[11px] text-[#5c5c52] dark:text-[#a8a89b] mt-0.5">
+                Real-world monthly calendar showing reflection cadence and emotional trajectory.
               </p>
             </div>
           </div>
 
-          {/* Quick Consistency Summary Badges */}
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <div className="px-3 py-1 bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] flex items-center gap-1.5 font-medium">
-              <span className="text-[#5c5c52] dark:text-[#a8a89b]">Consistency:</span>
+          {/* Month Navigation & Consistency Badges */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Prev / Current / Next Month Controls */}
+            <div className="flex items-center bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] p-0.5">
+              <button
+                type="button"
+                onClick={handlePrevMonth}
+                className="p-1.5 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#2c2c24] transition cursor-pointer"
+                title="Previous Month"
+                aria-label="Previous Month"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResetToCurrentMonth}
+                className="px-2 py-1 text-[11px] font-semibold text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#2c2c24] transition cursor-pointer flex items-center gap-1"
+                title="Jump to current month"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Today</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleNextMonth}
+                className="p-1.5 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#2c2c24] transition cursor-pointer"
+                title="Next Month"
+                aria-label="Next Month"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Monthly Consistency Badges */}
+            <div className="px-3 py-1 bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] flex items-center gap-1.5 font-medium text-xs">
+              <span className="text-[#5c5c52] dark:text-[#a8a89b]">Active:</span>
               <span className="font-bold text-[#7d8461] dark:text-[#9ca87a] font-mono">
                 {heatmapData.activeDaysCount}/{heatmapData.totalDays} Days ({heatmapData.consistencyRate}%)
               </span>
             </div>
-            <div className="px-3 py-1 bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] flex items-center gap-1.5 font-medium">
-              <span className="text-[#5c5c52] dark:text-[#a8a89b]">Output:</span>
+
+            <div className="px-3 py-1 bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] flex items-center gap-1.5 font-medium text-xs">
+              <span className="text-[#5c5c52] dark:text-[#a8a89b]">Month Words:</span>
               <span className="font-bold text-[#2c2c26] dark:text-[#f0efe6] font-mono">
-                {heatmapData.totalMonthWords.toLocaleString()} words
+                {heatmapData.totalMonthWords.toLocaleString()}
               </span>
             </div>
           </div>
@@ -751,9 +862,18 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
               ))}
             </div>
 
-            {/* Grid of 35 Days (5 Weeks) */}
+            {/* Grid of Days with Leading Empty Slots */}
             <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
               {heatmapData.days.map((day, idx) => {
+                if (day.isPadding) {
+                  return (
+                    <div
+                      key={day.dateKey || idx}
+                      className="h-14 sm:h-16 p-1.5 border border-dashed border-[#ecece0]/60 dark:border-[#35352c]/40 bg-[#fbfaf5]/30 dark:bg-[#181814]/30 opacity-40 select-none"
+                    />
+                  );
+                }
+
                 const hasEntries = day.count > 0;
                 const isMoodMatch =
                   selectedHeatmapMood === 'all' ||
@@ -787,7 +907,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
 
                 return (
                   <button
-                    key={idx}
+                    key={day.dateKey || idx}
                     type="button"
                     onClick={() => {
                       if (activeHeatmapTooltip?.dateKey === day.dateKey) {
@@ -824,14 +944,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
                     } ${isSelected ? 'ring-2 ring-[#7d8461] dark:ring-[#a3b18a] shadow-md z-10' : ''}`}
                     title={`${day.formattedDate}: ${day.count} reflections (${day.words} words)`}
                   >
-                    {/* Top Row: Day Number & Month indicator if day 1 */}
+                    {/* Top Row: Day Number */}
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-[11px] font-mono leading-none">
-                        {day.dayOfMonth === 1 ? (
-                          <span className="font-bold text-[10px] uppercase underline">{day.monthName} 1</span>
-                        ) : (
-                          day.dayOfMonth
-                        )}
+                      <span className="text-[11px] font-mono leading-none font-medium">
+                        {day.dayOfMonth}
                       </span>
                       {hasEntries && (
                         <span className="text-[9px] px-1 py-0.2 bg-black/10 dark:bg-white/10 rounded-none font-mono">
