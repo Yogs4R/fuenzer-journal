@@ -11,6 +11,7 @@ import {
   Tag,
   Activity,
   Calendar,
+  CalendarDays,
   Clock,
   Zap,
   ChevronDown,
@@ -18,6 +19,7 @@ import {
   FileSpreadsheet,
   FileCode,
   Check,
+  Info,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -139,6 +141,19 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [exportSuccess, setExportSuccess] = useState<string | null>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  // Heatmap interactive state
+  const [selectedHeatmapMood, setSelectedHeatmapMood] = useState<string>('all');
+  const [activeHeatmapTooltip, setActiveHeatmapTooltip] = useState<{
+    dateKey: string;
+    formattedDate: string;
+    entries: JournalEntry[];
+    count: number;
+    words: number;
+    dominantMood?: string;
+    moodScore?: number;
+    frameworks: string[];
+  } | null>(null);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -335,6 +350,81 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
     return data;
   }, [entries, timeRange]);
 
+  // Calendar Heatmap data calculation (Last 35 days: 5 weeks x 7 days)
+  const heatmapData = useMemo(() => {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    const totalDays = 35;
+    const days = [];
+
+    for (let i = totalDays - 1; i >= 0; i--) {
+      const d = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+      const dateKey = getLocalDateString(d);
+
+      const dayEntries = entries.filter((e) => {
+        const eDate = new Date(e.createdAt);
+        return getLocalDateString(eDate) === dateKey;
+      });
+
+      const count = dayEntries.length;
+      const words = dayEntries.reduce((acc, e) => acc + (e.wordCount || 0), 0);
+
+      let dominantMood: string | undefined;
+      let dominantMoodScore: number | undefined;
+      if (count > 0) {
+        const latest = dayEntries[0];
+        const raw = latest.detectedMood || latest.initialMood;
+        const resolved = resolveMoodInfo(raw);
+        dominantMood = resolved.label;
+        dominantMoodScore = resolved.score;
+      }
+
+      const frameworks = Array.from(new Set(dayEntries.map((e) => e.framework)));
+
+      days.push({
+        date: d,
+        dateKey,
+        dayOfMonth: d.getDate(),
+        dayOfWeek: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        dayOfWeekIndex: d.getDay(),
+        formattedDate: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+        monthName: d.toLocaleDateString('en-US', { month: 'short' }),
+        entries: dayEntries,
+        count,
+        words,
+        dominantMood,
+        dominantMoodScore,
+        frameworks,
+      });
+    }
+
+    const activeDays = days.filter((d) => d.count > 0);
+    const activeDaysCount = activeDays.length;
+    const consistencyRate = Math.round((activeDaysCount / totalDays) * 100);
+    const totalMonthWords = days.reduce((acc, d) => acc + d.words, 0);
+
+    // Calculate mood distribution across the active heatmap days
+    const moodBreakdown: Record<string, number> = {};
+    activeDays.forEach((d) => {
+      if (d.dominantMood) {
+        moodBreakdown[d.dominantMood] = (moodBreakdown[d.dominantMood] || 0) + 1;
+      }
+    });
+
+    const uniqueMoods = Object.keys(moodBreakdown);
+
+    return {
+      days,
+      activeDaysCount,
+      totalDays,
+      consistencyRate,
+      totalMonthWords,
+      uniqueMoods,
+      moodBreakdown,
+    };
+  }, [entries]);
+
   const triggerDownload = (blob: Blob, filename: string, successLabel: string) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -434,7 +524,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8 text-[#2c2c26] dark:text-[#f0efe6]">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8 text-[#2c2c26] dark:text-[#f0efe6]">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
@@ -463,7 +553,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
             <button
               onClick={() => setIsExportOpen((prev) => !prev)}
               disabled={entries.length === 0}
-              className="px-4 py-2 bg-[#3a3a30] dark:bg-[#e8e8df] hover:bg-[#2c2c26] dark:hover:bg-white text-[#fbfaf5] dark:text-[#181814] rounded-none text-xs font-bold transition flex items-center gap-2 cursor-pointer disabled:opacity-50 uppercase tracking-wider shadow-xs"
+              className="px-4 py-2 bg-[#3a3a30] dark:bg-[#e8e8df] hover:bg-[#2c2c26] dark:hover:bg-white text-[#fbfaf5] dark:text-[#181814] rounded-none text-xs font-bold transition inline-flex items-center gap-2 cursor-pointer disabled:opacity-50 uppercase tracking-wider shadow-xs shrink-0"
               title="Export analytics and reflection logs"
             >
               <Download className="w-3.5 h-3.5" />
@@ -472,9 +562,9 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
             </button>
           </div>
 
-          {/* Dropdown Menu Popup */}
+          {/* Dropdown Menu Popup - Left-aligned on mobile to prevent clipping */}
           {isExportOpen && (
-            <div className="absolute right-0 mt-1.5 w-60 bg-white dark:bg-[#23231c] border border-[#2c2c26]/20 dark:border-[#38382e] shadow-xl rounded-none z-30 divide-y divide-[#ecece0] dark:divide-[#38382e] animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute left-0 sm:right-0 sm:left-auto mt-1.5 w-60 bg-white dark:bg-[#23231c] border border-[#2c2c26]/20 dark:border-[#38382e] shadow-xl rounded-none z-30 divide-y divide-[#ecece0] dark:divide-[#38382e] animate-in fade-in zoom-in-95 duration-150">
               <div className="p-2">
                 <p className="text-[10px] uppercase tracking-wider text-[#7d8461] dark:text-[#9ca87a] font-bold px-2 py-1">
                   Choose Export Format
@@ -577,6 +667,289 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
           </div>
           <p className="text-2xl sm:text-3xl font-serif italic font-bold text-[#4c5432] dark:text-[#9ca87a]">{stats.totalInsights}</p>
           <p className="text-[9px] uppercase tracking-wider text-[#5c5c52] dark:text-[#a8a89b] font-medium mt-1">~{stats.avgInsights} / session</p>
+        </div>
+      </div>
+
+      {/* NEW: CALENDAR HEATMAP VISUALIZATION (Journaling Consistency & Mood Trends over 35-Day Window) */}
+      <div className="p-5 sm:p-6 rounded-none bg-white dark:bg-[#23231c] border border-[#e8e8df] dark:border-[#38382e] shadow-xs space-y-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <CalendarDays className="w-4 h-4 text-[#7d8461] dark:text-[#9ca87a]" />
+            <div>
+              <h2 className="text-base font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6]">
+                Journaling Consistency & Mood Heatmap
+              </h2>
+              <p className="text-[11px] text-[#5c5c52] dark:text-[#a8a89b]">
+                Daily reflection frequency and emotional trajectory across the past 35 days (5-week cycle).
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Consistency Summary Badges */}
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <div className="px-3 py-1 bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] flex items-center gap-1.5 font-medium">
+              <span className="text-[#5c5c52] dark:text-[#a8a89b]">Consistency:</span>
+              <span className="font-bold text-[#7d8461] dark:text-[#9ca87a] font-mono">
+                {heatmapData.activeDaysCount}/{heatmapData.totalDays} Days ({heatmapData.consistencyRate}%)
+              </span>
+            </div>
+            <div className="px-3 py-1 bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] flex items-center gap-1.5 font-medium">
+              <span className="text-[#5c5c52] dark:text-[#a8a89b]">Output:</span>
+              <span className="font-bold text-[#2c2c26] dark:text-[#f0efe6] font-mono">
+                {heatmapData.totalMonthWords.toLocaleString()} words
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Mood Highlight Filter Chips */}
+        {heatmapData.uniqueMoods.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-[#5c5c52] dark:text-[#a8a89b] mr-1">
+              Highlight Mood:
+            </span>
+            <button
+              onClick={() => setSelectedHeatmapMood('all')}
+              className={`px-2.5 py-0.5 text-[11px] font-semibold border transition cursor-pointer ${
+                selectedHeatmapMood === 'all'
+                  ? 'bg-[#7d8461] text-white border-[#7d8461]'
+                  : 'bg-[#f4f4ea] dark:bg-[#1a1a16] text-[#5c5c52] dark:text-[#a8a89b] border-[#e8e8df] dark:border-[#38382e] hover:border-[#7d8461]'
+              }`}
+            >
+              All ({heatmapData.activeDaysCount})
+            </button>
+            {heatmapData.uniqueMoods.map((mood) => {
+              const count = heatmapData.moodBreakdown[mood] || 0;
+              const isSelected = selectedHeatmapMood.toLowerCase() === mood.toLowerCase();
+              return (
+                <button
+                  key={mood}
+                  onClick={() => setSelectedHeatmapMood(isSelected ? 'all' : mood)}
+                  className={`px-2.5 py-0.5 text-[11px] font-semibold border transition cursor-pointer flex items-center gap-1 ${
+                    isSelected
+                      ? 'bg-[#7d8461] text-white border-[#7d8461]'
+                      : 'bg-[#f4f4ea] dark:bg-[#1a1a16] text-[#5c5c52] dark:text-[#a8a89b] border-[#e8e8df] dark:border-[#38382e] hover:border-[#7d8461]'
+                  }`}
+                >
+                  <span>{mood}</span>
+                  <span className="font-mono text-[9px] opacity-75">({count})</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 7-Column Calendar Heatmap Grid */}
+        <div className="overflow-x-auto pb-1">
+          <div className="min-w-[480px]">
+            {/* Day of Week Column Headers */}
+            <div className="grid grid-cols-7 gap-1.5 sm:gap-2 mb-2 text-center">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+                <div key={d} className="text-[10px] font-bold uppercase tracking-wider text-[#8c8c80] dark:text-[#a8a89b]">
+                  {d}
+                </div>
+              ))}
+            </div>
+
+            {/* Grid of 35 Days (5 Weeks) */}
+            <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+              {heatmapData.days.map((day, idx) => {
+                const hasEntries = day.count > 0;
+                const isMoodMatch =
+                  selectedHeatmapMood === 'all' ||
+                  (day.dominantMood && day.dominantMood.toLowerCase() === selectedHeatmapMood.toLowerCase());
+                const isDimmed = selectedHeatmapMood !== 'all' && !isMoodMatch;
+                const isSelected = activeHeatmapTooltip?.dateKey === day.dateKey;
+
+                // Color coding based on frequency intensity
+                let bgClass = 'bg-[#fbfaf5] dark:bg-[#1a1a16] border-[#ecece0] dark:border-[#35352c] text-[#8c8c80]';
+                if (hasEntries) {
+                  if (day.count === 1) {
+                    bgClass = 'bg-[#e2e9d2] dark:bg-[#2e3a1f] border-[#a3b18a] dark:border-[#4d5f34] text-[#2c2c26] dark:text-[#f0efe6] font-semibold';
+                  } else if (day.count === 2) {
+                    bgClass = 'bg-[#9ca87a] dark:bg-[#526037] border-[#7d8461] dark:border-[#7d8461] text-white font-bold';
+                  } else {
+                    bgClass = 'bg-[#606c38] dark:bg-[#7d8461] border-[#4c5432] dark:border-[#9ca87a] text-white font-bold';
+                  }
+                }
+
+                // Mood dot color indicator
+                let moodDotColor = 'bg-[#7d8461]';
+                if (day.dominantMoodScore && day.dominantMoodScore >= 4.6) {
+                  moodDotColor = 'bg-[#e0a96d]'; // Grateful/Joyful (Gold)
+                } else if (day.dominantMoodScore && day.dominantMoodScore >= 4.0) {
+                  moodDotColor = 'bg-[#9ca87a]'; // Calm/Peaceful (Sage)
+                } else if (day.dominantMoodScore && day.dominantMoodScore >= 3.0) {
+                  moodDotColor = 'bg-[#7d8461]'; // Reflective (Olive)
+                } else if (day.dominantMoodScore && day.dominantMoodScore < 3.0) {
+                  moodDotColor = 'bg-[#c86d51]'; // Heavy/Anxious (Terracotta)
+                }
+
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      if (activeHeatmapTooltip?.dateKey === day.dateKey) {
+                        setActiveHeatmapTooltip(null);
+                      } else {
+                        setActiveHeatmapTooltip({
+                          dateKey: day.dateKey,
+                          formattedDate: day.formattedDate,
+                          entries: day.entries,
+                          count: day.count,
+                          words: day.words,
+                          dominantMood: day.dominantMood,
+                          moodScore: day.dominantMoodScore,
+                          frameworks: day.frameworks,
+                        });
+                      }
+                    }}
+                    onMouseEnter={() => {
+                      if (hasEntries) {
+                        setActiveHeatmapTooltip({
+                          dateKey: day.dateKey,
+                          formattedDate: day.formattedDate,
+                          entries: day.entries,
+                          count: day.count,
+                          words: day.words,
+                          dominantMood: day.dominantMood,
+                          moodScore: day.dominantMoodScore,
+                          frameworks: day.frameworks,
+                        });
+                      }
+                    }}
+                    className={`relative h-14 sm:h-16 p-1.5 border rounded-none text-left flex flex-col justify-between transition-all duration-150 cursor-pointer ${bgClass} ${
+                      isDimmed ? 'opacity-25 scale-95' : 'hover:scale-[1.02] hover:shadow-md'
+                    } ${isSelected ? 'ring-2 ring-[#7d8461] dark:ring-[#a3b18a] shadow-md z-10' : ''}`}
+                    title={`${day.formattedDate}: ${day.count} reflections (${day.words} words)`}
+                  >
+                    {/* Top Row: Day Number & Month indicator if day 1 */}
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-[11px] font-mono leading-none">
+                        {day.dayOfMonth === 1 ? (
+                          <span className="font-bold text-[10px] uppercase underline">{day.monthName} 1</span>
+                        ) : (
+                          day.dayOfMonth
+                        )}
+                      </span>
+                      {hasEntries && (
+                        <span className="text-[9px] px-1 py-0.2 bg-black/10 dark:bg-white/10 rounded-none font-mono">
+                          {day.count}x
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Bottom Row: Mood badge or word volume */}
+                    {hasEntries ? (
+                      <div className="flex items-center justify-between gap-1 w-full mt-auto">
+                        <div className="flex items-center gap-1 min-w-0">
+                          <span className={`w-2 h-2 rounded-full shrink-0 ${moodDotColor}`} />
+                          <span className="text-[9px] truncate max-w-[45px] sm:max-w-[60px] opacity-90">
+                            {day.dominantMood || 'Logged'}
+                          </span>
+                        </div>
+                        <span className="text-[8px] font-mono opacity-80 shrink-0 hidden sm:inline">
+                          {day.words}w
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="w-full text-center">
+                        <span className="text-[8px] text-transparent select-none">•</span>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Selected / Hovered Day Detail Inspector Banner */}
+        {activeHeatmapTooltip && (
+          <div className="p-3.5 sm:p-4 bg-[#fbfaf5] dark:bg-[#1a1a16] border border-[#7d8461]/40 rounded-none shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="font-serif italic font-bold text-xs sm:text-sm text-[#2c2c26] dark:text-[#f0efe6]">
+                  {activeHeatmapTooltip.formattedDate}
+                </span>
+                {activeHeatmapTooltip.count > 0 ? (
+                  <span className="text-[10px] font-bold px-2 py-0.5 bg-[#7d8461]/15 text-[#4c5432] dark:text-[#9ca87a] uppercase tracking-wider">
+                    {activeHeatmapTooltip.count} Reflection{activeHeatmapTooltip.count > 1 ? 's' : ''} ({activeHeatmapTooltip.words} words)
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-[#8c8c80] italic">No reflections logged</span>
+                )}
+                {activeHeatmapTooltip.dominantMood && (
+                  <span className="text-[10px] font-medium text-[#7d8461] dark:text-[#9ca87a] bg-[#7d8461]/10 px-2 py-0.5">
+                    Mood: {activeHeatmapTooltip.dominantMood}
+                  </span>
+                )}
+              </div>
+
+              {activeHeatmapTooltip.entries.length > 0 ? (
+                <div className="flex flex-wrap gap-2 pt-1 text-xs">
+                  {activeHeatmapTooltip.entries.map((entry, eIdx) => (
+                    <div key={eIdx} className="flex items-center gap-1.5 text-[11px] text-[#5c5c52] dark:text-[#a8a89b]">
+                      <span className="text-[#7d8461] dark:text-[#9ca87a] font-bold">•</span>
+                      <span className="font-semibold text-[#2c2c26] dark:text-[#f0efe6] truncate max-w-[200px]">
+                        {entry.title || 'Untitled Reflection'}
+                      </span>
+                      <span className="text-[10px] font-mono text-[#8c8c80]">({entry.wordCount || 0}w)</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[11px] text-[#8c8c80] italic">
+                  Take a moment today to reflect and light up this calendar square.
+                </p>
+              )}
+            </div>
+
+            <button
+              onClick={() => setActiveHeatmapTooltip(null)}
+              className="text-[11px] font-semibold text-[#7d8461] dark:text-[#9ca87a] hover:underline self-end sm:self-center cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        {/* Legend & Mood Key Footer */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-[#ecece0] dark:border-[#2e2e28] text-[11px] text-[#5c5c52] dark:text-[#a8a89b]">
+          {/* Activity Intensity Scale */}
+          <div className="flex items-center gap-2">
+            <span className="font-semibold uppercase tracking-wider text-[10px]">Activity:</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px]">Less</span>
+              <span className="w-3.5 h-3.5 bg-[#fbfaf5] dark:bg-[#1a1a16] border border-[#ecece0] dark:border-[#35352c]" title="0 entries" />
+              <span className="w-3.5 h-3.5 bg-[#e2e9d2] dark:bg-[#2e3a1f] border border-[#a3b18a]" title="1 entry" />
+              <span className="w-3.5 h-3.5 bg-[#9ca87a] dark:bg-[#526037] border border-[#7d8461]" title="2 entries" />
+              <span className="w-3.5 h-3.5 bg-[#606c38] dark:bg-[#7d8461] border-[#4c5432]" title="3+ entries" />
+              <span className="text-[10px]">More</span>
+            </div>
+          </div>
+
+          {/* Mood Dot Color Key */}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-semibold uppercase tracking-wider text-[10px]">Mood Indicators:</span>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-[#e0a96d]" />
+              <span className="text-[10px]">Grateful</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-[#9ca87a]" />
+              <span className="text-[10px]">Calm</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-[#7d8461]" />
+              <span className="text-[10px]">Reflective</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-[#c86d51]" />
+              <span className="text-[10px]">Heavy</span>
+            </div>
+          </div>
         </div>
       </div>
 

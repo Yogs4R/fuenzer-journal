@@ -126,6 +126,21 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
   // Copy feedback
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // Auto-saved toast & indicator
+  const [lastAutoSavedTime, setLastAutoSavedTime] = useState<string | null>(null);
+  const [showAutoSavedToast, setShowAutoSavedToast] = useState<boolean>(false);
+  const autoSaveToastTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const notifyAutoSaved = useCallback(() => {
+    const formatted = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setLastAutoSavedTime(formatted);
+    setShowAutoSavedToast(true);
+    if (autoSaveToastTimerRef.current) clearTimeout(autoSaveToastTimerRef.current);
+    autoSaveToastTimerRef.current = setTimeout(() => {
+      setShowAutoSavedToast(false);
+    }, 2400);
+  }, []);
+
   // Auto-scroll refs
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -271,6 +286,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
       // Immediate local backup
       try {
         localStorage.setItem(LOCAL_STORAGE_DRAFT_KEY, JSON.stringify(draftPayload));
+        notifyAutoSaved();
       } catch {
         // Storage limit warning
       }
@@ -278,14 +294,18 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
       // Debounced Firestore sync
       if (user?.uid) {
         const timeout = setTimeout(() => {
-          saveDraftSession(user.uid, draftPayload).catch((e) =>
-            console.warn('Autosave draft to Firestore skipped:', e)
-          );
+          saveDraftSession(user.uid, draftPayload)
+            .then(() => {
+              notifyAutoSaved();
+            })
+            .catch((e) =>
+              console.warn('Autosave draft to Firestore skipped:', e)
+            );
         }, 1500);
         return () => clearTimeout(timeout);
       }
     }
-  }, [messages, framework, currentMood, user?.uid, editingEntryId]);
+  }, [messages, framework, currentMood, user?.uid, editingEntryId, notifyAutoSaved]);
 
   // Horizontal scroll utilities for framework pills and feeling chips
   const scrollContainer = (ref: React.RefObject<HTMLDivElement>, direction: 'left' | 'right') => {
@@ -582,11 +602,16 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
               <h1 className="text-lg sm:text-xl font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] whitespace-nowrap">
                 Reflection Studio
               </h1>
-              {editingEntryId && (
+              {editingEntryId ? (
                 <span className="text-[9px] font-mono font-bold uppercase bg-[#7d8461]/15 text-[#4c5432] dark:text-[#9ca87a] px-2 py-0.5 border border-[#7d8461]/30 whitespace-nowrap">
                   Editing Archive Entry
                 </span>
-              )}
+              ) : lastAutoSavedTime ? (
+                <span className="text-[10px] text-[#7d8461] dark:text-[#9ca87a] flex items-center gap-1 font-medium bg-[#7d8461]/10 dark:bg-[#7d8461]/15 border border-[#7d8461]/25 px-2 py-0.5 whitespace-nowrap animate-in fade-in">
+                  <Check className="w-3 h-3 text-[#7d8461] dark:text-[#9ca87a]" />
+                  <span>Auto-saved {lastAutoSavedTime}</span>
+                </span>
+              ) : null}
             </div>
           </div>
 
@@ -1270,6 +1295,22 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
           className: "bg-[#c86d51]/15 text-[#96472d] dark:text-[#e07a5f] hover:bg-[#c86d51]/25 border-[#c86d51]/30",
         }}
       />
+
+      {/* Subtle Auto-Saved Floating Toast Notification */}
+      {showAutoSavedToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-2 px-3.5 py-2 bg-[#2c2c26]/95 dark:bg-[#1f1f1a]/95 text-[#fbfaf5] dark:text-[#f0efe6] text-xs font-semibold shadow-xl border border-[#7d8461]/40 rounded-none backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200 pointer-events-none"
+        >
+          <div className="w-2 h-2 rounded-full bg-[#7d8461] dark:bg-[#9ca87a] animate-pulse" />
+          <Check className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
+          <span>Draft Auto-saved</span>
+          {lastAutoSavedTime && (
+            <span className="text-[10px] text-[#a8a89b] font-mono">({lastAutoSavedTime})</span>
+          )}
+        </div>
+      )}
 
       {/* Synthesis & Review Modal */}
       <SummaryModal

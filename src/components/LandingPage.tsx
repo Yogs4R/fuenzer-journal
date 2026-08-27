@@ -240,14 +240,21 @@ export const LandingPage: React.FC = () => {
       {/* Sticky Navigation Header */}
       <header className="sticky top-0 z-50 w-full bg-[#fbfaf5]/95 dark:bg-[#181814]/95 backdrop-blur-md border-b border-[#ecece0] dark:border-[#2e2e28] shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="flex items-center gap-2.5 sm:gap-3 group cursor-pointer text-left"
+            title="Scroll to top"
+          >
             <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#7d8461] rounded-none flex items-center justify-center text-white shadow-xs group-hover:bg-[#6c7351] transition">
               <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <h1 className="text-base sm:text-lg font-serif italic font-bold leading-tight text-[#2c2c26] dark:text-[#f0efe6]">
               Fuenzer Journal
             </h1>
-          </Link>
+          </button>
 
           {/* Right Header Navigation */}
           <div className="flex items-center gap-2 sm:gap-3">

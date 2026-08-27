@@ -67,8 +67,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Logo & Brand */}
           <div className="flex items-center gap-2.5 shrink-0">
             <button
-              onClick={() => handleTabSelect('editor')}
+              onClick={(e) => {
+                e.preventDefault();
+                if (window.location.pathname === '/') {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                  navigate('/');
+                }
+              }}
               className="flex items-center gap-2.5 text-left cursor-pointer group"
+              title="Fuenzer Journal Home"
             >
               <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#7d8461] dark:bg-[#8e966f] rounded-none flex items-center justify-center text-white shadow-xs group-hover:bg-[#6c7351] transition">
                 <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />

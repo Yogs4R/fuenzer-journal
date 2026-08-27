@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, ShieldCheck, Mail, Lock } from 'lucide-react';
 import { PrivacyPolicyModal, TermsOfServiceModal } from './LegalModals';
 
 export const Footer: React.FC = () => {
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const navigate = useNavigate();
+
+  const handleBrandClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (window.location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      navigate('/');
+    }
+  };
 
   return (
     <footer className="relative z-10 bg-white dark:bg-[#181814] border-t border-[#ecece0] dark:border-[#2e2e26] text-[#5c5c52] dark:text-[#a8a89b] mt-auto">
@@ -14,14 +24,18 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8">
           {/* Col 1: Brand & Mission */}
           <div className="md:col-span-2 space-y-3">
-            <Link to="/" className="inline-flex items-center gap-2.5 group">
+            <button
+              onClick={handleBrandClick}
+              className="inline-flex items-center gap-2.5 group cursor-pointer text-left"
+              title="Fuenzer Journal"
+            >
               <div className="w-7 h-7 bg-[#7d8461] dark:bg-[#8e966f] rounded-none flex items-center justify-center text-white shadow-xs group-hover:bg-[#6c7351] transition">
                 <BookOpen className="w-4 h-4" />
               </div>
               <span className="font-serif italic font-bold text-base text-[#2c2c26] dark:text-[#f0efe6]">
                 Fuenzer Journal
               </span>
-            </Link>
+            </button>
             <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] leading-relaxed max-w-md">
               A private, mindful reflection sanctuary. Cultivating clarity, emotional equanimity, and deliberate self-discovery through conversational Socratic thought partnership and isolated cloud vaults.
             </p>

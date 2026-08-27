@@ -86,7 +86,7 @@ export const JournalList: React.FC<JournalListProps> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 text-[#2c2c26] dark:text-[#f0efe6]">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 text-[#2c2c26] dark:text-[#f0efe6]">
       {/* Header & New Entry CTA */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
@@ -105,7 +105,7 @@ export const JournalList: React.FC<JournalListProps> = ({
 
         <button
           onClick={onStartNewEntry}
-          className="px-5 py-2.5 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-xs font-bold shadow-xs transition flex items-center justify-center gap-2 cursor-pointer self-start sm:self-auto uppercase tracking-wider"
+          className="px-4 sm:px-5 py-2.5 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-xs font-bold shadow-xs transition inline-flex items-center justify-center gap-2 cursor-pointer self-start sm:self-auto uppercase tracking-wider shrink-0"
         >
           <PenLine className="w-3.5 h-3.5" />
           <span>New Reflection</span>
