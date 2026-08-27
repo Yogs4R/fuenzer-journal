@@ -262,7 +262,7 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
 
   // Authenticated User Dashboard
   return (
-    <div className="min-h-screen bg-[#fbfaf5] dark:bg-[#181814] text-[#2c2c26] dark:text-[#f0efe6] flex flex-col justify-between selection:bg-[#7d8461] selection:text-white w-full overflow-x-hidden">
+    <div className="min-h-screen bg-[#fbfaf5] dark:bg-[#181814] text-[#2c2c26] dark:text-[#f0efe6] flex flex-col justify-between selection:bg-[#7d8461] selection:text-white w-full overflow-x-clip">
       <div className="flex-1 flex flex-col w-full min-w-0">
         <Navbar
           currentTab={currentTab}

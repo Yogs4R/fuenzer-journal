@@ -450,3 +450,179 @@ export function exportAnalyticsToPdf(
   const dateSlug = new Date().toISOString().split('T')[0];
   doc.save(`fuenzer_journal_insights_${dateSlug}.pdf`);
 }
+
+/**
+ * Export full multi-entry Journal Archive to a formatted PDF book/compilation
+ */
+export function exportArchiveToPdf(entries: JournalEntry[], filterDescription = 'All Reflections'): void {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 20;
+  const contentWidth = pageWidth - margin * 2;
+  let cursorY = margin;
+
+  const checkPageBreak = (heightNeeded: number) => {
+    if (cursorY + heightNeeded > pageHeight - margin) {
+      doc.addPage();
+      cursorY = margin;
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8);
+      doc.setTextColor(140, 140, 130);
+      doc.text('Fuenzer Journal — Personal Archive Compilation', margin, 12);
+      doc.setDrawColor(230, 230, 220);
+      doc.setLineWidth(0.2);
+      doc.line(margin, 14, pageWidth - margin, 14);
+      cursorY = 20;
+    }
+  };
+
+  // Cover / Header
+  doc.setFont('times', 'bolditalic');
+  doc.setFontSize(10);
+  doc.setTextColor(125, 132, 97);
+  doc.text('PERSONAL SANCTUARY ARCHIVE', margin, cursorY);
+  cursorY += 6;
+
+  doc.setFont('times', 'bolditalic');
+  doc.setFontSize(22);
+  doc.setTextColor(44, 44, 38);
+  doc.text('Personal Journal Archive Digest', margin, cursorY);
+  cursorY += 8;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 90);
+  const nowStr = new Date().toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  doc.text(`Preserved on ${nowStr}  •  Scope: ${filterDescription} (${entries.length} reflections)`, margin, cursorY);
+  cursorY += 8;
+
+  doc.setDrawColor(220, 220, 210);
+  doc.setLineWidth(0.4);
+  doc.line(margin, cursorY, pageWidth - margin, cursorY);
+  cursorY += 8;
+
+  if (entries.length === 0) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(10);
+    doc.setTextColor(120, 120, 110);
+    doc.text('No journal entries found matching current filter scope.', margin, cursorY);
+  } else {
+    entries.forEach((e, idx) => {
+      checkPageBreak(35);
+
+      const fwName = JOURNAL_FRAMEWORKS.find((f) => f.id === e.framework)?.name || e.framework;
+      const moodStr = e.detectedMood || e.initialMood || 'Reflective';
+      const dateStr = new Date(e.createdAt).toLocaleDateString(undefined, {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+
+      // Entry title
+      doc.setFont('times', 'bolditalic');
+      doc.setFontSize(13);
+      doc.setTextColor(44, 44, 38);
+      const titleLines = doc.splitTextToSize(`${idx + 1}. ${e.title || 'Untitled Reflection'}`, contentWidth);
+      doc.text(titleLines, margin, cursorY);
+      cursorY += titleLines.length * 5.5 + 1;
+
+      // Meta
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(125, 132, 97);
+      doc.text(`${dateStr}  |  Framework: ${fwName}  |  Mood: ${moodStr}  |  ${e.wordCount || 0} words`, margin + 2, cursorY);
+      cursorY += 5;
+
+      // Summary
+      if (e.executiveSummary) {
+        checkPageBreak(15);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(60, 60, 54);
+        const sumLines = doc.splitTextToSize(e.executiveSummary, contentWidth - 4);
+        doc.text(sumLines, margin + 2, cursorY);
+        cursorY += sumLines.length * 4.2 + 3;
+      }
+
+      // Key Realizations
+      if (e.keyInsights && e.keyInsights.length > 0) {
+        checkPageBreak(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(125, 132, 97);
+        doc.text('Key Realizations:', margin + 2, cursorY);
+        cursorY += 3.8;
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(50, 50, 45);
+        e.keyInsights.forEach((ki) => {
+          checkPageBreak(8);
+          const kiLines = doc.splitTextToSize(`• ${ki}`, contentWidth - 6);
+          doc.text(kiLines, margin + 4, cursorY);
+          cursorY += kiLines.length * 3.8 + 1;
+        });
+        cursorY += 2;
+      }
+
+      // Action Items
+      if (e.actionItems && e.actionItems.length > 0) {
+        checkPageBreak(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(125, 132, 97);
+        doc.text('Next Action Steps:', margin + 2, cursorY);
+        cursorY += 3.8;
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(50, 50, 45);
+        e.actionItems.forEach((ai) => {
+          checkPageBreak(8);
+          const aiLines = doc.splitTextToSize(`[ ] ${ai}`, contentWidth - 6);
+          doc.text(aiLines, margin + 4, cursorY);
+          cursorY += aiLines.length * 3.8 + 1;
+        });
+        cursorY += 2;
+      }
+
+      // Divider between entries
+      cursorY += 4;
+      doc.setDrawColor(235, 235, 225);
+      doc.setLineWidth(0.2);
+      doc.line(margin, cursorY, pageWidth - margin, cursorY);
+      cursorY += 6;
+    });
+  }
+
+  // Footer on all pages
+  const pageCount = (doc.internal as any).getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(160, 160, 150);
+    doc.text(
+      `Page ${i} of ${pageCount}  •  Fuenzer Journal Archive Digest`,
+      pageWidth / 2,
+      pageHeight - 10,
+      { align: 'center' }
+    );
+  }
+
+  const dateSlug = new Date().toISOString().split('T')[0];
+  doc.save(`fuenzer_journal_archive_${dateSlug}.pdf`);
+}
+

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Search,
   Calendar,
@@ -9,13 +9,18 @@ import {
   Filter,
   ExternalLink,
   Download,
+  FileText,
+  FileSpreadsheet,
+  FileCode,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 import type { JournalEntry, JournalFrameworkId } from '../types/journal';
 import { JOURNAL_FRAMEWORKS, MOOD_OPTIONS } from '../lib/constants';
 import { MoodIcon } from './MoodIcon';
 import { JournalDetailModal } from './JournalDetailModal';
-import { exportJournalToPdf } from '../lib/pdf-export';
-import { formatJournalDate } from '../lib/date-utils';
+import { exportJournalToPdf, exportArchiveToPdf } from '../lib/pdf-export';
+import { formatJournalDate, getLocalDateString } from '../lib/date-utils';
 
 interface JournalListProps {
   entries: JournalEntry[];
@@ -39,6 +44,150 @@ export const JournalList: React.FC<JournalListProps> = ({
   const [selectedFramework, setSelectedFramework] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'words'>('newest');
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [exportSuccess, setExportSuccess] = useState<string | null>(null);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setIsExportOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const triggerDownload = (blob: Blob, filename: string, feedback: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setIsExportOpen(false);
+    setExportSuccess(feedback);
+    setTimeout(() => setExportSuccess(null), 3000);
+  };
+
+  const handleExportPdf = () => {
+    try {
+      exportArchiveToPdf(filteredEntries, selectedFramework === 'all' ? 'All Reflections' : `Framework: ${selectedFramework}`);
+      setIsExportOpen(false);
+      setExportSuccess('Archive PDF exported');
+      setTimeout(() => setExportSuccess(null), 3000);
+    } catch (err) {
+      console.error('PDF export failed', err);
+    }
+  };
+
+  const handleExportJson = () => {
+    const exportPayload = {
+      exportDate: new Date().toISOString(),
+      appVersion: '2.0.0',
+      totalPreserved: filteredEntries.length,
+      scope: selectedFramework === 'all' ? 'All Entries' : `Filtered (${selectedFramework})`,
+      entries: filteredEntries.map((e) => ({
+        id: e.id,
+        title: e.title || 'Untitled Reflection',
+        createdAt: e.createdAt,
+        updatedAt: e.updatedAt || e.createdAt,
+        formattedDate: formatJournalDate(e.createdAt),
+        framework: e.framework,
+        initialMood: e.initialMood,
+        detectedMood: e.detectedMood,
+        moodScore: e.moodScore,
+        wordCount: e.wordCount || 0,
+        executiveSummary: e.executiveSummary || '',
+        keyInsights: e.keyInsights || [],
+        actionItems: e.actionItems || [],
+        cognitiveDistortions: e.cognitiveDistortions || [],
+        themes: e.themes || [],
+        transcript: e.transcript || [],
+      })),
+    };
+    const jsonStr = JSON.stringify(exportPayload, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    triggerDownload(blob, `fuenzer_journal_archive_${getLocalDateString(new Date())}.json`, 'JSON archive exported');
+  };
+
+  const handleExportCsv = () => {
+    const headers = [
+      'Date',
+      'Time',
+      'Title',
+      'Framework',
+      'Mood',
+      'Mood Score',
+      'Word Count',
+      'Themes',
+      'Executive Summary',
+      'Key Insights',
+      'Action Items',
+      'Cognitive Distortions',
+    ];
+    const rows = filteredEntries.map((e) => {
+      const d = new Date(e.createdAt);
+      return [
+        `"${getLocalDateString(d)}"`,
+        `"${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}"`,
+        `"${(e.title || 'Untitled').replace(/"/g, '""')}"`,
+        `"${e.framework}"`,
+        `"${e.detectedMood || e.initialMood || 'Reflective'}"`,
+        e.moodScore ? e.moodScore.toFixed(1) : '3.3',
+        e.wordCount || 0,
+        `"${(e.themes || []).join(', ')}"`,
+        `"${(e.executiveSummary || '').replace(/"/g, '""')}"`,
+        `"${(e.keyInsights || []).join(' | ').replace(/"/g, '""')}"`,
+        `"${(e.actionItems || []).join(' | ').replace(/"/g, '""')}"`,
+        `"${(e.cognitiveDistortions || []).join(' | ').replace(/"/g, '""')}"`,
+      ];
+    });
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    triggerDownload(blob, `fuenzer_journal_archive_${getLocalDateString(new Date())}.csv`, 'CSV spreadsheet exported');
+  };
+
+  const handleExportMarkdown = () => {
+    let md = `# Personal Journal Archive Digest\n`;
+    md += `*Exported on ${formatJournalDate(Date.now(), { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} • ${filteredEntries.length} reflections preserved*\n\n`;
+
+    filteredEntries.forEach((e, idx) => {
+      md += `## ${idx + 1}. ${e.title || 'Untitled Reflection'}\n`;
+      md += `*Date: ${formatJournalDate(e.createdAt)} | Framework: ${e.framework} | Mood: ${e.detectedMood || e.initialMood || 'Reflective'} | Words: ${e.wordCount || 0}*\n\n`;
+      if (e.executiveSummary) {
+        md += `> **Executive Summary:** ${e.executiveSummary}\n\n`;
+      }
+      if (e.keyInsights && e.keyInsights.length > 0) {
+        md += `**Key Realizations:**\n`;
+        e.keyInsights.forEach((ki) => {
+          md += `- ${ki}\n`;
+        });
+        md += `\n`;
+      }
+      if (e.actionItems && e.actionItems.length > 0) {
+        md += `**Action Items:**\n`;
+        e.actionItems.forEach((ai) => {
+          md += `- [ ] ${ai}\n`;
+        });
+        md += `\n`;
+      }
+      if (e.cognitiveDistortions && e.cognitiveDistortions.length > 0) {
+        md += `**Cognitive Patterns Reframed:**\n`;
+        e.cognitiveDistortions.forEach((cd) => {
+          md += `- *${cd}*\n`;
+        });
+        md += `\n`;
+      }
+      md += `---\n\n`;
+    });
+
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
+    triggerDownload(blob, `fuenzer_journal_archive_${getLocalDateString(new Date())}.md`, 'Markdown archive exported');
+  };
 
   // Filter & Search Logic
   const filteredEntries = useMemo(() => {
@@ -103,13 +252,99 @@ export const JournalList: React.FC<JournalListProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={onStartNewEntry}
-          className="px-4 sm:px-5 py-2.5 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-xs font-bold shadow-xs transition inline-flex items-center justify-center gap-2 cursor-pointer self-start sm:self-auto uppercase tracking-wider shrink-0"
-        >
-          <PenLine className="w-3.5 h-3.5" />
-          <span>New Reflection</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-end sm:self-auto">
+          {/* Export Dropdown */}
+          <div className="relative" ref={exportMenuRef}>
+            <div className="flex items-center gap-2">
+              {exportSuccess && (
+                <span className="text-[11px] font-medium text-[#7d8461] dark:text-[#9ca87a] bg-[#7d8461]/10 dark:bg-[#7d8461]/20 border border-[#7d8461]/30 px-2.5 py-1 flex items-center gap-1 animate-in fade-in duration-200">
+                  <Check className="w-3 h-3" />
+                  <span>{exportSuccess}</span>
+                </span>
+              )}
+              <button
+                onClick={() => setIsExportOpen((prev) => !prev)}
+                disabled={entries.length === 0}
+                className="px-3.5 sm:px-4 py-2.5 bg-[#3a3a30] dark:bg-[#e8e8df] hover:bg-[#2c2c26] dark:hover:bg-white text-[#fbfaf5] dark:text-[#181814] rounded-none text-xs font-bold transition inline-flex items-center gap-2 cursor-pointer disabled:opacity-50 uppercase tracking-wider shadow-xs shrink-0"
+                title="Export preserved journal reflections"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-150 ${isExportOpen ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+
+            {isExportOpen && (
+              <div className="absolute right-0 mt-1.5 w-60 bg-white dark:bg-[#23231c] border border-[#2c2c26]/20 dark:border-[#38382e] shadow-xl rounded-none z-30 divide-y divide-[#ecece0] dark:divide-[#38382e] animate-in fade-in zoom-in-95 duration-150">
+                <div className="p-2">
+                  <p className="text-[10px] uppercase tracking-wider text-[#7d8461] dark:text-[#9ca87a] font-bold px-2 py-1">
+                    Export Archive ({filteredEntries.length})
+                  </p>
+
+                  <button
+                    onClick={handleExportPdf}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] dark:text-[#f0efe6] hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition cursor-pointer"
+                  >
+                    <div className="w-6 h-6 bg-[#7d8461]/10 dark:bg-[#7d8461]/20 text-[#7d8461] dark:text-[#9ca87a] flex items-center justify-center shrink-0">
+                      <FileText className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <span className="font-bold block">Archive Digest (PDF)</span>
+                      <span className="text-[10px] text-[#5c5c52] dark:text-[#a8a89b]">Formatted document compilation</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={handleExportCsv}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] dark:text-[#f0efe6] hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition cursor-pointer"
+                  >
+                    <div className="w-6 h-6 bg-[#b08968]/15 dark:bg-[#b08968]/25 text-[#b08968] dark:text-[#ddb892] flex items-center justify-center shrink-0">
+                      <FileSpreadsheet className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <span className="font-bold block">Spreadsheet (CSV)</span>
+                      <span className="text-[10px] text-[#5c5c52] dark:text-[#a8a89b]">Compatible with Excel / Sheets</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={handleExportJson}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] dark:text-[#f0efe6] hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition cursor-pointer"
+                  >
+                    <div className="w-6 h-6 bg-[#606c38]/15 dark:bg-[#606c38]/25 text-[#606c38] dark:text-[#9ca87a] flex items-center justify-center shrink-0">
+                      <FileCode className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <span className="font-bold block">Full Backup (JSON)</span>
+                      <span className="text-[10px] text-[#5c5c52] dark:text-[#a8a89b]">Full structured backup</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={handleExportMarkdown}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 text-left text-xs text-[#2c2c26] dark:text-[#f0efe6] hover:bg-[#f4f4ea] dark:hover:bg-[#2c2c24] transition cursor-pointer"
+                  >
+                    <div className="w-6 h-6 bg-[#3a3a30]/10 dark:bg-[#3a3a30]/30 text-[#3a3a30] dark:text-[#d8d8cc] flex items-center justify-center shrink-0">
+                      <BookOpen className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <span className="font-bold block">Markdown Digest (.MD)</span>
+                      <span className="text-[10px] text-[#5c5c52] dark:text-[#a8a89b]">Obsidian / Notion readable</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={onStartNewEntry}
+            className="px-4 sm:px-5 py-2.5 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-xs font-bold shadow-xs transition inline-flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider shrink-0"
+          >
+            <PenLine className="w-3.5 h-3.5" />
+            <span>New Reflection</span>
+          </button>
+        </div>
       </div>
 
       {/* Search & Filter Bar - Square */}

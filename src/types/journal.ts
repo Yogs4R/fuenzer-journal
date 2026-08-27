@@ -37,6 +37,8 @@ export interface JournalSummary {
   keyInsights: string[];
   actionItems: string[];
   detectedMood: string;
+  moodScore?: number;
+  cognitiveDistortions?: string[];
   themes: string[];
   closingAffirmation: string;
 }
@@ -50,10 +52,13 @@ export interface JournalEntry {
   framework: JournalFrameworkId;
   initialMood?: string;
   detectedMood?: string;
+  moodScore?: number;
   themes: string[];
   executiveSummary: string;
   keyInsights: string[];
   actionItems: string[];
+  cognitiveDistortions?: string[];
+  imageAttachments?: ChatImageAttachment[];
   closingAffirmation?: string;
   transcript: ChatMessage[];
   wordCount: number;

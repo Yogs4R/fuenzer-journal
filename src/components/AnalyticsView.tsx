@@ -17,6 +17,8 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   RotateCcw,
   FileText,
   FileSpreadsheet,
@@ -161,7 +163,51 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
     frameworks: string[];
   } | null>(null);
 
-  // Month navigation handlers
+  // Available selectable years: full coverage of even and odd years (2020 through 2032)
+  const AVAILABLE_YEARS = useMemo(() => [
+    2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032
+  ], []);
+
+  const MONTH_OPTIONS = useMemo(() => [
+    { value: 0, label: 'January' },
+    { value: 1, label: 'February' },
+    { value: 2, label: 'March' },
+    { value: 3, label: 'April' },
+    { value: 4, label: 'May' },
+    { value: 5, label: 'June' },
+    { value: 6, label: 'July' },
+    { value: 7, label: 'August' },
+    { value: 8, label: 'September' },
+    { value: 9, label: 'October' },
+    { value: 10, label: 'November' },
+    { value: 11, label: 'December' },
+  ], []);
+
+  const isLeapYear = (year: number) => {
+    return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+  };
+
+  // Year & Month navigation handlers
+  const handlePrevYear = () => {
+    setCalendarYear((prevYear) => prevYear - 1);
+    setActiveHeatmapTooltip(null);
+  };
+
+  const handleNextYear = () => {
+    setCalendarYear((prevYear) => prevYear + 1);
+    setActiveHeatmapTooltip(null);
+  };
+
+  const handleYearChange = (year: number) => {
+    setCalendarYear(year);
+    setActiveHeatmapTooltip(null);
+  };
+
+  const handleMonthChange = (month: number) => {
+    setCalendarMonth(month);
+    setActiveHeatmapTooltip(null);
+  };
+
   const handlePrevMonth = () => {
     setCalendarMonth((prevMonth) => {
       if (prevMonth === 0) {
@@ -520,22 +566,74 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
   };
 
   const handleExportJson = () => {
-    const jsonStr = JSON.stringify(entries, null, 2);
+    const exportPayload = {
+      exportDate: new Date().toISOString(),
+      appVersion: '2.0.0',
+      totalEntries: entries.length,
+      streakCount,
+      entries: entries.map((e) => ({
+        id: e.id,
+        title: e.title || 'Untitled Reflection',
+        createdAt: e.createdAt,
+        updatedAt: e.updatedAt || e.createdAt,
+        formattedDate: formatJournalDate(e.createdAt),
+        framework: e.framework,
+        initialMood: e.initialMood,
+        detectedMood: e.detectedMood,
+        moodScore: e.moodScore,
+        wordCount: e.wordCount || 0,
+        executiveSummary: e.executiveSummary || '',
+        keyInsights: e.keyInsights || [],
+        actionItems: e.actionItems || [],
+        cognitiveDistortions: e.cognitiveDistortions || [],
+        themes: e.themes || [],
+        transcript: e.transcript || [],
+        imageAttachments: (e.imageAttachments || []).map((img) => ({
+          name: img.name,
+          size: img.size,
+          mimeType: img.mimeType,
+        })),
+      })),
+    };
+    const jsonStr = JSON.stringify(exportPayload, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     triggerDownload(blob, `fuenzer_journal_export_${getLocalDateString(new Date())}.json`, 'JSON file exported');
   };
 
   const handleExportCsv = () => {
-    const headers = ['Date', 'Title', 'Framework', 'Mood', 'Word Count', 'Themes', 'Executive Summary'];
-    const rows = entries.map((e) => [
-      `"${getLocalDateString(new Date(e.createdAt))}"`,
-      `"${(e.title || 'Untitled').replace(/"/g, '""')}"`,
-      `"${e.framework}"`,
-      `"${e.detectedMood || e.initialMood || 'Reflective'}"`,
-      e.wordCount || 0,
-      `"${(e.themes || []).join(', ')}"`,
-      `"${(e.executiveSummary || '').replace(/"/g, '""')}"`,
-    ]);
+    const headers = [
+      'Date',
+      'Time',
+      'Title',
+      'Framework',
+      'Detected Mood',
+      'Mood Score',
+      'Word Count',
+      'Tags / Themes',
+      'Executive Summary',
+      'Key Realizations',
+      'Action Items',
+      'Cognitive Distortions Identified',
+    ];
+    const rows = entries.map((e) => {
+      const d = new Date(e.createdAt);
+      const dateStr = getLocalDateString(d);
+      const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return [
+        `"${dateStr}"`,
+        `"${timeStr}"`,
+        `"${(e.title || 'Untitled').replace(/"/g, '""')}"`,
+        `"${e.framework}"`,
+        `"${e.detectedMood || e.initialMood || 'Reflective'}"`,
+        e.moodScore ? e.moodScore.toFixed(1) : '3.3',
+        e.wordCount || 0,
+        `"${(e.themes || []).join(', ')}"`,
+        `"${(e.executiveSummary || '').replace(/"/g, '""')}"`,
+        `"${(e.keyInsights || []).join(' | ').replace(/"/g, '""')}"`,
+        `"${(e.actionItems || []).join(' | ').replace(/"/g, '""')}"`,
+        `"${(e.cognitiveDistortions || []).join(' | ').replace(/"/g, '""')}"`,
+      ];
+    });
     const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     triggerDownload(blob, `fuenzer_journal_export_${getLocalDateString(new Date())}.csv`, 'CSV spreadsheet exported');
@@ -564,12 +662,12 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
     });
     md += `\n`;
 
-    md += `## Reflection History\n\n`;
+    md += `## Reflection History & Takeaways\n\n`;
     entries.forEach((e, idx) => {
       md += `### ${idx + 1}. ${e.title || 'Untitled Reflection'}\n`;
-      md += `*${formatJournalDate(e.createdAt)} | Framework: ${e.framework} | Mood: ${e.detectedMood || e.initialMood || 'Reflective'}*\n\n`;
+      md += `*${formatJournalDate(e.createdAt)} | Framework: ${e.framework} | Mood: ${e.detectedMood || e.initialMood || 'Reflective'} | Words: ${e.wordCount || 0}*\n\n`;
       if (e.executiveSummary) {
-        md += `> ${e.executiveSummary}\n\n`;
+        md += `> **Executive Summary:** ${e.executiveSummary}\n\n`;
       }
       if (e.keyInsights && e.keyInsights.length > 0) {
         md += `**Key Realizations:**\n`;
@@ -579,9 +677,16 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
         md += `\n`;
       }
       if (e.actionItems && e.actionItems.length > 0) {
-        md += `**Intentions & Next Steps:**\n`;
+        md += `**Next Action Steps:**\n`;
         e.actionItems.forEach((ai) => {
           md += `- [ ] ${ai}\n`;
+        });
+        md += `\n`;
+      }
+      if (e.cognitiveDistortions && e.cognitiveDistortions.length > 0) {
+        md += `**Cognitive Patterns Reframed:**\n`;
+        e.cognitiveDistortions.forEach((cd) => {
+          md += `- *${cd}*\n`;
         });
         md += `\n`;
       }
@@ -741,19 +846,24 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
 
       {/* CALENDAR HEATMAP VISUALIZATION (Real-Life Month Calendar with Prev/Next Navigation & Accurate Days) */}
       <div className="p-5 sm:p-6 rounded-none bg-white dark:bg-[#23231c] border border-[#e8e8df] dark:border-[#38382e] shadow-xs space-y-5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 bg-[#7d8461]/10 dark:bg-[#7d8461]/20 rounded-none flex items-center justify-center text-[#7d8461] dark:text-[#9ca87a]">
               <CalendarDays className="w-4 h-4" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-base sm:text-lg font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6]">
                   {heatmapData.monthDisplayName} {heatmapData.calendarYear}
                 </h2>
                 <span className="text-[10px] uppercase font-mono px-2 py-0.5 bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] text-[#5c5c52] dark:text-[#a8a89b]">
                   {heatmapData.daysInMonth} Days
                 </span>
+                {isLeapYear(heatmapData.calendarYear) && (
+                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 bg-[#7d8461]/10 dark:bg-[#7d8461]/20 text-[#7d8461] dark:text-[#9ca87a] border border-[#7d8461]/30 font-semibold">
+                    {heatmapData.calendarMonth === 1 ? 'Leap Year • 29 Days' : 'Leap Year'}
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-[#5c5c52] dark:text-[#a8a89b] mt-0.5">
                 Real-world monthly calendar showing reflection cadence and emotional trajectory.
@@ -761,14 +871,52 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
             </div>
           </div>
 
-          {/* Month Navigation & Consistency Badges */}
+          {/* Month & Year Navigation & Quick Jump Selectors */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* Prev / Current / Next Month Controls */}
+            {/* Quick Jump Month Select */}
+            <select
+              value={calendarMonth}
+              onChange={(e) => handleMonthChange(Number(e.target.value))}
+              aria-label="Select month"
+              className="bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] text-xs font-semibold px-2 py-1 rounded-none focus:outline-none focus:border-[#7d8461] cursor-pointer"
+            >
+              {MONTH_OPTIONS.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+
+            {/* Quick Jump Year Select (supporting all even and odd years: 2020-2032) */}
+            <select
+              value={calendarYear}
+              onChange={(e) => handleYearChange(Number(e.target.value))}
+              aria-label="Select year"
+              className="bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] text-[#2c2c26] dark:text-[#f0efe6] text-xs font-semibold px-2 py-1 rounded-none focus:outline-none focus:border-[#7d8461] cursor-pointer"
+            >
+              {AVAILABLE_YEARS.map((y) => (
+                <option key={y} value={y}>
+                  {y} {isLeapYear(y) ? '(Leap Year)' : ''}
+                </option>
+              ))}
+            </select>
+
+            {/* Step Navigation Controls */}
             <div className="flex items-center bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] p-0.5">
               <button
                 type="button"
+                onClick={handlePrevYear}
+                className="p-1 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#2c2c24] transition cursor-pointer"
+                title="Previous Year"
+                aria-label="Previous Year"
+              >
+                <ChevronsLeft className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                type="button"
                 onClick={handlePrevMonth}
-                className="p-1.5 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#2c2c24] transition cursor-pointer"
+                className="p-1 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#2c2c24] transition cursor-pointer"
                 title="Previous Month"
                 aria-label="Previous Month"
               >
@@ -778,8 +926,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
               <button
                 type="button"
                 onClick={handleResetToCurrentMonth}
-                className="px-2 py-1 text-[11px] font-semibold text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#2c2c24] transition cursor-pointer flex items-center gap-1"
-                title="Jump to current month"
+                className="px-2 py-0.5 text-[11px] font-semibold text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#2c2c24] transition cursor-pointer flex items-center gap-1"
+                title="Jump to current month and year"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>Today</span>
@@ -788,24 +936,34 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries, streakCou
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="p-1.5 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#2c2c24] transition cursor-pointer"
+                className="p-1 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#2c2c24] transition cursor-pointer"
                 title="Next Month"
                 aria-label="Next Month"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
+
+              <button
+                type="button"
+                onClick={handleNextYear}
+                className="p-1 text-[#5c5c52] dark:text-[#a8a89b] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] hover:bg-[#ecece0] dark:hover:bg-[#2c2c24] transition cursor-pointer"
+                title="Next Year"
+                aria-label="Next Year"
+              >
+                <ChevronsRight className="w-3.5 h-3.5" />
+              </button>
             </div>
 
             {/* Monthly Consistency Badges */}
-            <div className="px-3 py-1 bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] flex items-center gap-1.5 font-medium text-xs">
+            <div className="px-2.5 py-1 bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] flex items-center gap-1.5 font-medium text-xs">
               <span className="text-[#5c5c52] dark:text-[#a8a89b]">Active:</span>
               <span className="font-bold text-[#7d8461] dark:text-[#9ca87a] font-mono">
                 {heatmapData.activeDaysCount}/{heatmapData.totalDays} Days ({heatmapData.consistencyRate}%)
               </span>
             </div>
 
-            <div className="px-3 py-1 bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] flex items-center gap-1.5 font-medium text-xs">
-              <span className="text-[#5c5c52] dark:text-[#a8a89b]">Month Words:</span>
+            <div className="px-2.5 py-1 bg-[#f4f4ea] dark:bg-[#1a1a16] border border-[#e8e8df] dark:border-[#38382e] flex items-center gap-1.5 font-medium text-xs">
+              <span className="text-[#5c5c52] dark:text-[#a8a89b]">Words:</span>
               <span className="font-bold text-[#2c2c26] dark:text-[#f0efe6] font-mono">
                 {heatmapData.totalMonthWords.toLocaleString()}
               </span>
