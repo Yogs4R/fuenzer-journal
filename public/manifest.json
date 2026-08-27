@@ -1,0 +1,57 @@
+{
+  "name": "Fuenzer Journal | Personal Gemini Journal",
+  "short_name": "Fuenzer Journal",
+  "description": "A private, user-authenticated reflective journaling sanctuary with Socratic AI thought partnership, automated cognitive insights, and offline survival.",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#fdfbf7",
+  "theme_color": "#7d8461",
+  "categories": ["lifestyle", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "48x48 72x72 96x96 128x128 256x256",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Reflection",
+      "short_name": "Reflection",
+      "description": "Start a new Socratic AI reflection session",
+      "url": "/app",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Journal Archive",
+      "short_name": "Archive",
+      "description": "Browse preserved reflections and reading vault",
+      "url": "/archive",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Insights & Growth",
+      "short_name": "Insights",
+      "description": "View calendar heatmap and emotional analytics",
+      "url": "/analytics",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    }
+  ]
+}

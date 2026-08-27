@@ -32,11 +32,13 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { usePwaInstall } from '../hooks/usePwaInstall';
 import { Footer } from './Footer';
 
 export const LandingPage: React.FC = () => {
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { isInstallable, promptInstall } = usePwaInstall();
   const navigate = useNavigate();
 
   // Profile dropdown menu state
@@ -394,6 +396,16 @@ export const LandingPage: React.FC = () => {
               <ArrowRight className="w-4 h-4" />
             </Link>
 
+            {isInstallable && (
+              <button
+                onClick={promptInstall}
+                className="w-full sm:w-auto px-6 py-3.5 bg-[#2c2c26] hover:bg-[#3a3a30] dark:bg-[#e0ded5] dark:hover:bg-[#f0efe6] text-[#fbfaf5] dark:text-[#181814] font-bold rounded-none flex items-center justify-center gap-2 transition text-xs sm:text-sm uppercase tracking-wider cursor-pointer shadow-sm"
+              >
+                <Download className="w-4 h-4" />
+                <span>Install App (PWA)</span>
+              </button>
+            )}
+
             <a
               href="#how-it-works"
               className="w-full sm:w-auto px-6 py-3.5 bg-[#f4f4ea] dark:bg-[#252520] hover:bg-[#ecece0] dark:hover:bg-[#2e2e28] text-[#2c2c26] dark:text-[#f0efe6] border border-[#e8e8df] dark:border-[#2e2e28] font-semibold rounded-none flex items-center justify-center gap-2 transition text-xs sm:text-sm uppercase tracking-wider"
@@ -415,6 +427,10 @@ export const LandingPage: React.FC = () => {
             <span className="flex items-center gap-1.5 font-medium">
               <Download className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#a3b18a]" />
               100% Client-Side Export (PDF/MD/JSON)
+            </span>
+            <span className="flex items-center gap-1.5 font-medium">
+              <Sparkles className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#a3b18a]" />
+              Offline PWA Ready
             </span>
           </div>
         </section>

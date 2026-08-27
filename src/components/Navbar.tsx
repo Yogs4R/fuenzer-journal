@@ -14,9 +14,15 @@ import {
   Search,
   Sun,
   Moon,
+  Download,
+  Bell,
+  Smartphone,
+  CheckCircle2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { usePwaInstall } from '../hooks/usePwaInstall';
+import { MindfulNotificationModal } from './MindfulNotificationModal';
 
 interface NavbarProps {
   currentTab: 'editor' | 'history' | 'analytics';
@@ -33,9 +39,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const { user, isGuest, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { isInstallable, isInstalled, promptInstall } = usePwaInstall();
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
 
   const handleTabSelect = (tab: 'editor' | 'history' | 'analytics') => {
     setCurrentTab(tab);
@@ -126,6 +134,28 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Right Actions Desktop & Mobile */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* PWA Install Button Desktop (when install prompt is available) */}
+            {isInstallable && (
+              <button
+                onClick={promptInstall}
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-[#7d8461] hover:bg-[#6c7351] dark:bg-[#8e966f] dark:hover:bg-[#7d8461] text-white text-xs font-semibold rounded-none transition cursor-pointer shadow-xs animate-in fade-in"
+                title="Install Fuenzer Journal as a standalone desktop/mobile app"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="text-[11px]">Install App</span>
+              </button>
+            )}
+
+            {/* Mindful Reminders / PWA Modal Trigger Button - Desktop Only (in mobile it is inside hamburger) */}
+            <button
+              onClick={() => setShowNotificationModal(true)}
+              className="hidden md:flex p-2 bg-[#f4f4ea] dark:bg-[#25251f] hover:bg-[#ecece0] dark:hover:bg-[#303028] border border-[#e8e8df] dark:border-[#35352c] text-[#5c5c52] dark:text-[#d0d0c4] hover:text-[#2c2c26] dark:hover:text-[#ffffff] rounded-none transition cursor-pointer"
+              title="Mindful Reminders & Offline PWA Settings"
+              aria-label="Mindful Reminders & Offline Settings"
+            >
+              <Bell className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
+            </button>
+
             {/* Quick Command Palette Button Desktop */}
             <button
               onClick={openCommandPalette}
@@ -139,10 +169,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               </kbd>
             </button>
 
-            {/* Light / Dark Theme Toggle Button Desktop */}
+            {/* Light / Dark Theme Toggle Button - Desktop Only (in mobile it is inside hamburger) */}
             <button
               onClick={toggleTheme}
-              className="p-2 bg-[#f4f4ea] dark:bg-[#25251f] hover:bg-[#ecece0] dark:hover:bg-[#303028] border border-[#e8e8df] dark:border-[#35352c] text-[#5c5c52] dark:text-[#d0d0c4] hover:text-[#2c2c26] dark:hover:text-[#ffffff] rounded-none transition cursor-pointer"
+              className="hidden md:flex p-2 bg-[#f4f4ea] dark:bg-[#25251f] hover:bg-[#ecece0] dark:hover:bg-[#303028] border border-[#e8e8df] dark:border-[#35352c] text-[#5c5c52] dark:text-[#d0d0c4] hover:text-[#2c2c26] dark:hover:text-[#ffffff] rounded-none transition cursor-pointer"
               title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
               aria-label="Toggle light or dark theme"
             >
@@ -153,10 +183,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </button>
 
-            {/* Streak Counter */}
+            {/* Streak Counter - Desktop Only (in mobile it is inside hamburger profile header) */}
             <div
               title={`${streakCount} day journaling streak`}
-              className="flex items-center gap-1 px-2 sm:px-2.5 py-1 bg-[#e9c46a]/20 dark:bg-[#e9c46a]/15 border border-[#e9c46a]/40 dark:border-[#e9c46a]/30 text-[#8a6b18] dark:text-[#e9c46a] rounded-none text-xs font-semibold whitespace-nowrap"
+              className="hidden md:flex items-center gap-1 px-2 sm:px-2.5 py-1 bg-[#e9c46a]/20 dark:bg-[#e9c46a]/15 border border-[#e9c46a]/40 dark:border-[#e9c46a]/30 text-[#8a6b18] dark:text-[#e9c46a] rounded-none text-xs font-semibold whitespace-nowrap"
             >
               <Flame className="w-3.5 h-3.5 text-[#d48b0c] dark:text-[#f4a261] fill-[#d48b0c]/30" />
               <span>{streakCount}d</span>
@@ -208,6 +238,31 @@ export const Navbar: React.FC<NavbarProps> = ({
                         <Plus className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
                         <span>New Reflection</span>
                       </button>
+
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          setShowNotificationModal(true);
+                        }}
+                        className="w-full text-left px-2.5 py-1.5 rounded-none text-[#3a3a30] dark:text-[#e0dfd5] hover:bg-[#f4f4ea] dark:hover:bg-[#2e2e26] flex items-center gap-2 text-xs transition cursor-pointer font-medium"
+                      >
+                        <Bell className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
+                        <span>Reminders &amp; PWA</span>
+                      </button>
+
+                      {isInstallable && (
+                        <button
+                          onClick={() => {
+                            setShowUserMenu(false);
+                            promptInstall();
+                          }}
+                          className="w-full text-left px-2.5 py-1.5 rounded-none text-[#555c3c] dark:text-[#9ca87a] hover:bg-[#7d8461]/10 flex items-center gap-2 text-xs transition cursor-pointer font-semibold"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Install App</span>
+                        </button>
+                      )}
+
                       {isGuest && (
                         <button
                           onClick={() => {
@@ -291,35 +346,70 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               </div>
 
-              {/* Mobile Quick Action Buttons: Search & Theme Toggle */}
-              <div className="grid grid-cols-2 gap-2 pt-0.5">
+              {/* Mobile Quick Action Buttons: Search, Reminders & Theme Toggle */}
+              <div className="grid grid-cols-3 gap-2 pt-0.5">
                 {/* Command Palette Button inside Hamburger */}
                 <button
                   onClick={openCommandPalette}
-                  className="py-2 px-2.5 bg-[#f4f4ea] dark:bg-[#282822] hover:bg-[#ecece0] dark:hover:bg-[#32322a] border border-[#e8e8df] dark:border-[#3a3a30] text-[#2c2c26] dark:text-[#f0efe6] text-xs font-semibold rounded-none flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  className="py-2 px-2 bg-[#f4f4ea] dark:bg-[#282822] hover:bg-[#ecece0] dark:hover:bg-[#32322a] border border-[#e8e8df] dark:border-[#3a3a30] text-[#2c2c26] dark:text-[#f0efe6] text-[11px] font-semibold rounded-none flex items-center justify-center gap-1 transition cursor-pointer"
                 >
                   <Search className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
-                  <span>Search (⌘K)</span>
+                  <span>Search</span>
+                </button>
+
+                {/* Reminders Button */}
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setShowNotificationModal(true);
+                  }}
+                  className="py-2 px-2 bg-[#f4f4ea] dark:bg-[#282822] hover:bg-[#ecece0] dark:hover:bg-[#32322a] border border-[#e8e8df] dark:border-[#3a3a30] text-[#2c2c26] dark:text-[#f0efe6] text-[11px] font-semibold rounded-none flex items-center justify-center gap-1 transition cursor-pointer"
+                >
+                  <Bell className="w-3.5 h-3.5 text-[#7d8461] dark:text-[#9ca87a]" />
+                  <span>Remind</span>
                 </button>
 
                 {/* Theme Toggle Button inside Hamburger */}
                 <button
                   onClick={toggleTheme}
-                  className="py-2 px-2.5 bg-[#f4f4ea] dark:bg-[#282822] hover:bg-[#ecece0] dark:hover:bg-[#32322a] border border-[#e8e8df] dark:border-[#3a3a30] text-[#2c2c26] dark:text-[#f0efe6] text-xs font-semibold rounded-none flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  className="py-2 px-2 bg-[#f4f4ea] dark:bg-[#282822] hover:bg-[#ecece0] dark:hover:bg-[#32322a] border border-[#e8e8df] dark:border-[#3a3a30] text-[#2c2c26] dark:text-[#f0efe6] text-[11px] font-semibold rounded-none flex items-center justify-center gap-1 transition cursor-pointer"
                 >
                   {theme === 'dark' ? (
                     <>
                       <Sun className="w-3.5 h-3.5 text-[#e9c46a]" />
-                      <span>Light Mode</span>
+                      <span>Light</span>
                     </>
                   ) : (
                     <>
                       <Moon className="w-3.5 h-3.5 text-[#7d8461]" />
-                      <span>Dark Mode</span>
+                      <span>Dark</span>
                     </>
                   )}
                 </button>
               </div>
+
+              {/* Install PWA Button on Mobile */}
+              {!isInstalled ? (
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (isInstallable) {
+                      promptInstall();
+                    } else {
+                      setShowNotificationModal(true);
+                    }
+                  }}
+                  className="w-full py-2.5 px-3 bg-[#7d8461] hover:bg-[#6c7351] dark:bg-[#8e966f] dark:hover:bg-[#7d8461] text-white text-xs font-bold rounded-none flex items-center justify-center gap-2 shadow-xs transition cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Install Fuenzer Journal App</span>
+                </button>
+              ) : (
+                <div className="w-full py-1.5 px-3 bg-[#7d8461]/15 dark:bg-[#8e966f]/20 text-[#555c3c] dark:text-[#9ca87a] text-[11px] font-semibold flex items-center justify-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Installed as Standalone App</span>
+                </div>
+              )}
 
               {/* Mobile Navigation Links */}
               <div className="space-y-1 pt-1">
@@ -395,6 +485,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           </>
         )}
       </header>
+
+      {/* Mindful Notifications & PWA Modal */}
+      <MindfulNotificationModal
+        isOpen={showNotificationModal}
+        onClose={() => setShowNotificationModal(false)}
+      />
     </>
   );
 };
