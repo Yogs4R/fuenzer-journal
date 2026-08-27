@@ -245,6 +245,7 @@ To ensure optimal indexing by search engines and generative AI agents (Perplexit
 
 | Resource | Path | Description |
 |---|---|---|
+| **Security Headers** | `/public/_headers` | Production Content-Security-Policy (CSP), COOP, Permissions-Policy, cache invalidation, and strict asset headers. |
 | **Robots Exclusion** | `/public/robots.txt` | Allows all major search bots and explicitly whitelists AI crawlers (`GPTBot`, `Google-Extended`, `ClaudeBot`, `PerplexityBot`). |
 | **XML Sitemap** | `/public/sitemap.xml` | Multi-domain sitemap indexing both `https://fuenzer-journal.ai.studio` and `https://journal.fuenzer.web.id`. |
 | **LLMs Context Manifest** | `/public/llms.txt` | Standardized GEO markdown specification defining features, frameworks, and architecture for AI agents. |
