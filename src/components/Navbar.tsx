@@ -183,10 +183,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </button>
 
-            {/* Streak Counter - Desktop Only (in mobile it is inside hamburger profile header) */}
+            {/* Streak Counter - Visible on both Mobile & Desktop in Navbar */}
             <div
               title={`${streakCount} day journaling streak`}
-              className="hidden md:flex items-center gap-1 px-2 sm:px-2.5 py-1 bg-[#e9c46a]/20 dark:bg-[#e9c46a]/15 border border-[#e9c46a]/40 dark:border-[#e9c46a]/30 text-[#8a6b18] dark:text-[#e9c46a] rounded-none text-xs font-semibold whitespace-nowrap"
+              className="flex items-center gap-1 px-2 sm:px-2.5 py-1 bg-[#e9c46a]/20 dark:bg-[#e9c46a]/15 border border-[#e9c46a]/40 dark:border-[#e9c46a]/30 text-[#8a6b18] dark:text-[#e9c46a] rounded-none text-xs font-semibold whitespace-nowrap"
             >
               <Flame className="w-3.5 h-3.5 text-[#d48b0c] dark:text-[#f4a261] fill-[#d48b0c]/30" />
               <span>{streakCount}d</span>
@@ -338,11 +338,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                       {user?.email || (isGuest ? 'Stored locally on device' : 'Not signed in')}
                     </p>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-1 px-2 py-0.5 bg-[#e9c46a]/20 dark:bg-[#e9c46a]/15 border border-[#e9c46a]/40 dark:border-[#e9c46a]/30 text-[#8a6b18] dark:text-[#e9c46a] text-[11px] font-bold">
-                  <Flame className="w-3 h-3 text-[#d48b0c] dark:text-[#f4a261]" />
-                  <span>{streakCount}d</span>
                 </div>
               </div>
 

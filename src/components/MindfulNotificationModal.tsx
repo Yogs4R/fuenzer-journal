@@ -144,26 +144,31 @@ export const MindfulNotificationModal: React.FC<MindfulNotificationModalProps> =
         className="w-full max-w-lg bg-[#ffffff] dark:bg-[#1f1f1a] border border-[#ecece0] dark:border-[#35352c] shadow-2xl p-5 sm:p-6 relative text-[#2c2c26] dark:text-[#f0efe6] max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 text-[#8c8c7a] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] transition cursor-pointer"
-          title="Close Settings"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Header with Title & Inline/Corner Close Button */}
+        <div className="flex items-start justify-between gap-3 mb-5 border-b border-[#ecece0] dark:border-[#2e2e26] pb-4">
+          <div className="flex items-center gap-3 min-w-0 pr-2">
+            <div className="w-10 h-10 bg-[#7d8461]/15 dark:bg-[#8e966f]/20 flex items-center justify-center text-[#7d8461] dark:text-[#9ca87a] shrink-0">
+              <BellRing className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-serif italic font-bold leading-tight truncate">
+                Mindful Reminders &amp; PWA
+              </h2>
+              <p className="text-[11px] sm:text-xs text-[#5c5c52] dark:text-[#a8a89b] leading-tight">
+                Daily reflection prompts, offline caching, &amp; PWA.
+              </p>
+            </div>
+          </div>
 
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-5 border-b border-[#ecece0] dark:border-[#2e2e26] pb-4">
-          <div className="w-10 h-10 bg-[#7d8461]/15 dark:bg-[#8e966f]/20 flex items-center justify-center text-[#7d8461] dark:text-[#9ca87a]">
-            <BellRing className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-lg font-serif italic font-bold">Mindful Reminders &amp; PWA</h2>
-            <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b]">
-              Daily reflection prompts, offline caching, and standalone installation.
-            </p>
-          </div>
+          {/* Close Button with dedicated flex space to never overlap */}
+          <button
+            onClick={onClose}
+            className="p-1.5 -mr-1 -mt-1 text-[#8c8c7a] hover:text-[#2c2c26] dark:hover:text-[#f0efe6] transition cursor-pointer shrink-0 rounded-none bg-[#f4f4ea] dark:bg-[#25251f] hover:bg-[#ecece0] dark:hover:bg-[#303028] border border-[#e8e8df] dark:border-[#35352c]"
+            title="Close Settings"
+            aria-label="Close Settings"
+          >
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
         </div>
 
         <div className="space-y-5 text-xs">
