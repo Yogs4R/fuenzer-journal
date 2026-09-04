@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fuenzer-journal-v3';
+const CACHE_NAME = 'fuenzer-journal-v4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -75,9 +75,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Handle HTML Navigation requests (SPA pages like /archive, /insights, /app)
-  const isNavigation = request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html');
-  if (isNavigation) {
+  // 2. Handle HTML Navigation / SPA Page requests (e.g. /archive, /insights, /app)
+  const isSpaNavigation =
+    request.mode === 'navigate' ||
+    request.headers.get('accept')?.includes('text/html') ||
+    !url.pathname.includes('.');
+
+  if (isSpaNavigation) {
     event.respondWith(
       fetch(request)
         .then((response) => {
@@ -96,9 +100,9 @@ self.addEventListener('fetch', (event) => {
           if (indexFallback) {
             return indexFallback;
           }
-          return new Response('Offline - Fuenzer Journal is accessible offline once loaded.', {
-            status: 503,
-            headers: { 'Content-Type': 'text/plain' },
+          return new Response('<!doctype html><html><body>Offline - Please reconnect</body></html>', {
+            status: 200,
+            headers: { 'Content-Type': 'text/html' },
           });
         })
     );
@@ -119,8 +123,7 @@ self.addEventListener('fetch', (event) => {
         if (cachedResponse) {
           return cachedResponse;
         }
-        // Always return a valid Response to prevent "TypeError: Failed to convert value to 'Response'"
-        return new Response('', { status: 408, statusText: 'Request Timeout' });
+        return new Response('', { status: 404, statusText: 'Not in cache' });
       }
     })
   );

@@ -12,16 +12,39 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 // Trust first proxy for accurate IP identification in Cloud Run / Nginx
 app.set('trust proxy', 1);
 
-// Security Headers Middleware (Matching public/_headers)
-app.use((_req: Request, res: Response, next: NextFunction) => {
+// Security Headers & Cross-Origin Middleware (Matching public/_headers)
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'https://fuenzer-journal-330213410510.asia-southeast1.run.app',
+    'https://fuenzer-journal-76kg6jeh3q-as.a.run.app',
+    'https://journal.fuenzer.web.id',
+    'https://fuenzer-journal.ai.studio',
+    'https://ais-dev-3ergsgvrrwn3clctmx6od7-783802656167.asia-southeast1.run.app',
+    'https://ais-pre-3ergsgvrrwn3clctmx6od7-783802656167.asia-southeast1.run.app',
+    'http://localhost:3000',
+    'http://localhost:5173',
+  ];
+
+  if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.run.app') || origin.endsWith('.fuenzer.web.id') || origin.endsWith('.ai.studio'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(self), geolocation=(), display-capture=()');
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  // Note: Omit Cross-Origin-Opener-Policy to allow seamless Google Sign-In popup lifecycle in Firebase Auth
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.googleapis.com https://accounts.google.com https://www.googletagmanager.com https://www.google-analytics.com https://www.gstatic.com https://*.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.googleusercontent.com https://images.unsplash.com https://www.google-analytics.com https://www.googletagmanager.com; connect-src 'self' https://apis.google.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://accounts.google.com https://oauth2.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://*.google.com https://*.run.app; frame-src 'self' https://apis.google.com https://*.googleapis.com https://accounts.google.com https://*.firebaseapp.com https://*.google.com https://content.googleapis.com; frame-ancestors 'self' https://*.google.com https://*.run.app https://ai.studio https://*.aistudio.google.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.googleapis.com https://accounts.google.com https://www.googletagmanager.com https://www.google-analytics.com https://www.gstatic.com https://*.gstatic.com https://static.cloudflareinsights.com https://*.cloudflareinsights.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.googleusercontent.com https://images.unsplash.com https://www.google-analytics.com https://www.googletagmanager.com https://*.fuenzer.web.id; connect-src 'self' https://apis.google.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://accounts.google.com https://oauth2.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://*.google.com https://*.run.app https://*.fuenzer.web.id https://journal.fuenzer.web.id https://*.ai.studio https://fuenzer-journal.ai.studio https://cloudflareinsights.com https://*.cloudflareinsights.com; frame-src 'self' https://apis.google.com https://*.googleapis.com https://accounts.google.com https://*.firebaseapp.com https://*.google.com https://content.googleapis.com; frame-ancestors 'self' https://*.google.com https://*.run.app https://ai.studio https://*.aistudio.google.com https://*.fuenzer.web.id https://journal.fuenzer.web.id https://*.ai.studio https://fuenzer-journal.ai.studio; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self';"
   );
   next();
 });

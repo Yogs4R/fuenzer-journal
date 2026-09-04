@@ -96,10 +96,18 @@ export async function saveJournalToFirestore(
 export async function fetchUserJournals(userId: string): Promise<JournalEntry[]> {
   if (!userId) return [];
 
+  console.log(`[Fuenzer Journal] Fetching reflections from Firestore for user: ${userId}...`);
   const journalsRef = collection(db, 'users', userId, 'journals');
-  const q = query(journalsRef, orderBy('createdAt', 'desc'));
 
-  const querySnapshot = await getDocs(q);
+  let querySnapshot;
+  try {
+    const q = query(journalsRef, orderBy('createdAt', 'desc'));
+    querySnapshot = await getDocs(q);
+  } catch (queryErr) {
+    console.warn('[Fuenzer Journal] Query with orderBy failed, attempting un-indexed collection fetch:', queryErr);
+    querySnapshot = await getDocs(journalsRef);
+  }
+
   const entries: JournalEntry[] = [];
 
   querySnapshot.forEach((docSnap) => {
@@ -109,12 +117,15 @@ export async function fetchUserJournals(userId: string): Promise<JournalEntry[]>
       const updatedAt = parseTimestamp(data.updatedAt || data.createdAt);
       entries.push({
         ...data,
+        id: data.id || docSnap.id,
         createdAt,
         updatedAt,
       } as JournalEntry);
     }
   });
 
+  entries.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  console.log(`[Fuenzer Journal] Successfully loaded ${entries.length} reflections from Firestore.`);
   return entries;
 }
 

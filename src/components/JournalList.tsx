@@ -46,7 +46,20 @@ export const JournalList: React.FC<JournalListProps> = ({
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [exportSuccess, setExportSuccess] = useState<string | null>(null);
+  const [hasActiveDraft, setHasActiveDraft] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const draft = localStorage.getItem('fuenzer_journal_active_draft_v2');
+      if (draft) {
+        const parsed = JSON.parse(draft);
+        if (Array.isArray(parsed?.messages) && parsed.messages.length > 1) {
+          setHasActiveDraft(true);
+        }
+      }
+    } catch {}
+  }, []);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -436,18 +449,35 @@ export const JournalList: React.FC<JournalListProps> = ({
           <div className="w-10 h-10 rounded-none bg-[#7d8461]/10 dark:bg-[#7d8461]/20 text-[#7d8461] dark:text-[#9ca87a] flex items-center justify-center mx-auto mb-3">
             <BookOpen className="w-5 h-5" />
           </div>
-          <h2 className="text-lg font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] mb-1">No reflections found</h2>
-          <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] mb-5 leading-relaxed">
+          <h2 className="text-lg font-serif italic font-bold text-[#2c2c26] dark:text-[#f0efe6] mb-1">
             {searchQuery || selectedMood !== 'all' || selectedFramework !== 'all'
-              ? 'Try adjusting your search query or mood filters.'
-              : 'Begin your reflection session to start capturing insights.'}
+              ? 'No matching reflections found'
+              : 'Your reflection archive is empty'}
+          </h2>
+          <p className="text-xs text-[#5c5c52] dark:text-[#a8a89b] mb-5 leading-relaxed max-w-md mx-auto">
+            {searchQuery || selectedMood !== 'all' || selectedFramework !== 'all'
+              ? 'Try adjusting your search query or mood filters to see other entries.'
+              : hasActiveDraft
+              ? 'You have an in-progress reflection draft! Click Resume to review and save it to your permanent Firestore archive.'
+              : 'You haven’t saved any reflections to your account yet. Complete a reflection session to capture Socratic insights and view them here.'}
           </p>
-          <button
-            onClick={onStartNewEntry}
-            className="px-5 py-2.5 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-xs font-bold shadow-xs transition cursor-pointer uppercase tracking-wider"
-          >
-            Start Reflection
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            {hasActiveDraft && (
+              <button
+                onClick={onStartNewEntry}
+                className="w-full sm:w-auto px-5 py-2.5 bg-[#ddb892] hover:bg-[#c9a47e] text-[#2c2c26] rounded-none text-xs font-bold shadow-xs transition cursor-pointer uppercase tracking-wider flex items-center justify-center gap-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                Resume In-Progress Draft
+              </button>
+            )}
+            <button
+              onClick={onStartNewEntry}
+              className="w-full sm:w-auto px-5 py-2.5 bg-[#7d8461] hover:bg-[#6c7351] text-white rounded-none text-xs font-bold shadow-xs transition cursor-pointer uppercase tracking-wider"
+            >
+              Start New Reflection
+            </button>
+          </div>
         </div>
       )}
 
