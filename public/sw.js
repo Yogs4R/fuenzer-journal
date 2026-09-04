@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fuenzer-journal-v1';
+const CACHE_NAME = 'fuenzer-journal-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -46,6 +46,12 @@ self.addEventListener('fetch', (event) => {
 
   // Skip non-GET requests
   if (request.method !== 'GET') {
+    return;
+  }
+
+  // CRITICAL: Only handle and cache same-origin requests!
+  // NEVER intercept cross-origin requests (Google APIs, Firebase Auth, Google Identity, Analytics)
+  if (url.origin !== self.location.origin) {
     return;
   }
 
