@@ -24,6 +24,7 @@ import { PageTitleManager } from './hooks/usePageTitle';
 import type { JournalEntry, ChatMessage, JournalFrameworkId } from './types/journal';
 import {
   fetchUserJournals,
+  saveJournalToFirestore,
   deleteJournalFromFirestore,
   togglePinJournal,
 } from './lib/firebase';
@@ -99,9 +100,66 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
         fetchUserJournals(uid),
         timeoutPromise,
       ]);
-      setEntries(userEntries);
+
+      if (userEntries.length > 0) {
+        setEntries(userEntries);
+        // Also keep local backup up to date
+        try {
+          localStorage.setItem(`fuenzer_journals_backup_${uid}`, JSON.stringify(userEntries));
+        } catch {}
+      } else {
+        // If Firestore has 0 entries, check if user had entries in guest mode or local backup
+        let recoveredEntries: JournalEntry[] = [];
+        const backupKey = `fuenzer_journals_backup_${uid}`;
+        const guestData = localStorage.getItem(GUEST_STORAGE_KEY);
+        const backupData = localStorage.getItem(backupKey);
+
+        if (backupData) {
+          try {
+            const parsed = JSON.parse(backupData);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              recoveredEntries = parsed;
+            }
+          } catch {}
+        }
+
+        if (recoveredEntries.length === 0 && guestData) {
+          try {
+            const parsed = JSON.parse(guestData);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              recoveredEntries = parsed;
+            }
+          } catch {}
+        }
+
+        if (recoveredEntries.length > 0) {
+          setEntries(recoveredEntries);
+          // Automatically sync recovered entries to Firestore so they are permanent!
+          for (const entry of recoveredEntries) {
+            saveJournalToFirestore(uid, entry).catch((e) =>
+              console.warn('Auto-syncing recovered entry to Firestore skipped:', e)
+            );
+          }
+          // Clear guest storage once migrated
+          try {
+            localStorage.removeItem(GUEST_STORAGE_KEY);
+          } catch {}
+        } else {
+          setEntries([]);
+        }
+      }
     } catch (err) {
       console.error('Failed to load journals from Firestore:', err);
+      // Resilience fallback: retrieve from local backup if network or permission fails
+      try {
+        const backupData = localStorage.getItem(`fuenzer_journals_backup_${uid}`) || localStorage.getItem(GUEST_STORAGE_KEY);
+        if (backupData) {
+          const parsed = JSON.parse(backupData);
+          if (Array.isArray(parsed)) {
+            setEntries(parsed);
+          }
+        }
+      } catch {}
     } finally {
       setLoadingEntries(false);
     }

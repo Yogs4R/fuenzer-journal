@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fuenzer-journal-v2';
+const CACHE_NAME = 'fuenzer-journal-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -49,7 +49,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // CRITICAL: Only handle and cache same-origin requests!
+  // CRITICAL: Only handle same-origin requests!
   // NEVER intercept cross-origin requests (Google APIs, Firebase Auth, Google Identity, Analytics)
   if (url.origin !== self.location.origin) {
     return;
@@ -75,14 +75,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Handle HTML Navigation requests (SPA pages)
-  if (request.mode === 'navigate') {
+  // 2. Handle HTML Navigation requests (SPA pages like /archive, /insights, /app)
+  const isNavigation = request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html');
+  if (isNavigation) {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cache fresh copy of navigation HTML
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => {});
+          }
           return response;
         })
         .catch(async () => {
@@ -90,7 +92,7 @@ self.addEventListener('fetch', (event) => {
           if (cachedResponse) {
             return cachedResponse;
           }
-          const indexFallback = await caches.match('/index.html');
+          const indexFallback = (await caches.match('/index.html')) || (await caches.match('/'));
           if (indexFallback) {
             return indexFallback;
           }
@@ -105,18 +107,21 @@ self.addEventListener('fetch', (event) => {
 
   // 3. Stale-While-Revalidate for static assets (JS, CSS, SVGs, Fonts)
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      const fetchPromise = fetch(request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-            const copy = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          }
-          return networkResponse;
-        })
-        .catch(() => cachedResponse);
-
-      return cachedResponse || fetchPromise;
+    caches.match(request).then(async (cachedResponse) => {
+      try {
+        const networkResponse = await fetch(request);
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const copy = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => {});
+        }
+        return networkResponse;
+      } catch {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        // Always return a valid Response to prevent "TypeError: Failed to convert value to 'Response'"
+        return new Response('', { status: 408, statusText: 'Request Timeout' });
+      }
     })
   );
 });

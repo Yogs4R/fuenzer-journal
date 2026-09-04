@@ -147,6 +147,13 @@ export const SummaryModal: React.FC<SummaryModalProps> = ({
     try {
       if (user?.uid) {
         await saveJournalToFirestore(user.uid, newEntry);
+        // Persist local backup for resilience
+        const BACKUP_KEY = `fuenzer_journals_backup_${user.uid}`;
+        try {
+          const raw = localStorage.getItem(BACKUP_KEY);
+          const list: JournalEntry[] = raw ? JSON.parse(raw) : [];
+          localStorage.setItem(BACKUP_KEY, JSON.stringify([newEntry, ...list.filter((e) => e.id !== newEntry.id)]));
+        } catch {}
       } else {
         // Guest mode: save to localStorage
         const GUEST_STORAGE_KEY = 'fuenzer_guest_journal_entries';
