@@ -32,12 +32,16 @@ export const FIRESTORE_DATABASE_ID =
   'ai-studio-ea9edce7-50d5-441c-97b0-4180a68ead94';
 
 export const db = getFirestore(app, FIRESTORE_DATABASE_ID);
+
+// Clean Standard Google Auth Provider (profile & email only for instant, error-free sign-in)
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-// Add Google Tasks and Calendar scopes for seamless incremental sync
-googleProvider.addScope('https://www.googleapis.com/auth/tasks');
-googleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
+// Dedicated Google Workspace Provider for incremental Tasks & Calendar sync
+export const workspaceGoogleProvider = new GoogleAuthProvider();
+workspaceGoogleProvider.setCustomParameters({ prompt: 'select_account' });
+workspaceGoogleProvider.addScope('https://www.googleapis.com/auth/tasks');
+workspaceGoogleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
 
 /**
  * Strict Undefined-Stripping Utility per Production Directive 6

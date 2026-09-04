@@ -6,7 +6,7 @@
  *  - https://www.googleapis.com/auth/calendar.events
  */
 
-import { auth, googleProvider, signInWithPopup, GoogleAuthProvider } from './firebase';
+import { auth, workspaceGoogleProvider, signInWithPopup, GoogleAuthProvider } from './firebase';
 
 export const WORKSPACE_SCOPES = [
   'https://www.googleapis.com/auth/tasks',
@@ -37,7 +37,7 @@ export async function requestWorkspaceAccessToken(): Promise<string> {
   }
 
   try {
-    const result = await signInWithPopup(auth, googleProvider);
+    const result = await signInWithPopup(auth, workspaceGoogleProvider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
     if (!credential?.accessToken) {
       throw new Error('Could not obtain Google Workspace access token from authentication.');

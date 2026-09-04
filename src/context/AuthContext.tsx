@@ -3,6 +3,7 @@ import {
   User,
   auth,
   googleProvider,
+  workspaceGoogleProvider,
   signInWithPopup,
   firebaseSignOut,
   onAuthStateChanged,
@@ -79,7 +80,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Google Sign-in failed:', err);
       // Suppress popup-closed-by-user error message nicely
       if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
-        setError(err.message || 'Failed to sign in with Google. Please try again.');
+        if (err.code === 'auth/internal-error') {
+          setError(
+            'Google Sign-In internal error: Please verify that this domain is added in Firebase Console (Authentication > Settings > Authorized Domains) and Google Cloud OAuth Client Credentials (Authorized JavaScript origins).'
+          );
+        } else {
+          setError(err.message || 'Failed to sign in with Google. Please try again.');
+        }
       }
     } finally {
       setLoading(false);
@@ -93,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     // Interactive token request if not in memory
-    const result = await signInWithPopup(auth, googleProvider);
+    const result = await signInWithPopup(auth, workspaceGoogleProvider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
     if (!credential?.accessToken) {
       throw new Error('Could not acquire Google Workspace access token.');
