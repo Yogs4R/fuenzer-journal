@@ -32,10 +32,11 @@
 
 ## 🌐 Live Production & Domain Endpoints
 
-- **Primary Application URL**: [https://fuenzer-journal.ai.studio]([https://fuenzer-journal.ai.studio](https://fuenzer-journal-76kg6jeh3q-as.a.run.app))
+- **Primary Application URL**: [https://fuenzer-journal-76kg6jeh3q-as.a.run.app](https://fuenzer-journal-76kg6jeh3q-as.a.run.app)
 - **Personal Branding Subdomain**: [https://journal.fuenzer.web.id](https://journal.fuenzer.web.id)
-- **LLMs / Generative Engine Optimization (GEO) Manifest**: [https://fuenzer-journal.ai.studio/llms.txt]([https://fuenzer-journal.ai.studio](https://fuenzer-journal-76kg6jeh3q-as.a.run.app)/llms.txt)
-- **XML Sitemap**: [https://fuenzer-journal.ai.studio/sitemap.xml](https://journal.fuenzer.web.id/sitemap.xml)
+- **AI Studio Applet URL**: [https://fuenzer-journal.ai.studio](https://fuenzer-journal.ai.studio)
+- **LLMs / Generative Engine Optimization (GEO) Manifest**: [https://journal.fuenzer.web.id/llms.txt](https://journal.fuenzer.web.id/llms.txt)
+- **XML Sitemap**: [https://journal.fuenzer.web.id/sitemap.xml](https://journal.fuenzer.web.id/sitemap.xml)
 
 ---
 
