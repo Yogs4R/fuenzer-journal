@@ -742,6 +742,24 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Top Conclude & Save Button */}
+            {messages.length > 1 && (
+              <button
+                type="button"
+                onClick={handleSummarizeSession}
+                disabled={summarizing}
+                className="px-3 py-1 text-[11px] font-bold text-white bg-[#3a3a30] dark:bg-[#e8e8df] dark:text-[#181814] hover:bg-[#2c2c26] dark:hover:bg-[#f0efe6] transition flex items-center gap-1.5 cursor-pointer uppercase tracking-wider shadow-xs"
+                title="Conclude and save this reflection"
+              >
+                {summarizing ? (
+                  <Loader2 className="w-3 h-3 animate-spin text-[#7d8461]" />
+                ) : (
+                  <FileCheck className="w-3 h-3 text-[#ddb892] dark:text-[#7d8461]" />
+                )}
+                <span>Conclude & Save</span>
+              </button>
+            )}
+
             {/* New Reflection Button in Banner */}
             <button
               type="button"

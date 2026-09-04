@@ -3,9 +3,9 @@
   "appId": "1:330213410510:web:7e2760d3b0b6f89530b29f",
   "apiKey": "AIzaSyDJh7Rjx4SIXLpIckeP1UYkQr9O2-2-9GA",
   "authDomain": "research-fuenzer.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-ea9edce7-50d5-441c-97b0-4180a68ead94",
   "storageBucket": "research-fuenzer.firebasestorage.app",
   "messagingSenderId": "330213410510",
   "measurementId": "",
-  "oAuthClientId": "330213410510-73q9klltkr4au948p9vj659gfcc9udt0.apps.googleusercontent.com",
   "recaptchaSiteKey": ""
 }

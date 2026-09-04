@@ -399,6 +399,7 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
               onTogglePinEntry={handleTogglePinEntry}
               onStartNewEntry={handleStartNewEntry}
               onResumeSession={handleResumeSession}
+              onSaveEntry={handleEntrySaved}
             />
           )}
 

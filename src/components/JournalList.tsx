@@ -14,6 +14,8 @@ import {
   FileCode,
   ChevronDown,
   Check,
+  Loader2,
+  CheckCircle2,
 } from 'lucide-react';
 import type { JournalEntry, JournalFrameworkId } from '../types/journal';
 import { JOURNAL_FRAMEWORKS, MOOD_OPTIONS } from '../lib/constants';
@@ -21,6 +23,8 @@ import { MoodIcon } from './MoodIcon';
 import { JournalDetailModal } from './JournalDetailModal';
 import { exportJournalToPdf, exportArchiveToPdf } from '../lib/pdf-export';
 import { formatJournalDate, getLocalDateString } from '../lib/date-utils';
+import { useAuth } from '../context/AuthContext';
+import { saveJournalToFirestore } from '../lib/firebase';
 
 interface JournalListProps {
   entries: JournalEntry[];
@@ -29,6 +33,7 @@ interface JournalListProps {
   onTogglePinEntry?: (id: string, currentPin: boolean) => void;
   onStartNewEntry: () => void;
   onResumeSession?: (entry: JournalEntry) => void;
+  onSaveEntry?: (entry: JournalEntry) => void;
 }
 
 export const JournalList: React.FC<JournalListProps> = ({
@@ -38,7 +43,9 @@ export const JournalList: React.FC<JournalListProps> = ({
   onTogglePinEntry,
   onStartNewEntry,
   onResumeSession,
+  onSaveEntry,
 }) => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMood, setSelectedMood] = useState<string>('all');
   const [selectedFramework, setSelectedFramework] = useState<string>('all');
@@ -47,6 +54,8 @@ export const JournalList: React.FC<JournalListProps> = ({
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [exportSuccess, setExportSuccess] = useState<string | null>(null);
   const [hasActiveDraft, setHasActiveDraft] = useState(false);
+  const [activeDraftData, setActiveDraftData] = useState<any>(null);
+  const [savingDraft, setSavingDraft] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -56,10 +65,67 @@ export const JournalList: React.FC<JournalListProps> = ({
         const parsed = JSON.parse(draft);
         if (Array.isArray(parsed?.messages) && parsed.messages.length > 1) {
           setHasActiveDraft(true);
+          setActiveDraftData(parsed);
         }
       }
     } catch {}
   }, []);
+
+  const handleQuickSaveDraft = async () => {
+    if (!activeDraftData?.messages || activeDraftData.messages.length === 0) {
+      onStartNewEntry();
+      return;
+    }
+    setSavingDraft(true);
+    try {
+      const now = Date.now();
+      const userMsgs = activeDraftData.messages.filter((m: any) => m.role === 'user');
+      const firstUserMsg = userMsgs[0]?.content || 'Personal Reflection';
+      const cleanTitle = firstUserMsg.slice(0, 45).replace(/[#*_\n]/g, ' ').trim() || 'Socratic Reflection';
+
+      const totalWords = activeDraftData.messages.reduce(
+        (acc: number, m: any) => acc + (m.content ? m.content.split(/\s+/).length : 0),
+        0
+      );
+
+      const newEntry: JournalEntry = {
+        id: `journal_${now}_${Math.random().toString(36).substring(2, 8)}`,
+        userId: user?.uid || 'guest_user',
+        title: cleanTitle,
+        createdAt: now,
+        updatedAt: now,
+        framework: activeDraftData.framework || 'socratic',
+        initialMood: activeDraftData.currentMood || 'calm',
+        detectedMood: activeDraftData.currentMood || 'calm',
+        themes: ['Reflection', 'Inquiry'],
+        executiveSummary: userMsgs.map((m: any) => m.content).join(' ').slice(0, 320) + '...',
+        keyInsights: [
+          'In-progress reflection saved from active session.',
+          userMsgs[userMsgs.length - 1]?.content
+            ? `Reflection focus: "${userMsgs[userMsgs.length - 1].content.slice(0, 120)}"`
+            : 'Socratic dialogue captured into archive.',
+        ],
+        actionItems: ['Review captured reflection insights', 'Continue mindful contemplation'],
+        closingAffirmation: 'Self-awareness is the foundation of growth and clarity.',
+        transcript: activeDraftData.messages,
+        wordCount: totalWords,
+        pinned: false,
+      };
+
+      if (user?.uid) {
+        await saveJournalToFirestore(user.uid, newEntry);
+      }
+      localStorage.removeItem('fuenzer_journal_active_draft_v2');
+      setHasActiveDraft(false);
+      if (onSaveEntry) {
+        onSaveEntry(newEntry);
+      }
+    } catch (err) {
+      console.error('Failed to quick-save draft to Firestore:', err);
+    } finally {
+      setSavingDraft(false);
+    }
+  };
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -463,13 +529,33 @@ export const JournalList: React.FC<JournalListProps> = ({
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             {hasActiveDraft && (
-              <button
-                onClick={onStartNewEntry}
-                className="w-full sm:w-auto px-5 py-2.5 bg-[#ddb892] hover:bg-[#c9a47e] text-[#2c2c26] rounded-none text-xs font-bold shadow-xs transition cursor-pointer uppercase tracking-wider flex items-center justify-center gap-1.5"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                Resume In-Progress Draft
-              </button>
+              <>
+                <button
+                  onClick={handleQuickSaveDraft}
+                  disabled={savingDraft}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-[#3a3a30] dark:bg-[#e8e8df] hover:bg-[#2c2c26] dark:hover:bg-[#f0efe6] text-[#fbfaf5] dark:text-[#181814] rounded-none text-xs font-bold shadow-xs transition cursor-pointer uppercase tracking-wider flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  title="Save current draft directly to your permanent Firestore archive"
+                >
+                  {savingDraft ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#7d8461]" />
+                      <span>Saving to Archive...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#ddb892] dark:text-[#7d8461]" />
+                      <span>Quick-Save Draft to Archive</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={onStartNewEntry}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-[#ddb892] hover:bg-[#c9a47e] text-[#2c2c26] rounded-none text-xs font-bold shadow-xs transition cursor-pointer uppercase tracking-wider flex items-center justify-center gap-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Resume in Editor
+                </button>
+              </>
             )}
             <button
               onClick={onStartNewEntry}

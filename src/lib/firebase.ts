@@ -35,12 +35,19 @@ const configuredDbId = (firebaseConfigJson as any).firestoreDatabaseId;
 export const FIRESTORE_DATABASE_ID =
   configuredDbId && configuredDbId !== '(default)'
     ? configuredDbId
-    : '(default)';
+    : 'ai-studio-ea9edce7-50d5-441c-97b0-4180a68ead94';
 
 export const db: Firestore =
   FIRESTORE_DATABASE_ID !== '(default)'
     ? getFirestore(app, FIRESTORE_DATABASE_ID)
     : getFirestore(app);
+
+// Secondary fallback database to ensure zero data loss across database transitions
+const SECONDARY_DATABASE_ID = 'ai-studio-fuenzerjournal-ea9edce7-50d5-441c-97b0-4180a68ead94';
+const secondaryDb: Firestore | null =
+  FIRESTORE_DATABASE_ID !== SECONDARY_DATABASE_ID
+    ? getFirestore(app, SECONDARY_DATABASE_ID)
+    : null;
 
 // Clean Standard Google Auth Provider (profile & email only for instant, error-free sign-in)
 export const googleProvider = new GoogleAuthProvider();
@@ -91,25 +98,19 @@ export async function saveJournalToFirestore(
 }
 
 /**
- * Fetch all journals for authenticated user in chronological order
+ * Helper to fetch entries from a specific Firestore database instance
  */
-export async function fetchUserJournals(userId: string): Promise<JournalEntry[]> {
-  if (!userId) return [];
-
-  console.log(`[Fuenzer Journal] Fetching reflections from Firestore for user: ${userId}...`);
-  const journalsRef = collection(db, 'users', userId, 'journals');
-
+async function fetchEntriesFromDb(targetDb: Firestore, userId: string): Promise<JournalEntry[]> {
+  const journalsRef = collection(targetDb, 'users', userId, 'journals');
   let querySnapshot;
   try {
     const q = query(journalsRef, orderBy('createdAt', 'desc'));
     querySnapshot = await getDocs(q);
-  } catch (queryErr) {
-    console.warn('[Fuenzer Journal] Query with orderBy failed, attempting un-indexed collection fetch:', queryErr);
+  } catch {
     querySnapshot = await getDocs(journalsRef);
   }
 
   const entries: JournalEntry[] = [];
-
   querySnapshot.forEach((docSnap) => {
     if (docSnap.exists()) {
       const data = docSnap.data();
@@ -123,7 +124,43 @@ export async function fetchUserJournals(userId: string): Promise<JournalEntry[]>
       } as JournalEntry);
     }
   });
+  return entries;
+}
 
+/**
+ * Fetch all journals for authenticated user in chronological order
+ * Resiliently queries primary database and fallback database, merging records by ID
+ */
+export async function fetchUserJournals(userId: string): Promise<JournalEntry[]> {
+  if (!userId) return [];
+
+  console.log(`[Fuenzer Journal] Fetching reflections from Firestore for user: ${userId}...`);
+
+  const entryMap = new Map<string, JournalEntry>();
+
+  try {
+    const primaryEntries = await fetchEntriesFromDb(db, userId);
+    for (const entry of primaryEntries) {
+      if (entry.id) entryMap.set(entry.id, entry);
+    }
+  } catch (err) {
+    console.warn(`[Fuenzer Journal] Primary database (${FIRESTORE_DATABASE_ID}) query error:`, err);
+  }
+
+  if (secondaryDb) {
+    try {
+      const secondaryEntries = await fetchEntriesFromDb(secondaryDb, userId);
+      for (const entry of secondaryEntries) {
+        if (entry.id && !entryMap.has(entry.id)) {
+          entryMap.set(entry.id, entry);
+        }
+      }
+    } catch {
+      // Secondary query error is benign
+    }
+  }
+
+  const entries = Array.from(entryMap.values());
   entries.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   console.log(`[Fuenzer Journal] Successfully loaded ${entries.length} reflections from Firestore.`);
   return entries;
@@ -139,6 +176,13 @@ export async function deleteJournalFromFirestore(
   if (!userId || !journalId) throw new Error('Invalid user or journal ID');
   const journalDocRef = doc(db, 'users', userId, 'journals', journalId);
   await deleteDoc(journalDocRef);
+
+  if (secondaryDb) {
+    try {
+      const secRef = doc(secondaryDb, 'users', userId, 'journals', journalId);
+      await deleteDoc(secRef);
+    } catch {}
+  }
 }
 
 /**

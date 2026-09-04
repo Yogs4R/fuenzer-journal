@@ -15,7 +15,7 @@ app.set('trust proxy', 1);
 // Security Headers & Cross-Origin Middleware (Matching public/_headers)
 app.use((req: Request, res: Response, next: NextFunction) => {
   const origin = req.headers.origin;
-  const allowedOrigins = [
+  const allowedOrigins = new Set([
     'https://fuenzer-journal-330213410510.asia-southeast1.run.app',
     'https://fuenzer-journal-76kg6jeh3q-as.a.run.app',
     'https://journal.fuenzer.web.id',
@@ -24,13 +24,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     'https://ais-pre-3ergsgvrrwn3clctmx6od7-783802656167.asia-southeast1.run.app',
     'http://localhost:3000',
     'http://localhost:5173',
-  ];
+  ]);
 
-  if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.run.app') || origin.endsWith('.fuenzer.web.id') || origin.endsWith('.ai.studio'))) {
+  if (origin && allowedOrigins.has(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
   }
 
   if (req.method === 'OPTIONS') {
