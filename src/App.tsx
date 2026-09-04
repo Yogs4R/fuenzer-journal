@@ -92,7 +92,13 @@ function JournalDashboard({ initialTab = 'editor' }: JournalDashboardProps) {
   const loadJournals = async (uid: string) => {
     setLoadingEntries(true);
     try {
-      const userEntries = await fetchUserJournals(uid);
+      const timeoutPromise = new Promise<JournalEntry[]>((_, reject) =>
+        setTimeout(() => reject(new Error('Journal fetch timed out after 8s')), 8000)
+      );
+      const userEntries = await Promise.race([
+        fetchUserJournals(uid),
+        timeoutPromise,
+      ]);
       setEntries(userEntries);
     } catch (err) {
       console.error('Failed to load journals from Firestore:', err);

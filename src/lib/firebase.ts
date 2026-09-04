@@ -29,26 +29,18 @@ const app = !getApps().length ? initializeApp(firebaseConfigJson) : getApp();
 
 export const auth = getAuth(app);
 
-// Initialize default Firestore database (standard database shown in Firebase Console)
-export const defaultDb: Firestore = getFirestore(app);
-
-// Check if a secondary/custom Firestore database ID exists in applet configuration
+// Initialize Firestore directly with the configured database ID
 const configuredDbId = (firebaseConfigJson as any).firestoreDatabaseId;
-export const customDb: Firestore =
+
+export const FIRESTORE_DATABASE_ID =
   configuredDbId && configuredDbId !== '(default)'
-    ? getFirestore(app, configuredDbId)
-    : defaultDb;
+    ? configuredDbId
+    : '(default)';
 
-export const FIRESTORE_DATABASE_ID = configuredDbId || '(default)';
-
-// Dynamic resilient active database reference
-let activeDb: Firestore = defaultDb;
-
-export const db = new Proxy({} as Firestore, {
-  get(_target, prop) {
-    return (activeDb as any)[prop];
-  },
-});
+export const db: Firestore =
+  FIRESTORE_DATABASE_ID !== '(default)'
+    ? getFirestore(app, FIRESTORE_DATABASE_ID)
+    : getFirestore(app);
 
 // Clean Standard Google Auth Provider (profile & email only for instant, error-free sign-in)
 export const googleProvider = new GoogleAuthProvider();
@@ -74,13 +66,37 @@ export function sanitizeForFirestore<T>(data: T): T {
 }
 
 /**
- * Helper to query journals from a specific Firestore database instance
+ * Save or update a journal entry in Firestore under user-isolated path:
+ * /users/{userId}/journals/{journalId}
  */
-async function queryJournalsFromInstance(
-  instance: Firestore,
-  userId: string
-): Promise<JournalEntry[]> {
-  const journalsRef = collection(instance, 'users', userId, 'journals');
+export async function saveJournalToFirestore(
+  userId: string,
+  entry: JournalEntry
+): Promise<void> {
+  if (!userId) throw new Error('User ID is required to save journal');
+  if (!entry.id) throw new Error('Journal ID is required');
+
+  const createdAt = parseTimestamp(entry.createdAt || Date.now());
+  const updatedAt = Date.now();
+
+  const sanitized = sanitizeForFirestore({
+    ...entry,
+    userId,
+    createdAt,
+    updatedAt,
+  });
+
+  const journalDocRef = doc(db, 'users', userId, 'journals', entry.id);
+  await setDoc(journalDocRef, sanitized, { merge: true });
+}
+
+/**
+ * Fetch all journals for authenticated user in chronological order
+ */
+export async function fetchUserJournals(userId: string): Promise<JournalEntry[]> {
+  if (!userId) return [];
+
+  const journalsRef = collection(db, 'users', userId, 'journals');
   const q = query(journalsRef, orderBy('createdAt', 'desc'));
 
   const querySnapshot = await getDocs(q);
@@ -103,80 +119,6 @@ async function queryJournalsFromInstance(
 }
 
 /**
- * Save or update a journal entry in Firestore under user-isolated path:
- * /users/{userId}/journals/{journalId}
- * Resiliently falls back between defaultDb and customDb if permission or database mismatch occurs.
- */
-export async function saveJournalToFirestore(
-  userId: string,
-  entry: JournalEntry
-): Promise<void> {
-  if (!userId) throw new Error('User ID is required to save journal');
-  if (!entry.id) throw new Error('Journal ID is required');
-
-  const createdAt = parseTimestamp(entry.createdAt || Date.now());
-  const updatedAt = Date.now();
-
-  const sanitized = sanitizeForFirestore({
-    ...entry,
-    userId,
-    createdAt,
-    updatedAt,
-  });
-
-  try {
-    const journalDocRef = doc(activeDb, 'users', userId, 'journals', entry.id);
-    await setDoc(journalDocRef, sanitized, { merge: true });
-  } catch (err: any) {
-    const fallbackDb = activeDb === defaultDb ? customDb : defaultDb;
-    if (fallbackDb !== activeDb) {
-      console.warn('Save on primary db failed, attempting fallback db:', err);
-      const journalDocRef = doc(fallbackDb, 'users', userId, 'journals', entry.id);
-      await setDoc(journalDocRef, sanitized, { merge: true });
-      activeDb = fallbackDb;
-      return;
-    }
-    throw err;
-  }
-}
-
-/**
- * Fetch all journals for authenticated user in chronological order.
- * Checks defaultDb (Firebase Console standard database) first, then falls back to customDb.
- */
-export async function fetchUserJournals(userId: string): Promise<JournalEntry[]> {
-  if (!userId) return [];
-
-  // 1. Try defaultDb first (where databases created via Firebase Console live)
-  try {
-    const defaultEntries = await queryJournalsFromInstance(defaultDb, userId);
-    activeDb = defaultDb;
-    if (defaultEntries.length > 0) {
-      return defaultEntries;
-    }
-  } catch (err: any) {
-    console.warn('Query on defaultDb had error, checking customDb:', err?.message || err);
-  }
-
-  // 2. If defaultDb returned 0 or threw an error, and customDb is distinct, try customDb
-  if (customDb !== defaultDb) {
-    try {
-      const customEntries = await queryJournalsFromInstance(customDb, userId);
-      if (customEntries.length > 0) {
-        activeDb = customDb;
-        return customEntries;
-      }
-    } catch (err: any) {
-      console.warn('Query on customDb had error:', err?.message || err);
-    }
-  }
-
-  // If neither had entries, keep activeDb set to defaultDb
-  activeDb = defaultDb;
-  return [];
-}
-
-/**
  * Delete a journal entry strictly under user's isolated path
  */
 export async function deleteJournalFromFirestore(
@@ -184,19 +126,8 @@ export async function deleteJournalFromFirestore(
   journalId: string
 ): Promise<void> {
   if (!userId || !journalId) throw new Error('Invalid user or journal ID');
-  try {
-    const journalDocRef = doc(activeDb, 'users', userId, 'journals', journalId);
-    await deleteDoc(journalDocRef);
-  } catch (err: any) {
-    const fallbackDb = activeDb === defaultDb ? customDb : defaultDb;
-    if (fallbackDb !== activeDb) {
-      const journalDocRef = doc(fallbackDb, 'users', userId, 'journals', journalId);
-      await deleteDoc(journalDocRef);
-      activeDb = fallbackDb;
-      return;
-    }
-    throw err;
-  }
+  const journalDocRef = doc(db, 'users', userId, 'journals', journalId);
+  await deleteDoc(journalDocRef);
 }
 
 /**
@@ -208,19 +139,8 @@ export async function togglePinJournal(
   pinned: boolean
 ): Promise<void> {
   if (!userId || !journalId) return;
-  try {
-    const journalDocRef = doc(activeDb, 'users', userId, 'journals', journalId);
-    await updateDoc(journalDocRef, { pinned: !pinned, updatedAt: Date.now() });
-  } catch (err: any) {
-    const fallbackDb = activeDb === defaultDb ? customDb : defaultDb;
-    if (fallbackDb !== activeDb) {
-      const journalDocRef = doc(fallbackDb, 'users', userId, 'journals', journalId);
-      await updateDoc(journalDocRef, { pinned: !pinned, updatedAt: Date.now() });
-      activeDb = fallbackDb;
-      return;
-    }
-    throw err;
-  }
+  const journalDocRef = doc(db, 'users', userId, 'journals', journalId);
+  await updateDoc(journalDocRef, { pinned: !pinned, updatedAt: Date.now() });
 }
 
 /**
@@ -233,25 +153,11 @@ export async function updateJournalActionItems(
 ): Promise<void> {
   if (!userId || !journalId) return;
   const sanitizedItems = sanitizeForFirestore(actionItems);
-  try {
-    const journalDocRef = doc(activeDb, 'users', userId, 'journals', journalId);
-    await updateDoc(journalDocRef, {
-      actionItems: sanitizedItems,
-      updatedAt: Date.now(),
-    });
-  } catch (err: any) {
-    const fallbackDb = activeDb === defaultDb ? customDb : defaultDb;
-    if (fallbackDb !== activeDb) {
-      const journalDocRef = doc(fallbackDb, 'users', userId, 'journals', journalId);
-      await updateDoc(journalDocRef, {
-        actionItems: sanitizedItems,
-        updatedAt: Date.now(),
-      });
-      activeDb = fallbackDb;
-      return;
-    }
-    throw err;
-  }
+  const journalDocRef = doc(db, 'users', userId, 'journals', journalId);
+  await updateDoc(journalDocRef, {
+    actionItems: sanitizedItems,
+    updatedAt: Date.now(),
+  });
 }
 
 /**
@@ -263,19 +169,8 @@ export async function saveDraftSession(
 ): Promise<void> {
   if (!userId) return;
   const payload = sanitizeForFirestore({ ...draftData, updatedAt: Date.now() });
-  try {
-    const draftRef = doc(activeDb, 'users', userId, 'interactions', 'active_draft');
-    await setDoc(draftRef, payload);
-  } catch (err: any) {
-    const fallbackDb = activeDb === defaultDb ? customDb : defaultDb;
-    if (fallbackDb !== activeDb) {
-      const draftRef = doc(fallbackDb, 'users', userId, 'interactions', 'active_draft');
-      await setDoc(draftRef, payload);
-      activeDb = fallbackDb;
-      return;
-    }
-    // Draft autosave errors are silent to avoid disrupting flow
-  }
+  const draftRef = doc(db, 'users', userId, 'interactions', 'active_draft');
+  await setDoc(draftRef, payload);
 }
 
 /**
@@ -284,21 +179,10 @@ export async function saveDraftSession(
 export async function getDraftSession(userId: string): Promise<any | null> {
   if (!userId) return null;
   try {
-    const draftRef = doc(activeDb, 'users', userId, 'interactions', 'active_draft');
+    const draftRef = doc(db, 'users', userId, 'interactions', 'active_draft');
     const snap = await getDoc(draftRef);
     return snap.exists() ? snap.data() : null;
-  } catch (err: any) {
-    const fallbackDb = activeDb === defaultDb ? customDb : defaultDb;
-    if (fallbackDb !== activeDb) {
-      try {
-        const draftRef = doc(fallbackDb, 'users', userId, 'interactions', 'active_draft');
-        const snap = await getDoc(draftRef);
-        if (snap.exists()) {
-          activeDb = fallbackDb;
-          return snap.data();
-        }
-      } catch {}
-    }
+  } catch {
     return null;
   }
 }
@@ -308,16 +192,8 @@ export async function getDraftSession(userId: string): Promise<any | null> {
  */
 export async function clearDraftSession(userId: string): Promise<void> {
   if (!userId) return;
-  try {
-    const draftRef = doc(activeDb, 'users', userId, 'interactions', 'active_draft');
-    await deleteDoc(draftRef).catch(() => {});
-  } catch {
-    const fallbackDb = activeDb === defaultDb ? customDb : defaultDb;
-    if (fallbackDb !== activeDb) {
-      const draftRef = doc(fallbackDb, 'users', userId, 'interactions', 'active_draft');
-      await deleteDoc(draftRef).catch(() => {});
-    }
-  }
+  const draftRef = doc(db, 'users', userId, 'interactions', 'active_draft');
+  await deleteDoc(draftRef).catch(() => {});
 }
 
 export { firebaseSignOut, signInWithPopup, onAuthStateChanged, GoogleAuthProvider };
